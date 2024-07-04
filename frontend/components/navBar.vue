@@ -7,31 +7,44 @@
         </v-col>
 
         <v-col class="d-flex justify-center">
-          <v-btn text>Ao vivo</v-btn>
+          <v-btn text>{{ $t('live') }}</v-btn>
           <v-menu offset-y>
             <template v-slot:activator="{ on, attrs }">
-              <v-btn text v-bind="attrs" v-on="on">Campeonatos</v-btn>
+              <v-btn text v-bind="attrs" v-on="on">{{ $t('championships') }}</v-btn>
             </template>
             <v-list>
               <v-list-item link>
-                <v-list-item-title>Campeonato 1</v-list-item-title>
+                <v-list-item-title>{{ $t('championship1') }}</v-list-item-title>
               </v-list-item>
               <v-list-item link>
-                <v-list-item-title>Campeonato 2</v-list-item-title>
+                <v-list-item-title>{{ $t('championship2') }}</v-list-item-title>
               </v-list-item>
               <v-list-item link>
-                <v-list-item-title>Campeonato 3</v-list-item-title>
+                <v-list-item-title>{{ $t('championship3') }}</v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
         </v-col>
 
         <v-col cols="auto">
-          <v-btn outlined color="primary">Logar</v-btn>
+          <v-btn outlined color="primary">{{ $t('login') }}</v-btn>
           <v-btn color="primary">
-            <span>Registrar</span>
+            <span>{{ $t('register') }}</span>
             <v-icon right>mdi-arrow-right</v-icon>
           </v-btn>
+          <v-menu offset-y>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon v-bind="attrs" v-on="on" class="flag-btn">
+                <v-icon :class="`flag-icon flag-icon-${currentLang}`"></v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item v-for="lang in languages" :key="lang.value" @click="changeLanguage(lang.value)">
+                <v-icon left :class="`flag-icon flag-icon-${lang.value}`"></v-icon>
+                <v-list-item-title>{{ lang.text }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </v-col>
       </v-row>
     </v-container>
@@ -40,12 +53,35 @@
 
 <script>
 export default {
-  name: "navBar"
+  name: "navBar",
+  data() {
+    return {
+      currentLang: 'br',
+      languages: [
+        { text: 'English', value: 'gb' },
+        { text: 'Português', value: 'pt' }
+      ]
+    }
+  },
+  methods: {
+    changeLanguage(lang) {
+      this.currentLang = lang
+      this.$i18n.locale = lang === 'gb' ? 'en' : 'pt'
+      this.$store.dispatch('setLanguage', this.$i18n.locale)
+    }
+  }
 }
 </script>
 
 <style scoped>
 .v-btn {
   margin-right: 10px;
+}
+.ml-3 {
+  margin-left: 10px;
+}
+.flag-btn .v-icon {
+  width: 24px;
+  height: 24px;
 }
 </style>
