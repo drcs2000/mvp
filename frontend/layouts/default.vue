@@ -1,5 +1,6 @@
 <template>
   <v-app>
+    <NavBar />
     <v-main class="main-bg">
       <Nuxt />
     </v-main>
@@ -8,11 +9,10 @@
 </template>
 
 <script>
-import Footer from '~/components/footer.vue';
-
 export default {
   components: {
-    Footer
+    Footer: () => import('~/components/footer.vue'),
+    NavBar: () => import('~/components/navBar.vue')
   }
 }
 </script>
