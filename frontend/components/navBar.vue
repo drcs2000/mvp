@@ -3,7 +3,7 @@
     <v-container>
       <v-row align="center" justify="space-between">
         <v-col cols="auto">
-          <v-img src="../assets/images/logo.png" contain width="50" height="50" />
+          <v-img :src="logo" contain width="50" height="50" />
         </v-col>
 
         <v-col class="d-flex justify-center">
@@ -52,11 +52,14 @@
 </template>
 
 <script>
+import logo from '../assets/images/logo.png';
+
 export default {
-  name: "navBar",
+  name: "NavBar",
   data() {
     return {
-      currentLang: 'br',
+      logo,
+      currentLang: 'pt',
       languages: [
         { text: 'English', value: 'gb' },
         { text: 'Português', value: 'pt' }
@@ -65,6 +68,7 @@ export default {
   },
   methods: {
     changeLanguage(lang) {
+      console.log(this.$i18n.locale)
       this.currentLang = lang
       this.$i18n.locale = lang === 'gb' ? 'en' : 'pt'
       this.$store.dispatch('setLanguage', this.$i18n.locale)
@@ -79,9 +83,5 @@ export default {
 }
 .ml-3 {
   margin-left: 10px;
-}
-.flag-btn .v-icon {
-  width: 24px;
-  height: 24px;
 }
 </style>
