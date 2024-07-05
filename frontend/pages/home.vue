@@ -7,10 +7,12 @@
       </video>
     </div>
     <div class="content">
-      <h1>Seja o <span class="highlight">MVP</span> da Partida!</h1>
-      <p>
-        Participe dos melhores bolões e mostre que você é o mestre dos palpites!
-      </p>
+      <h1>
+        {{ $t("welcome-title-part1") }}
+        <span class="highlight">{{ $t("welcome-title-part2") }}</span>
+        {{ $t("welcome-title-part3") }}
+      </h1>
+      <p>{{ $t("welcome-message") }}</p>
     </div>
   </v-container>
 </template>
@@ -53,7 +55,7 @@ export default {
 }
 
 .content h1 {
-  font-size: 4rem;
+  font-size: 3.5rem;
 }
 
 .content p {

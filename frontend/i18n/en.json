@@ -5,5 +5,9 @@
   "championship2": "Championship 2",
   "championship3": "Championship 3",
   "login": "Login",
-  "register": "Register"
+  "register": "Register",
+  "welcome-title-part1": "Be the ",
+  "welcome-title-part2": "MVP",
+  "welcome-title-part3": " of the Match!",
+  "welcome-message": "Join the best pools and show that you are the master of predictions!"
 }

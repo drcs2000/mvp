@@ -5,5 +5,9 @@
   "championship2": "Campeonato 2",
   "championship3": "Campeonato 3",
   "login": "Logar",
-  "register": "Registrar"
+  "register": "Registrar",
+  "welcome-title-part1": "Seja o ",
+  "welcome-title-part2": "MVP",
+  "welcome-title-part3": " da Partida!",
+  "welcome-message": "Participe dos melhores bolões e mostre que você é o mestre dos palpites!"
 }
