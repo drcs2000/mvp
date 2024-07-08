@@ -4,6 +4,13 @@
   "championship1": "Championship 1",
   "championship2": "Championship 2",
   "championship3": "Championship 3",
+  "enter": "Enter",
   "login": "Login",
-  "register": "Register"
+  "register": "Register",
+  "to_register": "Create Account",
+  "to_login": "Have an Account? Click here",
+  "lost_password": "Lost your password?",
+  "user_email": "Username or Email Address",
+  "password": "Password",
+  "remember_me": "Remember Me"
 }

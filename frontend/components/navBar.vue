@@ -27,15 +27,11 @@
         </v-col>
 
         <v-col cols="auto">
-          <v-btn outlined color="primary">{{ $t('login') }}</v-btn>
-          <v-btn color="primary">
-            <span>{{ $t('register') }}</span>
-            <v-icon right>mdi-arrow-right</v-icon>
-          </v-btn>
+          <v-btn outlined color="primary" to="/login">{{ $t('enter') }}</v-btn>
           <v-menu offset-y>
             <template v-slot:activator="{ on, attrs }">
               <v-btn icon v-bind="attrs" v-on="on" class="flag-btn">
-                <v-icon :class="`flag-icon flag-icon-${currentLang}`"></v-icon>
+                <v-icon :class="`flag-icon flag-icon-${currentLang}`" />
               </v-btn>
             </template>
             <v-list>
@@ -56,7 +52,7 @@ export default {
   name: "navBar",
   data() {
     return {
-      currentLang: 'br',
+      currentLang: 'pt',
       languages: [
         { text: 'English', value: 'gb' },
         { text: 'Português', value: 'pt' }
