@@ -19,5 +19,9 @@
   "username": "Username",
   "confirm_password": "Confirm Password",
   "login_title": "Login",
-  "register_title": "Register"
+  "register_title": "Register",
+  "welcome-title-part1": "Be the ",
+  "welcome-title-part2": "MVP",
+  "welcome-title-part3": " of the Match!",
+  "welcome-message": "Join the best pools and show that you are the master of predictions!"
 }

@@ -19,5 +19,9 @@
   "username": "Nome de Usuário",
   "confirm_password": "Confirme a Senha",
   "login_title": "Login",
-  "register_title": "Registro"
+  "register_title": "Registro",
+  "welcome-title-part1": "Seja o ",
+  "welcome-title-part2": "MVP",
+  "welcome-title-part3": " da Partida!",
+  "welcome-message": "Participe dos melhores bolões e mostre que você é o mestre dos palpites!"
 }

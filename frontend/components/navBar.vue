@@ -3,7 +3,7 @@
     <v-container>
       <v-row align="center" justify="space-between">
         <v-col cols="auto">
-          <v-img src="../assets/images/logo.png" contain width="50" height="50" />
+          <v-img :src="logo" contain width="50" height="50" />
         </v-col>
 
         <v-col class="d-flex justify-center">
@@ -48,10 +48,13 @@
 </template>
 
 <script>
+import logo from '../assets/images/logo.png'
+
 export default {
   name: "navBar",
   data() {
     return {
+      logo,
       currentLang: 'pt',
       languages: [
         { text: 'English', value: 'gb' },
