@@ -10,34 +10,40 @@
       <v-col cols="12" md="6" class="login-container">
         <v-card class="pa-5" elevation="2">
           <template v-if="isLogin">
-            <v-text-field :label="$t('user_email')" prepend-icon="mdi-account" />
-            <v-text-field :label="$t('password')" type="password" prepend-icon="mdi-lock" />
-            <v-checkbox :label="$t('remember_me')" />
-            <v-btn class="mb-4 primary--text" color="secondary" block>{{ $t('login') }}</v-btn>
-            <v-btn text block>{{ $t('lost_password') }}</v-btn>
-            <v-btn text block @click="toggleForm">{{ $t('to_register') }}</v-btn>
+            <v-card-title>{{ $t('login_title') }}</v-card-title>
+            <v-card-text>
+              <v-text-field :label="$t('user_email')" prepend-icon="mdi-account" />
+              <v-text-field :label="$t('password')" type="password" prepend-icon="mdi-lock" />
+              <v-checkbox :label="$t('remember_me')" />
+              <v-btn class="mb-4 primary--text" color="secondary" block>{{ $t('login') }}</v-btn>
+              <v-btn text block>{{ $t('lost_password') }}</v-btn>
+              <v-btn text block @click="toggleForm">{{ $t('to_register') }}</v-btn>
+            </v-card-text>
           </template>
           <template v-else>
-            <v-text-field v-model="firstName" :label="$t('first_name')" prepend-icon="mdi-account" />
-            <v-text-field v-model="lastName" :label="$t('last_name')" prepend-icon="mdi-account" />
-            <v-text-field v-model="email" :label="$t('user_email')" prepend-icon="mdi-email" />
-            <v-text-field v-model="username" :label="$t('username')" prepend-icon="mdi-account" />
-            <v-text-field
-              v-model="password"
-              :label="$t('password')"
-              type="password"
-              prepend-icon="mdi-lock"
-              :rules="[passwordRule]"
-            />
-            <v-text-field
-              v-model="confirmPassword"
-              :label="$t('confirm_password')"
-              type="password"
-              prepend-icon="mdi-lock"
-              :rules="[confirmPasswordRule]"
-            />
-            <v-btn class="mb-4 primary--text" color="secondary" block @click="register">{{ $t('register') }}</v-btn>
-            <v-btn text block @click="toggleForm">{{ $t('back_to_login') }}</v-btn>
+            <v-card-title>{{ $t('register_title') }}</v-card-title>
+            <v-card-text>
+              <v-text-field v-model="firstName" :label="$t('first_name')" prepend-icon="mdi-account" />
+              <v-text-field v-model="lastName" :label="$t('last_name')" prepend-icon="mdi-account" />
+              <v-text-field v-model="email" :label="$t('email')" prepend-icon="mdi-email" />
+              <v-text-field v-model="username" :label="$t('username')" prepend-icon="mdi-account" />
+              <v-text-field
+                v-model="password"
+                :label="$t('password')"
+                type="password"
+                prepend-icon="mdi-lock"
+                :rules="[passwordRule]"
+              />
+              <v-text-field
+                v-model="confirmPassword"
+                :label="$t('confirm_password')"
+                type="password"
+                prepend-icon="mdi-lock"
+                :rules="[confirmPasswordRule]"
+              />
+              <v-btn class="mb-4 primary--text" color="secondary" block @click="register">{{ $t('register') }}</v-btn>
+              <v-btn text block @click="toggleForm">{{ $t('to_login') }}</v-btn>
+            </v-card-text>
           </template>
         </v-card>
       </v-col>

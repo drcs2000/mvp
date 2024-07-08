@@ -12,5 +12,12 @@
   "lost_password": "Esqueceu sua senha?",
   "user_email": "Username ou Endereço de Email",
   "password": "Senha",
-  "remember_me": "Lembre-se de Mim"
+  "remember_me": "Lembre-se de Mim",
+  "first_name": "Nome",
+  "last_name": "Sobrenome",
+  "email": "Endereço de Email",
+  "username": "Nome de Usuário",
+  "confirm_password": "Confirme a Senha",
+  "login_title": "Login",
+  "register_title": "Registro"
 }
