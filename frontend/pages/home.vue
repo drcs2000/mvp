@@ -1,11 +1,9 @@
 <template>
   <v-container fluid fill-height class="pa-0">
-    <div class="parallax-container">
-      <video autoplay muted loop id="background-video">
-        <source :src="videoSrc" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
-    </div>
+    <video autoplay muted loop id="background-video">
+      <source :src="videoSrc" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
     <div class="content">
       <h1>
         {{ $t("welcome-title-part1") }}
@@ -15,7 +13,7 @@
       <p>{{ $t("welcome-message") }}</p>
     </div>
     <div class="live-games">
-      <h2>{{ $t('live') }}</h2>
+      <h2>{{ $t("live") }}</h2>
       <div class="game">
         <span class="team">Fluminense</span>
         <span class="score">1</span>

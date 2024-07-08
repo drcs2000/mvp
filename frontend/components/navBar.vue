@@ -27,15 +27,11 @@
         </v-col>
 
         <v-col cols="auto">
-          <v-btn outlined color="primary">{{ $t('login') }}</v-btn>
-          <v-btn color="primary">
-            <span>{{ $t('register') }}</span>
-            <v-icon right>mdi-arrow-right</v-icon>
-          </v-btn>
+          <v-btn outlined color="primary" to="/login">{{ $t('enter') }}</v-btn>
           <v-menu offset-y>
             <template v-slot:activator="{ on, attrs }">
               <v-btn icon v-bind="attrs" v-on="on" class="flag-btn">
-                <v-icon :class="`flag-icon flag-icon-${currentLang}`"></v-icon>
+                <v-icon :class="`flag-icon flag-icon-${currentLang}`" />
               </v-btn>
             </template>
             <v-list>
@@ -52,10 +48,10 @@
 </template>
 
 <script>
-import logo from '../assets/images/logo.png';
+import logo from '../assets/images/logo.png'
 
 export default {
-  name: "NavBar",
+  name: "navBar",
   data() {
     return {
       logo,
@@ -68,7 +64,6 @@ export default {
   },
   methods: {
     changeLanguage(lang) {
-      console.log(this.$i18n.locale)
       this.currentLang = lang
       this.$i18n.locale = lang === 'gb' ? 'en' : 'pt'
       this.$store.dispatch('setLanguage', this.$i18n.locale)
@@ -83,5 +78,9 @@ export default {
 }
 .ml-3 {
   margin-left: 10px;
+}
+.flag-btn .v-icon {
+  width: 24px;
+  height: 24px;
 }
 </style>
