@@ -1,3 +1,120 @@
+/* Global Styles */
 body {
   font-family: 'Roboto Slab', serif;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+/* V-Card */
+.v-card {
+  width: 450px;
+}
+
+/* Fill Height */
+.fill-height {
+  min-height: calc(100vh - 64px);
+}
+
+/* Content Styles */
+.content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  text-align: center;
+  z-index: 1;
+}
+
+.content h1 {
+  font-size: 3.5rem;
+}
+
+.content p {
+  font-size: 1.5rem;
+}
+
+.highlight {
+  color: #c6de41;
+}
+
+.main-bg {
+  background-color: #071C21;
+}
+
+/* Background Video */
+#background-login-video,
+#background-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+}
+
+#background-login-video {
+  object-position: left;
+}
+
+/* Login Container */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #C6DE41;
+  z-index: 1;
+}
+
+/* Live Indicator */
+.live-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  background-color: #153b44;
+  font-size: 2rem;
+}
+
+/* Team Container */
+.team-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 1.5rem;
+}
+
+.team-logo {
+  width: auto;
+  height: 180px;
+  margin-bottom: 5px;
+}
+
+.team-logo-small {
+  width: auto;
+  height: 50px;
+}
+
+.score {
+  font-size: 6rem;
+  margin: 0 40px;
+}
+
+.minute {
+  font-size: 1.2rem;
+  color: #c6de41;
+}
+
+
+/* Media Queries */
+@media (max-width: 960px) {
+  .video-container,
+  #background-video,
+  .login-container {
+    height: 50vh;
+  }
 }

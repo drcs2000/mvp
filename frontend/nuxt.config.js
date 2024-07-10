@@ -1,7 +1,7 @@
 import colors from 'vuetify/es5/util/colors'
 
 export default {
-  // Global page headers: https://go.nuxtjs.dev/config-head
+  // Global page headers
   head: {
     titleTemplate: '%s',
     title: 'frontend',
@@ -21,54 +21,50 @@ export default {
     ]
   },
 
-  // Global CSS: https://go.nuxtjs.dev/config-css
+  // Global CSS
   css: [
+    '~/assets/css/tailwind.css', 
     '~/assets/css/main.css'
   ],
 
-  // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
+  // Plugins to run before rendering page
   plugins: [
     '~/plugins/i18n.js'
   ],
 
-  // Auto import components: https://go.nuxtjs.dev/config-components
+  // Auto import components
   components: true,
 
-  // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
+  // Modules for dev and build (recommended)
   buildModules: [
-    // https://go.nuxtjs.dev/eslint
-    // '@nuxtjs/eslint-module',
-    // https://go.nuxtjs.dev/vuetify
     '@nuxtjs/vuetify'
   ],
 
-  // Modules: https://go.nuxtjs.dev/config-modules
+  // Modules
   modules: [
-    // https://go.nuxtjs.dev/axios
     '@nuxtjs/axios'
   ],
 
-  // Axios module configuration: https://go.nuxtjs.dev/config-axios
+  // Axios module configuration
   axios: {
-    // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
     baseURL: '/'
   },
 
-  // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
+  // Vuetify module configuration
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
     theme: {
       dark: false,
       themes: {
         light: {
-          primary: '#C6DE41', // Primeira cor
-          secondary: '#153B44', // Segunda cor
-          tertiary: '#2D6E7E', // Terceira cor
+          primary: '#C6DE41',
+          secondary: '#153B44',
+          tertiary: '#2D6E7E',
         },
         dark: {
-          primary: '#C6DE41', // Primeira cor
-          secondary: '#153B44', // Segunda cor
-          tertiary: '#153B44', // Terceira cor
+          primary: '#C6DE41',
+          secondary: '#153B44',
+          tertiary: '#153B44',
         }
       }
     },
@@ -79,9 +75,8 @@ export default {
     }
   },
 
-  // Build Configuration: https://go.nuxtjs.dev/config-build
-  build: {
-  },
+  // Build Configuration
+  build: {},
 
   // Configuração do i18n
   i18n: {
@@ -97,5 +92,11 @@ export default {
         pt: require('./i18n/pt.json')
       }
     }
+  },
+
+  // Custom layouts
+  layoutTransition: 'layout',
+  layouts: {
+    login: '~/layouts/login.vue'
   }
 }

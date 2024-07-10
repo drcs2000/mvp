@@ -1,43 +1,40 @@
 <template>
-  <v-footer color="secondary" class="text-center d-flex flex-column">
-    <div>
-      <v-btn
-        v-for="icon in icons"
-        :key="icon"
-        class="mx-4"
-        outlined
-        color="primary"
-      >
-        <v-icon>{{ icon }}</v-icon>
-      </v-btn>
+  <v-footer color="tertiary" class="d-flex flex-column pt-10" dark>
+    <v-container>
+      <v-row justify="space-between" align="center">
+        <v-col cols="12" md="4" class="d-flex flex-column">
+          <v-img :src="logo" width="60" height="60" />
+          <h3 class="white--text mt-2 mb-0">MVP Pitacos</h3>
+        </v-col>
+        <v-col cols="12" md="4" class="d-flex flex-column justify-center">
+          <v-btn text to="/">{{ $t('home') }}</v-btn>
+          <v-btn text>{{ $t('live') }}</v-btn>
+          <v-btn text>{{ $t('next_games') }}</v-btn>
+          <v-btn text>{{ $t('championships') }}</v-btn>
+          <v-btn text>{{ $t('my_pools') }}</v-btn>
+        </v-col>
+        <v-col cols="12" md="4" class="d-flex justify-end">
+          <v-btn icon>
+            <v-icon>mdi-instagram</v-icon>
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
+    <div class="text-center my-10">
+      {{ $t('all_rights_reserved') }}
     </div>
-
-    <div class="pt-5 white-text">
-      Phasellus feugiat arcu sapien, et iaculis ipsum elementum sit amet. Mauris
-      cursus commodo interdum. Praesent ut risus eget metus luctus accumsan id
-      ultrices nunc. Sed at orci sed massa consectetur dignissim a sit amet dui.
-      Duis commodo vitae velit et faucibus. Morbi vehicula lacinia malesuada.
-      Nulla placerat augue vel ipsum ultrices, cursus iaculis dui sollicitudin.
-      Vestibulum eu ipsum vel diam elementum tempor vel ut orci. Orci varius
-      natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-    </div>
-
-    <v-divider></v-divider>
-
-    <div class="white-text">{{ new Date().getFullYear() }} — <strong>Davi e Gabriel</strong></div>
   </v-footer>
 </template>
 
 <script>
-export default {
-  data: () => ({
-    icons: ["mdi-facebook", "mdi-twitter", "mdi-linkedin", "mdi-instagram"],
-  }),
-};
-</script>
+import logo from '../assets/images/logo.png'
 
-<style scoped>
-.white-text {
-  color: white;
+export default {
+  name: "Footer",
+  data() {
+    return {
+      logo
+    }
+  }
 }
-</style>
+</script>
