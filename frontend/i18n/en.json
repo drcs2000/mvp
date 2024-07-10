@@ -1,9 +1,9 @@
 {
   "live": "Live",
-  "championships": "Championships",
-  "championship1": "Championship 1",
-  "championship2": "Championship 2",
-  "championship3": "Championship 3",
+  "championships": "Tournaments",
+  "championship1": "Tournament 1",
+  "championship2": "Tournament 2",
+  "championship3": "Tournament 3",
   "enter": "Enter",
   "login": "Login",
   "register": "Register",
@@ -23,5 +23,10 @@
   "welcome-title-part1": "Be the ",
   "welcome-title-part2": "MVP",
   "welcome-title-part3": " of the Match!",
-  "welcome-message": "Join the best pools and show that you are the master of predictions!"
+  "welcome-message": "Join the best pools and show that you are the master of predictions!",
+  "home": "Home",
+  "next_games": "Next Games",
+  "my_pools": "My Pools",
+  "all_rights_reserved": "All rights reserved for MVP Pitacos",
+  "prediction": "Make your next prediction!"
 }
