@@ -22,7 +22,7 @@
         <div class="live-indicator pt-8">
           <h2>{{ $t("live") }}</h2>
         </div>
-        <v-carousel :show-arrows="false" cycle hide-delimiter-background height="350px">
+        <v-carousel cycle hide-delimiter-background height="350px">
           <v-carousel-item v-for="(game, index) in games" :key="`game-${index}`" class="carousel-item">
             <v-sheet color="#153b44" height="100%" class="d-flex align-center justify-center">
               <div class="white--text text-center">
@@ -47,11 +47,11 @@
     </v-row>
 
     <v-row no-gutters class="w-full text-center">
-      <v-col cols="12" class="p-4">
+      <v-col cols="12" class="p-4 max-width-container">
         <h2 style="font-size: 3.5rem; color: white" class="my-10">
           {{ $t('prediction') }}
         </h2>
-        <v-carousel :show-arrows="false" cycle hide-delimiter-background>
+        <v-carousel cycle hide-delimiter-background>
           <v-carousel-item v-for="(gameChunk, index) in chunkedNextGames" :key="`next-game-${index}`">
             <v-row>
               <v-col cols="12" md="6" v-for="(game, gameIndex) in gameChunk" :key="`next-game-chunk-${gameIndex}`">
@@ -79,7 +79,7 @@
     </v-row>
 
     <v-row no-gutters class="w-full text-center mb-10">
-      <v-col cols="12">
+      <v-col cols="12" class="max-width-container">
         <h2 style="font-size: 3.5rem; color: white" class="my-10">{{ $t("championships") }}</h2>
         <v-sheet class="mx-auto" style="background-color: transparent;" dark>
           <v-slide-group v-model="model" class="pa-4" center-active show-arrows>
@@ -103,6 +103,11 @@ import trophy from "../assets/images/trophy.png"
 
 export default {
   name: "Home",
+  head() {
+    return {
+      title: 'Home'
+    }
+  },
   data() {
     return {
       videoSrc,
@@ -200,5 +205,10 @@ export default {
 <style scoped>
 .relative {
   position: relative;
+}
+
+.max-width-container {
+  max-width: 1280px;
+  margin: 0 auto;
 }
 </style>

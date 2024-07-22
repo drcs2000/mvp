@@ -67,6 +67,11 @@ import videoSrc from "../assets/videos/login.mp4"
 export default {
   name: "Login",
   layout: 'login',
+  head() {
+    return{
+      title: 'Login'
+    }
+  },
   data() {
     return {
       videoSrc,

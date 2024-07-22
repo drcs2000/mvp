@@ -3,7 +3,7 @@ import colors from 'vuetify/es5/util/colors'
 export default {
   // Global page headers
   head: {
-    titleTemplate: '%s',
+    titleTemplate: '%s | MVP',
     title: 'frontend',
     htmlAttrs: {
       lang: 'en'

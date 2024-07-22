@@ -1,6 +1,6 @@
 <template>
   <v-app-bar app color="secondary" dark>
-    <v-container>
+    <v-container class="navbar-container">
       <v-row align="center">
         <v-col cols="auto">
           <v-toolbar-title>
@@ -9,14 +9,14 @@
             </NuxtLink>
           </v-toolbar-title>
         </v-col>
-        
+
         <v-col class="d-flex justify-center">
-          <v-btn text class="mr-2">{{ $t("live") }}</v-btn>
+          <v-btn text class="mr-2 primary--text">{{ $t("live") }}</v-btn>
           <v-menu offset-y>
             <template v-slot:activator="{ on, attrs }">
-              <v-btn text v-bind="attrs" v-on="on" class="mr-2">{{
-                $t("championships")
-              }}</v-btn>
+              <v-btn text v-bind="attrs" v-on="on" class="mr-2 primary--text">
+                {{ $t("championships") }}
+              </v-btn>
             </template>
             <v-list>
               <v-list-item link>
@@ -27,6 +27,24 @@
               </v-list-item>
               <v-list-item link>
                 <v-list-item-title>{{ $t("championship3") }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+          <v-menu offset-y>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn text v-bind="attrs" v-on="on" class="mr-2 primary--text">
+                Bolão
+              </v-btn>
+            </template>
+            <v-list align="center">
+              <v-list-item link :to="'/pool/new'">
+                <v-list-item-title>Novo</v-list-item-title>
+              </v-list-item>
+              <v-list-item link>
+                <v-list-item-title>Meus</v-list-item-title>
+              </v-list-item>
+              <v-list-item link>
+                <v-list-item-title>Todos</v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
@@ -89,5 +107,10 @@ export default {
 .flag-btn .v-icon {
   width: 24px;
   height: 24px;
+}
+
+.navbar-container {
+  max-width: 1280px;
+  margin: 0 auto;
 }
 </style>
