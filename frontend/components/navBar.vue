@@ -9,7 +9,7 @@
             </NuxtLink>
           </v-toolbar-title>
         </v-col>
-        
+
         <v-col class="d-flex justify-center">
           <v-btn text class="mr-2">{{ $t("live") }}</v-btn>
           <v-menu offset-y>
@@ -30,30 +30,17 @@
               </v-list-item>
             </v-list>
           </v-menu>
+          <v-btn text class="mr-2">{{ $t("my_league") }}</v-btn>
         </v-col>
 
-        <v-col cols="auto" class="flex items-end">
-          <v-btn outlined color="primary" to="/login">{{ $t("enter") }}</v-btn>
-          <v-menu offset-y>
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn icon v-bind="attrs" v-on="on" class="flag-btn">
-                <v-icon :class="`flag-icon flag-icon-${currentLang}`" />
-              </v-btn>
-            </template>
-            <v-list>
-              <v-list-item
-                v-for="lang in languages"
-                :key="lang.value"
-                @click="changeLanguage(lang.value)"
-              >
-                <v-icon
-                  left
-                  :class="`flag-icon flag-icon-${lang.value}`"
-                />
-                <v-list-item-title>{{ lang.text }}</v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
+        <v-col cols="auto" class="d-flex align-center">
+          <v-btn outlined color="primary" to="/login" class="mr-4">{{
+            $t("enter")
+          }}</v-btn>
+
+          <v-btn icon @click="toggleLanguage" class="flag-btn">
+            <v-icon :class="`flag-icon flag-icon-${currentLang}`" />
+          </v-btn>
         </v-col>
       </v-row>
     </v-container>
@@ -68,11 +55,7 @@ export default {
   data() {
     return {
       logo,
-      currentLang: "pt",
-      languages: [
-        { text: "English", value: "gb" },
-        { text: "Português", value: "pt" },
-      ],
+      currentLang: this.$i18n.locale,
     };
   },
   methods: {
@@ -80,6 +63,11 @@ export default {
       this.currentLang = lang;
       this.$i18n.locale = lang === "gb" ? "en" : "pt";
       this.$store.dispatch("setLanguage", this.$i18n.locale);
+    },
+
+    toggleLanguage() {
+      const newLang = this.currentLang === "pt" ? "gb" : "pt";
+      this.changeLanguage(newLang);
     },
   },
 };
