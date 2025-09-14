@@ -1,0 +1,23 @@
+## Dependências
+node_modules
+## 
+Arquivos de Build do TypeScript
+dist
+
+## Arquivos de ambiente - NUNCA ENVIE ESTE ARQUIVO PARA O REPOSITÓRIO!
+.env
+.env.*
+!.env.example
+
+## Logs
+logs
+.log
+npm-debug.log
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+## Arquivos específicos de editores e SO
+.vscode
+.idea
+.DS_Store
