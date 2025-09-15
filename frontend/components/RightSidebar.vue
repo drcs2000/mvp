@@ -1,6 +1,6 @@
 <template>
   <aside class="flex flex-col h-full gap-6">
-    <div class="sticky top-0 z-10 pt-1 bg-white">
+    <div class="sticky top-0 z-10 pt-1 bg-white shrink-0">
       <div v-if="stores.auth.isAuthenticated && stores.auth.currentUser">
         <Menu as="div" class="relative" v-slot="{ open }">
           <MenuButton
@@ -20,7 +20,6 @@
               :class="{ 'rotate-180': open }"
             />
           </MenuButton>
-
           <transition
             enter-active-class="transition duration-100 ease-out"
             enter-from-class="transform scale-95 opacity-0"
@@ -66,7 +65,6 @@
           </transition>
         </Menu>
       </div>
-
       <div v-else>
         <NuxtLink
           to="/login"
@@ -78,22 +76,116 @@
       <hr class="mt-4 border-t border-gray-200" />
     </div>
 
-    <div class="p-4 border border-gray-200 rounded-lg">
-      <h3 class="text-base font-semibold text-gray-800">Your place</h3>
+    <div
+      class="flex flex-col flex-1 p-3 overflow-hidden border border-gray-200 rounded-lg"
+    >
+      <div v-if="selectedChampionship" class="flex flex-col flex-1 min-h-0">
+        <div class="shrink-0">
+          <h3 class="mb-3 text-sm font-semibold text-gray-800">
+            {{ selectedChampionship.name }}
+          </h3>
+          <div
+            class="grid grid-cols-12 gap-2 text-center text-gray-500 border-b border-gray-200 text-[9px] uppercase"
+          >
+            <div class="col-span-1 py-1 font-normal text-left">#</div>
+            <div class="col-span-6 py-1 font-normal text-left">Time</div>
+            <div class="col-span-1 py-1 font-normal">P</div>
+            <div class="col-span-1 py-1 font-normal">J</div>
+            <div class="col-span-1 py-1 font-normal">V</div>
+            <div class="col-span-1 py-1 font-normal">E</div>
+            <div class="col-span-1 py-1 font-normal">D</div>
+          </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar">
+          <div
+            v-if="standingsStore.isLoading"
+            class="flex items-center justify-center h-full text-gray-500 text-[10px]"
+          >
+            Carregando...
+          </div>
+          <div v-else-if="standingsStore.standings.length > 0">
+            <table class="w-full text-center table-fixed">
+              <tbody class="text-gray-800">
+                <tr
+                  v-for="team in standingsStore.standings"
+                  :key="team.teamApiId"
+                  class="grid grid-cols-12 gap-2 items-center border-b border-gray-100 last:border-b-0 text-[9px]"
+                  :class="getRowStyle(team.description)"
+                >
+                  <td class="col-span-1 py-2 font-medium text-left">
+                    {{ team.rank }}
+                  </td>
+                  <td class="col-span-6 py-2 text-left truncate">
+                    <div class="flex items-center">
+                      <img :src="team.teamLogoUrl" class="w-4 h-4 mr-2" />
+                      <span class="whitespace-nowrap">{{ team.teamName }}</span>
+                    </div>
+                  </td>
+                  <td class="col-span-1 py-2 font-bold">{{ team.points }}</td>
+                  <td class="col-span-1 py-2 text-gray-500">
+                    {{ team.played }}
+                  </td>
+                  <td class="col-span-1 py-2 text-gray-500">{{ team.win }}</td>
+                  <td class="col-span-1 py-2 text-gray-500">{{ team.draw }}</td>
+                  <td class="col-span-1 py-2 text-gray-500">{{ team.lose }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div
+            v-else
+            class="flex items-center justify-center h-full text-gray-500 text-[10px]"
+          >
+            Classificação não disponível.
+          </div>
+        </div>
+
+        <div
+          v-if="standingsStore.standings.length > 0"
+          class="pt-3 mt-auto border-t border-gray-100 shrink-0"
+        >
+          <div class="space-y-1">
+            <div
+              v-for="legend in rankLegends"
+              :key="legend.label"
+              class="flex items-center gap-2"
+            >
+              <span
+                :class="getLegendIndicatorClass(legend.label)"
+                class="block w-2 h-2 rounded-full"
+              ></span>
+              <span class="text-gray-600 text-[9px]">{{ legend.label }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-else>
+        <h3 class="text-base font-semibold text-gray-800">Classificação</h3>
+        <p class="mt-2 text-gray-500 text-[10px]">
+          Selecione um campeonato para ver a tabela.
+        </p>
+      </div>
     </div>
   </aside>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
 import {
   ChevronDownIcon,
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
 } from "@heroicons/vue/24/outline";
+import { useStandingsStore } from "~/stores/standings";
 
 const stores = useStores();
+const standingsStore = useStandingsStore();
+
+const selectedChampionship = computed(
+  () => stores.championships.selectedChampionship
+);
 
 const firstName = computed(() => {
   if (stores.auth.currentUser && stores.auth.currentUser.name) {
@@ -105,4 +197,72 @@ const firstName = computed(() => {
 const handleLogout = async () => {
   await stores.auth.logout();
 };
+
+const getRowStyle = (description) => {
+  if (!description) return "";
+  const desc = description.toLowerCase();
+
+  if (desc.includes("champions league") || desc.includes("libertadores"))
+    return "bg-blue-50";
+  if (desc.includes("europa league") || desc.includes("sudamericana"))
+    return "bg-green-50";
+  if (desc.includes("conference league") || desc.includes("qualification"))
+    return "bg-teal-50";
+  if (desc.includes("relegation") || desc.includes("rebaixamento"))
+    return "bg-red-50";
+
+  return "";
+};
+
+const getLegendIndicatorClass = (description) => {
+  if (!description) return "bg-gray-400";
+  const desc = description.toLowerCase();
+
+  if (desc.includes("champions league") || desc.includes("libertadores"))
+    return "bg-blue-500";
+  if (desc.includes("europa league") || desc.includes("sudamericana"))
+    return "bg-green-500";
+  if (desc.includes("conference league") || desc.includes("qualification"))
+    return "bg-teal-500";
+  if (desc.includes("relegation") || desc.includes("rebaixamento"))
+    return "bg-red-500";
+
+  return "bg-gray-400";
+};
+
+const rankLegends = computed(() => {
+  if (!standingsStore.standings) return [];
+  const legends = new Map();
+  standingsStore.standings.forEach((team) => {
+    if (team.description) {
+      if (!legends.has(team.description)) {
+        legends.set(team.description, { label: team.description });
+      }
+    }
+  });
+  return Array.from(legends.values());
+});
+
+watch(
+  selectedChampionship,
+  (newChampionship) => {
+    if (newChampionship && newChampionship.apiFootballId) {
+      standingsStore.fetchStandingsByChampionshipId(
+        newChampionship.apiFootballId
+      );
+    }
+  },
+  { immediate: true }
+);
 </script>
+
+<style scoped>
+/* Adicione esta classe ao seu CSS global ou mantenha aqui se for escopado */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+</style>

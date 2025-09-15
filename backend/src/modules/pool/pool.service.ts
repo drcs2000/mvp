@@ -13,6 +13,8 @@ interface ICreatePoolDTO {
 }
 
 class PoolService {
+  private poolRepository = AppDataSource.getRepository(Pool);
+
   public async create(poolData: ICreatePoolDTO, adminUserId: number): Promise<Pool> {
     return AppDataSource.manager.transaction(async (transactionalEntityManager) => {
       const newPool = transactionalEntityManager.create(Pool, poolData);
@@ -25,10 +27,31 @@ class PoolService {
       });
       await transactionalEntityManager.save(adminParticipant);
 
-      return newPool;
+      // Recarrega o bolão para incluir a relação de participantes na resposta
+      return await transactionalEntityManager.findOneOrFail(Pool, {
+        where: { id: newPool.id },
+        relations: ['participants', 'participants.user'],
+      });
+    });
+  }
+
+  public async findAllPublic(): Promise<Pool[]> {
+    return this.poolRepository.find({
+        where: { private: false },
+        relations: ['participants', 'participants.user'],
+    });
+  }
+
+  public async findForUser(userId: number): Promise<Pool[]> {
+    return this.poolRepository.find({
+        where: {
+            participants: {
+                userId: userId,
+            },
+        },
+        relations: ['participants', 'participants.user'],
     });
   }
 }
 
 export default new PoolService();
-

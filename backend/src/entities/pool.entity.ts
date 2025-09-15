@@ -10,8 +10,8 @@ interface IPointsSystem {
 
 @Entity('pools')
 export class Pool {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column()
   name!: string;
@@ -47,4 +47,3 @@ export class Pool {
   @OneToMany(() => PoolParticipant, (participant) => participant.pool)
   participants!: PoolParticipant[];
 }
-

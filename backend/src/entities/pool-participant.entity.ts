@@ -16,7 +16,7 @@ export class PoolParticipant {
   userId!: number;
 
   @Column({ name: 'pool_id' })
-  poolId!: string;
+  poolId!: number;
 
   @Column({
     type: 'enum',
