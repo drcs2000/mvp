@@ -2,7 +2,6 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useAuthStore } from '~/stores/auth';
 
-// Interface para os participantes de um bolão
 interface Participant {
   userId: number;
   userName: string;
@@ -12,8 +11,15 @@ interface Participant {
 interface Pool {
   id: string;
   name: string;
+  championshipId?: number; 
   maxParticipants: number;
   participants: Participant[];
+}
+
+interface ActionReturn {
+  success: boolean;
+  error: string | null;
+  data: Pool | Pool[] | null;
 }
 
 export const usePoolsStore = defineStore('pools', () => {
@@ -22,8 +28,7 @@ export const usePoolsStore = defineStore('pools', () => {
   const myPools = ref<Pool[]>([]); 
   const currentPool = ref<Pool | null>(null);
 
-  // ACTIONS
-  async function createPool(payload: any) {
+  async function createPool(payload: any): Promise<ActionReturn> {
     const authStore = useAuthStore();
 
     if (!authStore.isAuthenticated || !authStore.token) {
@@ -49,27 +54,29 @@ export const usePoolsStore = defineStore('pools', () => {
       return { success: true, error: null, data: newPool };
     } catch (error: any) {
       console.error('Erro ao criar o torneio:', error);
-      return { success: false, error: error.data?.error || 'Erro desconhecido', data: null };
+      const errorMessage = error.data?.error ?? 'Erro desconhecido';
+      return { success: false, error: errorMessage, data: null };
     }
   }
 
-  async function fetchAllPublicPools() {
+  async function fetchAllPublicPools(): Promise<ActionReturn> {
     try {
       const publicPools = await $fetch<Pool[]>('/api/pool');
       pools.value = publicPools;
-      return { success: true, data: publicPools };
+      return { success: true, error: null, data: publicPools };
     } catch (error: any) {
       console.error('Erro ao buscar bolões públicos:', error);
-      return { success: false, error: error.data?.error || 'Falha ao buscar torneios' };
+      const errorMessage = error.data?.error ?? 'Falha ao buscar torneios';
+      return { success: false, error: errorMessage, data: null };
     }
   }
 
-  async function fetchMyPools() {
+  async function fetchMyPools(): Promise<ActionReturn> {
     const authStore = useAuthStore();
 
     if (!authStore.isAuthenticated || !authStore.token) {
       console.warn('Usuário não autenticado. Não é possível buscar "meus bolões".');
-      return { success: false, error: 'Usuário não autenticado.' };
+      return { success: false, error: 'Usuário não autenticado.', data: null };
     }
     
     try {
@@ -79,10 +86,23 @@ export const usePoolsStore = defineStore('pools', () => {
         }
       });
       myPools.value = userPools;
-      return { success: true, data: userPools };
+      return { success: true, error: null, data: userPools };
     } catch (error: any) {
       console.error('Erro ao buscar meus bolões:', error);
-      return { success: false, error: error.data?.error || 'Falha ao buscar seus torneios' };
+      const errorMessage = error.data?.error ?? 'Falha ao buscar seus torneios';
+      return { success: false, error: errorMessage, data: null };
+    }
+  }
+
+  async function fetchPoolById(poolId: string): Promise<ActionReturn> {
+    try {
+      const pool = await $fetch<Pool>(`/api/pool/${poolId}`);
+      currentPool.value = pool;
+      return { success: true, error: null, data: pool };
+    } catch (error: any) {
+      console.error('Erro ao buscar bolão por ID:', error);
+      const errorMessage = error.data?.message ?? 'Falha ao buscar bolão';
+      return { success: false, error: errorMessage, data: null };
     }
   }
 
@@ -93,6 +113,6 @@ export const usePoolsStore = defineStore('pools', () => {
     createPool,
     fetchAllPublicPools,
     fetchMyPools,
+    fetchPoolById,
   };
 });
-

@@ -7,6 +7,7 @@ import { PoolParticipant } from '../entities/pool-participant.entity';
 import { Match } from '../entities/match.entity'
 import { Championship } from '../entities/championship.entity'
 import { Standings } from '../entities/standings.entity'
+import { Bet } from '../entities/bet.entity'
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -19,7 +20,7 @@ export const AppDataSource = new DataSource({
   synchronize: false,
   logging: true, 
   
-  entities: [User, Pool, PoolParticipant, Match, Championship, Standings], 
+  entities: [User, Pool, PoolParticipant, Match, Championship, Standings, Bet], 
 
   migrations: ["src/database/migrations/*.{ts,js}"], 
 });

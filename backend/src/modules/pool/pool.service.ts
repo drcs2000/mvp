@@ -3,13 +3,13 @@ import { Pool } from '../../entities/pool.entity';
 import { PoolParticipant, PoolRole } from '../../entities/pool-participant.entity';
 
 interface ICreatePoolDTO {
-  name: string;
-  maxParticipants: number;
-  betDeadlineHours: number;
-  baseChampionshipId: number;
-  private: boolean;
-  points: object;
-  entryFee: number;
+ name: string;
+ maxParticipants: number;
+ betDeadlineHours: number;
+ baseChampionshipId: number;
+ private: boolean;
+ points: object;
+ entryFee: number;
 }
 
 class PoolService {
@@ -50,6 +50,14 @@ class PoolService {
             },
         },
         relations: ['participants', 'participants.user'],
+    });
+  }
+
+  public async findOne(poolId: number): Promise<Pool | null> {
+    console.log(poolId)
+    return this.poolRepository.findOne({
+      where: { id: poolId },
+      relations: ['participants', 'participants.user'],
     });
   }
 }

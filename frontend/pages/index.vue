@@ -69,18 +69,16 @@
             </div>
             <div class="text-center">
               <div class="text-4xl font-bold">
-                <span :class="{ 'font-bold': isHomeWinner(featuredMatch) }">{{
-                  featuredMatch.homeScore
-                }}</span>
-                <span v-if="featuredMatch.status === 'FT'"> - </span>
-                <span v-if="featuredMatch.status !== 'FT'">{{
-                  formatTime(featuredMatch.date)
-                }}</span>
-                <span
-                  v-if="featuredMatch.status === 'FT'"
-                  :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
-                  >{{ featuredMatch.awayScore }}</span
-                >
+                <span v-if="featuredMatch.status !== 'NS'">
+                  <span :class="{ 'font-bold': isHomeWinner(featuredMatch) }">{{
+                    featuredMatch.homeScore
+                  }}</span>
+                  -
+                  <span :class="{ 'font-bold': isAwayWinner(featuredMatch) }">{{
+                    featuredMatch.awayScore
+                  }}</span>
+                </span>
+                <span v-else>{{ formatTime(featuredMatch.date) }}</span>
               </div>
               <span class="mt-1 text-xs text-gray-400">{{
                 getStatusText(featuredMatch.status)
@@ -139,7 +137,7 @@
                     class="object-contain w-6 h-6 shrink-0"
                   />
                   <span class="w-12 text-center font-bold text-gray-500">
-                    <span v-if="match.status === 'FT'">
+                    <span v-if="match.status !== 'NS'">
                       <span :class="{ 'font-bold': isHomeWinner(match) }">{{
                         match.homeScore
                       }}</span>
@@ -193,9 +191,9 @@ onMounted(async () => {
   }
 });
 
-watch(selectedChampionship, (newChampionship) => {
+watch(selectedChampionship, async (newChampionship) => {
   if (newChampionship) {
-    stores.matches.fetchByChampionship(newChampionship.apiFootballId);
+    await stores.matches.fetchByChampionship(newChampionship.apiFootballId);
   }
 });
 

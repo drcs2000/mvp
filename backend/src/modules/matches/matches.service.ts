@@ -36,7 +36,7 @@ class MatchService {
       };
 
       await this.matchRepository.upsert(newMatchData, ["apiFootballFixtureId"]);
-      
+
       const savedMatch = await this.matchRepository.findOneOrFail({ where: { apiFootballFixtureId: fixture.id } });
       savedMatches.push(savedMatch);
     }
@@ -59,6 +59,37 @@ class MatchService {
       ],
       order: { date: 'ASC' }
     });
+  }
+
+  // Mapeamento dos status da ESPN para os status locais
+  private getStatusFromEspnEvent(espnStatus: string, period: number | null = null): MatchStatus {
+    switch (espnStatus) {
+      case 'STATUS_FINAL':
+      case 'STATUS_FULL_TIME':
+        return MatchStatus.FINISHED;
+      case 'STATUS_IN_PROGRESS':
+        if (period === 1) {
+          return MatchStatus.IN_PLAY_1ST_HALF;
+        } else if (period === 2) {
+          return MatchStatus.IN_PLAY_2ND_HALF;
+        }
+        return MatchStatus.IN_PLAY_1ST_HALF;
+      case 'STATUS_SECOND_HALF':
+        return MatchStatus.IN_PLAY_2ND_HALF;
+      case 'STATUS_FIRST_HALF':
+        return MatchStatus.IN_PLAY_1ST_HALF;
+      case 'STATUS_HALFTIME':
+        return MatchStatus.HALF_TIME;
+      case 'STATUS_SCHEDULED':
+      case 'STATUS_PREGAME':
+        return MatchStatus.NOT_STARTED;
+      case 'STATUS_CANCELED':
+        return MatchStatus.CANCELLED;
+      case 'STATUS_POSTPONED':
+        return MatchStatus.POSTPONED;
+      default:
+        return MatchStatus.NOT_STARTED; // Default para 'NS' se não for reconhecido
+    }
   }
 
   public async updateMatchesFromEspn(championshipApiFootballId: number, espnEvents: any[]): Promise<{ updated: number; notFound: number }> {
@@ -102,28 +133,20 @@ class MatchService {
       const matchToUpdate = matchesMap.get(apiKey);
 
       if (matchToUpdate) {
-        const espnStatus = competition.status.type.name;
+        const espnStatusName = competition.status.type.name;
         const period = competition.status.period;
-        let newStatus: MatchStatus = matchToUpdate.status;
+        const newStatus = this.getStatusFromEspnEvent(espnStatusName, period);
 
-        if (espnStatus === 'STATUS_FINAL' || espnStatus === 'STATUS_FULL_TIME') {
-          newStatus = MatchStatus.FINISHED;
-        } else if (espnStatus === 'STATUS_IN_PROGRESS') {
-          if (period === 1) {
-            newStatus = MatchStatus.IN_PLAY_1ST_HALF;
-          } else if (period === 2) {
-            newStatus = MatchStatus.IN_PLAY_2ND_HALF;
-          }
-        } else if (espnStatus === 'STATUS_SCHEDULED') {
-          newStatus = MatchStatus.NOT_STARTED;
+        const homeScore = parseInt(homeCompetitor.score, 10) || 0;
+        const awayScore = parseInt(awayCompetitor.score, 10) || 0;
+
+        if (matchToUpdate.homeScore !== homeScore || matchToUpdate.awayScore !== awayScore || matchToUpdate.status !== newStatus) {
+          matchToUpdate.homeScore = homeScore;
+          matchToUpdate.awayScore = awayScore;
+          matchToUpdate.status = newStatus;
+          updatedMatches.push(matchToUpdate);
+          stats.updated++;
         }
-
-        matchToUpdate.homeScore = parseInt(homeCompetitor.score, 10) || 0;
-        matchToUpdate.awayScore = parseInt(awayCompetitor.score, 10) || 0;
-        matchToUpdate.status = newStatus;
-
-        updatedMatches.push(matchToUpdate);
-        stats.updated++;
       } else {
         stats.notFound++;
       }

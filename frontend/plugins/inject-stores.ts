@@ -3,7 +3,7 @@ import { useAuthStore } from '~/stores/auth'
 import { usePoolsStore } from '~/stores/pool'
 import { useChampionshipsStore } from '~/stores/championships'
 import { useMatchesStore } from '~/stores/matches'
-import { useUiStore } from '~/stores/ui'
+import { useBetsStore } from '~/stores/bet'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const stores = {
@@ -11,7 +11,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     pools: usePoolsStore(),
     championships: useChampionshipsStore(),
     matches: useMatchesStore(),
-    ui: useUiStore()
+    bet: useBetsStore()
   }
 
   return {

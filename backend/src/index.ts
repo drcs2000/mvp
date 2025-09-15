@@ -8,6 +8,7 @@ import matchesRouter from './modules/matches/matches.routes';
 import championshipsRouter from './modules/championships/championships.routes';
 import SchedulerService from './services/scheduler.service';
 import StandingsService from './modules/standings/standings.routes';
+import BetsService from './modules/bets/bets.routes';
 
 AppDataSource.initialize()
   .then(() => {
@@ -27,6 +28,7 @@ AppDataSource.initialize()
     app.use('/matches', matchesRouter);
     app.use('/championships', championshipsRouter);
     app.use('/standings', StandingsService);
+    app.use('/bets', BetsService);
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor rodando na porta ${PORT}`);

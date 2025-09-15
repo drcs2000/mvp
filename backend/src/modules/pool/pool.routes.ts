@@ -7,5 +7,6 @@ const poolsRouter = Router();
 poolsRouter.post('/', authMiddleware, PoolsController.create);
 poolsRouter.get('/', PoolsController.findAllPublic);
 poolsRouter.get('/my-pools', authMiddleware, PoolsController.findMyPools);
+poolsRouter.get('/:poolId', PoolsController.findOne);
 
 export default poolsRouter;
