@@ -28,7 +28,7 @@
           <NuxtLink
             v-for="pool in stores.pools.myPools"
             :key="pool.id"
-            :to="`/tournaments/${pool.id}`"
+            :to="`/pools/${pool.id}`"
             class="relative flex items-center p-4 transition-all duration-200 bg-white border border-gray-200 rounded-lg shadow-sm group hover:border-gray-400 hover:shadow-md"
           >
             <span class="text-sm font-semibold text-gray-800">
@@ -69,7 +69,7 @@
           <p class="font-medium">Você ainda não participa de nenhum bolão.</p>
           <p class="mt-2 text-sm">
             Explore os
-            <NuxtLink to="/tournaments" class="text-green-600 underline"
+            <NuxtLink to="/pools" class="text-green-600 underline"
               >bolões públicos</NuxtLink
             >
             ou crie o seu!

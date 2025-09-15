@@ -199,19 +199,26 @@ const menuData = ref([]);
 
 const getContinent = (country) => {
   const continents = {
-    Brazil: "América",
-    Spain: "Europa",
-    Germany: "Europa",
-    England: "Europa",
-    Italy: "Europa",
-    France: "Europa",
-    World: "Internacional",
+    Brazil: "america",
+    Spain: "europa",
+    Germany: "europa",
+    England: "europa",
+    Italy: "europa",
+    France: "europa",
+    World: "internacional",
   };
-  return continents[country] || "Outros";
+  return continents[country] || "outros";
+};
+
+const slugify = (text) => {
+  if (!text) return "";
+  return text.toString().toLowerCase().replace(/\s+/g, "-");
 };
 
 const buildMenuData = () => {
   const data = {};
+  const sport = "football"; // Definido aqui para ser acessível em toda a função
+
   const sortedChampionships = [...stores.championships.championships].sort(
     (a, b) => {
       return (
@@ -224,23 +231,26 @@ const buildMenuData = () => {
   sortedChampionships.forEach((champ) => {
     const continentName = getContinent(champ.countryName);
     const countryName = champ.countryName;
-    const basePath = `/football/${continentName.toLowerCase()}`;
-    const countryPath = `${basePath}/${countryName.toLowerCase()}`;
-    const path = `${countryPath}/${champ.name
-      .toLowerCase()
-      .replace(/\s/g, "-")}`;
 
-    if (!data[continentName]) {
-      data[continentName] = {
-        title: continentName,
+    const continentTitle =
+      continentName.charAt(0).toUpperCase() + continentName.slice(1);
+    const basePath = `/${sport}/${continentName}`;
+    const countryPath = `${basePath}/${slugify(countryName)}`;
+
+    // O caminho final agora usa o apiFootballId para unicidade
+    const path = `${countryPath}/${champ.apiFootballId}`;
+
+    if (!data[continentTitle]) {
+      data[continentTitle] = {
+        title: continentTitle,
         basePath: basePath,
         isOpen: false,
         children: {},
       };
     }
 
-    if (!data[continentName].children[countryName]) {
-      data[continentName].children[countryName] = {
+    if (!data[continentTitle].children[countryName]) {
+      data[continentTitle].children[countryName] = {
         title: countryName,
         basePath: countryPath,
         flagUrl: champ.countryFlagUrl,
@@ -249,8 +259,8 @@ const buildMenuData = () => {
       };
     }
 
-    data[continentName].children[countryName].children.push({
-      id: champ.id,
+    data[continentTitle].children[countryName].children.push({
+      id: champ.apiFootballId, // Usar o apiFootballId como ID principal
       title: champ.name,
       path: path,
       logo: champ.leagueLogoUrl,
@@ -259,11 +269,18 @@ const buildMenuData = () => {
 
   menuData.value = Object.values(data).map((continent) => {
     if (continent.title === "Internacional") {
+      const internationalLeagues = Object.values(continent.children).flatMap(
+        (country) => country.children
+      );
+
+      // Corrige o path para as ligas internacionais, que não têm país
+      internationalLeagues.forEach((league) => {
+        league.path = `/${sport}/internacional/${league.id}`;
+      });
+
       return {
         ...continent,
-        children: Object.values(continent.children).flatMap(
-          (country) => country.children
-        ),
+        children: internationalLeagues,
       };
     }
     return {

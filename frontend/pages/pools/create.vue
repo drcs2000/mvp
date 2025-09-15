@@ -45,7 +45,7 @@
       class="sticky top-0 z-10 p-4 bg-white/80 sm:p-6 backdrop-blur-sm border-b border-gray-200"
     >
       <div class="max-w-3xl">
-        <h1 class="text-2xl font-bold text-gray-900">Criar Novo Torneio</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Criar Novo Bolão</h1>
         <p class="mt-1 text-sm text-gray-500">
           Preencha os detalhes abaixo para configurar seu novo bolão.
         </p>
@@ -166,7 +166,7 @@
                     class="relative w-full py-2 pl-3 pr-10 text-left bg-white border border-gray-300 rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
                   >
                     <span class="block truncate">{{
-                      form.baseChampionship.name
+                      form.baseChampionship?.name ?? "Carregando campeonatos..."
                     }}</span>
                     <span
                       class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
@@ -462,7 +462,7 @@
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
+import { reactive, ref, computed, onMounted } from "vue";
 import {
   Listbox,
   ListboxButton,
@@ -507,22 +507,14 @@ const showNotification = (message, type = "success") => {
   }, 5000);
 };
 
-const championships = ref([
-  { id: 1, name: "Brasileirão Série A" },
-  { id: 2, name: "Premier League" },
-  { id: 3, name: "La Liga" },
-  { id: 4, name: "Serie A (Itália)" },
-  { id: 5, name: "Bundesliga" },
-  { id: 6, name: "Ligue 1" },
-]);
-
+const championships = computed(() => stores.championships.championships);
 const deadlineOptions = ref(Array.from({ length: 12 }, (_, i) => i + 1));
 
 const form = reactive({
   name: "",
   maxParticipants: 10,
   betDeadlineHours: 1,
-  baseChampionship: championships.value[0],
+  baseChampionship: null,
   isPrivate: false,
   points: {
     full: 25,
@@ -533,8 +525,23 @@ const form = reactive({
   entryFee: 0,
 });
 
+onMounted(async () => {
+  if (championships.value.length === 0) {
+    await stores.championships.fetchAllChampionships();
+  }
+  if (championships.value.length > 0) {
+    form.baseChampionship = championships.value[0];
+  }
+});
+
 const handleSubmit = async () => {
   loading.value = true;
+
+  if (!form.baseChampionship) {
+    showNotification("Por favor, selecione um campeonato base.", "error");
+    loading.value = false;
+    return;
+  }
 
   const payload = {
     name: form.name,

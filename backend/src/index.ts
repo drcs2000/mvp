@@ -23,7 +23,7 @@ AppDataSource.initialize()
     });
     
     app.use('/auth', authRouter);
-    app.use('/pools', poolRouter);
+    app.use('/pool', poolRouter);
     app.use('/matches', matchesRouter);
     app.use('/championships', championshipsRouter);
     app.use('/standings', StandingsService);
