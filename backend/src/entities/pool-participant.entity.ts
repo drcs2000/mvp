@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { User } from './user.entity';
 import { Pool } from './pool.entity';
 
@@ -24,6 +24,9 @@ export class PoolParticipant {
     default: PoolRole.PARTICIPANT,
   })
   role!: PoolRole;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
+  createdAt!: Date;
 
   @ManyToOne(() => User, (user) => user.pools)
   @JoinColumn({ name: 'user_id' })

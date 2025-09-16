@@ -156,6 +156,39 @@ class PoolController {
       return res.status(500).json({ error: 'Falha ao excluir o bolão.', details: error.message });
     }
   }
+
+  public removeParticipant = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { poolId, userId: targetUserIdString } = req.params;
+      const requestingUserId = req.user.id;
+
+      const decodedPoolId = decodeId(poolId);
+      if (decodedPoolId === null) {
+        return res.status(400).json({ error: 'ID de bolão inválido.' });
+      }
+
+      const targetUserId = parseInt(targetUserIdString, 10);
+      if (isNaN(targetUserId)) {
+        return res.status(400).json({ error: 'ID de usuário inválido.' });
+      }
+
+      await PoolService.removeParticipant(decodedPoolId, targetUserId, requestingUserId);
+
+      // Retorna sucesso
+      return res.status(200).json({ message: 'Participante removido com sucesso.' });
+    } catch (error: any) {
+      console.error(error);
+
+      if (error.message.includes('não encontrado')) {
+        return res.status(404).json({ error: error.message });
+      }
+      if (error.message.includes('não tem permissão')) {
+        return res.status(403).json({ error: error.message });
+      }
+
+      return res.status(500).json({ error: 'Falha ao remover o participante.', details: error.message });
+    }
+  }
 }
 
 export default new PoolController()

@@ -170,6 +170,40 @@ export const usePoolsStore = defineStore('pools', () => {
     }
   }
 
+  async function removeParticipant(poolId: string, userId: number): Promise<{ success: boolean; error: string | null }> {
+    const authStore = useAuthStore();
+
+    if (!authStore.isAuthenticated || !authStore.token) {
+      const errorMsg = 'Você precisa estar logado para realizar esta ação.';
+      return { success: false, error: errorMsg };
+    }
+
+    try {
+      await $fetch(`/api/pool/${poolId}/participants/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${authStore.token}`
+        }
+      });
+
+      if (currentPool.value && currentPool.value.id === poolId) {
+        currentPool.value.participants = currentPool.value.participants.filter(
+          p => p.userId !== userId
+        );
+      }
+
+      if (authStore.user?.id === userId) {
+        myPools.value = myPools.value.filter(p => p.id !== poolId);
+      }
+
+      return { success: true, error: null };
+    } catch (error: any) {
+      console.error('Erro ao remover participante:', error);
+      const errorMessage = error.data?.error ?? 'Falha ao remover o participante.';
+      return { success: false, error: errorMessage };
+    }
+  }
+
   return {
     pools,
     myPools,
@@ -180,5 +214,6 @@ export const usePoolsStore = defineStore('pools', () => {
     fetchPoolById,
     joinPool,
     deletePool,
+    removeParticipant,
   };
 });

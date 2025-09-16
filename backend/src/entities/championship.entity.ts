@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index, OneToMany } from 'typeorm';
+import { ChampionshipStandingRule } from './championship-standing-rule.entity'; // Importe a nova entidade
 
 export enum ChampionshipType {
   LEAGUE = 'League',
@@ -37,4 +38,7 @@ export class Championship {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
+
+  @OneToMany(() => ChampionshipStandingRule, rule => rule.championship)
+  standingRules!: ChampionshipStandingRule[];
 }

@@ -11,5 +11,8 @@
     "experimentalDecorators": true, 
     "emitDecoratorMetadata": true,
   },
-  "include": ["src/**/*"] // Diz ao TypeScript para só compilar o que está na pasta 'src'
+  "include": [
+    "src/**/*",
+    "scripts/**/*" 
+    ]
 }

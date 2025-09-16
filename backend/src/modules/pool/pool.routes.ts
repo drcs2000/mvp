@@ -10,5 +10,6 @@ poolsRouter.get('/my-pools', authMiddleware, PoolsController.findMyPools);
 poolsRouter.get('/:poolId', PoolsController.findOne);
 poolsRouter.post('/:poolId/join', authMiddleware, PoolsController.joinPool);
 poolsRouter.delete('/:poolId', authMiddleware, PoolsController.delete);
+poolsRouter.delete('/:poolId/participants/:userId', authMiddleware, PoolsController.removeParticipant);
 
 export default poolsRouter;

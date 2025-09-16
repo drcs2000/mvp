@@ -2,6 +2,7 @@ import { AppDataSource } from '../../database/data-source';
 import { Match, MatchStatus } from '../../entities/match.entity';
 import { Bet } from '../../entities/bet.entity';
 import { Not, In } from 'typeorm';
+import standingsService from '../standings/standings.service';
 
 function normalizeTeamName(name: string): string {
   if (!name) return '';
@@ -180,6 +181,8 @@ class MatchService {
       const newlyFinishedMatches = updatedMatches.filter(match => match.status === MatchStatus.FINISHED);
 
       if (newlyFinishedMatches.length > 0) {
+        await standingsService.recalculateStandings(championshipApiFootballId);
+
         const allBetsToUpdate: Bet[] = [];
         for (const finishedMatch of newlyFinishedMatches) {
           const betsForMatch = await this.betRepository.find({

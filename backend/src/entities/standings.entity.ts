@@ -1,9 +1,10 @@
-import { 
-    Entity, 
-    PrimaryGeneratedColumn, 
-    Column, 
-    ManyToOne, 
-    Unique
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    ManyToOne,
+    Unique,
+    JoinColumn
 } from 'typeorm';
 import { Championship } from './championship.entity';
 
@@ -14,6 +15,7 @@ export class Standings {
     id!: number;
 
     @ManyToOne(() => Championship, { eager: true, onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'championshipApiFootballId', referencedColumnName: 'apiFootballId' })
     championship!: Championship;
 
     @Column()
@@ -37,10 +39,10 @@ export class Standings {
     @Column()
     goalsDiff!: number;
 
-    @Column({ type: 'varchar', length: 10 }) // Definindo o tipo explicitamente
-    form!: string;
+    @Column({ type: 'varchar', length: 10, nullable: true })
+    form!: string | null;
 
-    @Column({ type: 'varchar', nullable: true }) // Corrigido: tipo 'varchar' e não 'Object'
+    @Column({ type: 'varchar', nullable: true })
     description!: string | null;
 
     @Column()
@@ -60,7 +62,7 @@ export class Standings {
 
     @Column()
     goalsAgainst!: number;
-    
+
     @Column({ type: 'timestamptz' })
     lastUpdate!: Date;
 }

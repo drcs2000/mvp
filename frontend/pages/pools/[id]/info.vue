@@ -96,10 +96,24 @@
                 >#{{ index + 1 }}</span
               >
               <div class="flex items-center gap-3 overflow-hidden">
-                <div
-                  class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-600 flex-shrink-0"
-                >
-                  {{ participant.userName.charAt(0).toUpperCase() }}
+                <div class="relative group flex-shrink-0">
+                  <div
+                    class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-600 transition-opacity"
+                    :class="{
+                      'group-hover:opacity-0':
+                        shouldShowRemoveButton(participant),
+                    }"
+                  >
+                    {{ participant.userName.charAt(0).toUpperCase() }}
+                  </div>
+                  <button
+                    v-if="shouldShowRemoveButton(participant)"
+                    @click.stop="promptRemoveParticipant(participant)"
+                    class="absolute inset-0 w-full h-full flex items-center justify-center bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Remover Participante"
+                  >
+                    <UserMinusIcon class="w-5 h-5" />
+                  </button>
                 </div>
                 <div class="flex items-center gap-2">
                   <p
@@ -168,6 +182,31 @@
                         participant.stats.goalHits
                       }}</span>
                     </div>
+
+                    <div class="col-span-2 border-t border-gray-100 my-2"></div>
+
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-1.5 text-gray-600">
+                        <ClipboardDocumentListIcon
+                          class="w-4 h-4 text-purple-500"
+                        />
+                        <span>Palpites Feitos</span>
+                      </div>
+                      <span class="font-bold text-gray-900">{{
+                        participant.stats.totalBets
+                      }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-1.5 text-gray-600">
+                        <TrophyIcon class="w-4 h-4 text-orange-500" />
+                        <span>Precisão (Placar Cheio)</span>
+                      </div>
+                      <span class="font-bold text-gray-900"
+                        >{{
+                          participant.stats.fullHitsPercentage.toFixed(1)
+                        }}%</span
+                      >
+                    </div>
                   </div>
                 </div>
               </div>
@@ -201,6 +240,33 @@
           </div>
         </div>
       </div>
+
+      <div
+        v-if="participantToRemove"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      >
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm mx-4">
+          <h3 class="text-lg font-bold text-gray-900">Remover Participante</h3>
+          <p class="mt-2 text-sm text-gray-600">
+            Você tem certeza que deseja remover
+            <strong>{{ participantToRemove.userName }}</strong> do bolão?
+          </p>
+          <div class="mt-6 flex justify-end gap-3">
+            <button
+              @click="participantToRemove = null"
+              class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+            >
+              Cancelar
+            </button>
+            <button
+              @click="confirmRemoveParticipant"
+              class="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700"
+            >
+              Remover
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </template>
@@ -215,6 +281,9 @@ import {
   CheckCircleIcon,
   ScaleIcon,
   AdjustmentsHorizontalIcon,
+  UserMinusIcon,
+  ClipboardDocumentListIcon,
+  TrophyIcon,
 } from "@heroicons/vue/24/solid";
 
 const stores = useStores();
@@ -225,6 +294,7 @@ const poolId = route.params.id;
 const loading = ref(true);
 const error = ref(null);
 const showDeleteModal = ref(false);
+const participantToRemove = ref(null);
 
 const expandedParticipants = ref(new Set());
 const toggleExpand = (userId) => {
@@ -259,6 +329,32 @@ const confirmDeletePool = async () => {
   showDeleteModal.value = false;
 };
 
+const shouldShowRemoveButton = (participant) => {
+  if (!authStore.user) return false;
+  return isCurrentUserAdmin.value || participant.userId === authStore.user.id;
+};
+
+const promptRemoveParticipant = (participant) => {
+  participantToRemove.value = participant;
+};
+
+const confirmRemoveParticipant = async () => {
+  if (!participantToRemove.value) return;
+
+  const userToRemoveId = participantToRemove.value.userId;
+  const result = await stores.pools.removeParticipant(poolId, userToRemoveId);
+
+  if (result.error) {
+    error.value = result.error;
+  }
+
+  if (!result.error && userToRemoveId === authStore.user?.id) {
+    navigateTo("/pools/my-pools");
+  }
+
+  participantToRemove.value = null;
+};
+
 const championshipName = computed(() => {
   if (!pool.value || !championships.value) return "Campeonato";
   const champ = championships.value.find(
@@ -268,7 +364,7 @@ const championshipName = computed(() => {
 });
 
 const participantStats = computed(() => {
-  if (!pool.value || !allBets.value.length) {
+  if (!pool.value || !allBets.value) {
     return (
       pool.value?.participants.map((p) => ({
         ...p,
@@ -278,6 +374,8 @@ const participantStats = computed(() => {
           partialHits: 0,
           resultHits: 0,
           goalHits: 0,
+          totalBets: 0,
+          fullHitsPercentage: 0,
         },
       })) || []
     );
@@ -296,6 +394,8 @@ const participantStats = computed(() => {
       partialHits: 0,
       resultHits: 0,
       goalHits: 0,
+      totalBets: participantBets.length,
+      fullHitsPercentage: 0,
     };
 
     participantBets.forEach((bet) => {
@@ -314,6 +414,10 @@ const participantStats = computed(() => {
         }
       }
     });
+
+    if (stats.totalBets > 0) {
+      stats.fullHitsPercentage = (stats.fullHits / stats.totalBets) * 100;
+    }
 
     return { ...participant, stats };
   });

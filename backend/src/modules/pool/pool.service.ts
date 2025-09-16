@@ -15,6 +15,9 @@ interface ICreatePoolDTO {
 
 class PoolService {
   private poolRepository = AppDataSource.getRepository(Pool);
+  private poolParticipantRepository = AppDataSource.getRepository(PoolParticipant);
+
+  // ... (métodos create, findAllPublic, findForUser, findOne, joinPool) ...
 
   public async create(poolData: ICreatePoolDTO, adminUserId: number): Promise<Pool> {
     return AppDataSource.manager.transaction(async (transactionalEntityManager) => {
@@ -114,6 +117,59 @@ class PoolService {
       await transactionalEntityManager.delete(Bet, { pool: { id: poolId } });
       await transactionalEntityManager.delete(PoolParticipant, { poolId: poolId });
       await transactionalEntityManager.remove(pool);
+    });
+  }
+
+  public async removeParticipant(poolId: number, targetUserId: number, requestingUserId: number): Promise<void> {
+    return AppDataSource.manager.transaction(async (transactionalEntityManager) => {
+      const pool = await transactionalEntityManager.findOne(Pool, {
+        where: { id: poolId },
+        relations: ['participants'],
+      });
+
+      if (!pool) {
+        throw new Error('Bolão não encontrado.');
+      }
+
+      const participantToRemove = pool.participants.find(p => p.userId === targetUserId);
+      if (!participantToRemove) {
+        throw new Error('Participante não encontrado neste bolão.');
+      }
+
+      const admin = pool.participants.find(p => p.role === PoolRole.ADMIN);
+      if (!admin) {
+        throw new Error('Erro interno: O bolão não possui um administrador.');
+      }
+
+      const isRequesterAdmin = admin.userId === requestingUserId;
+      const isSelfRemoval = requestingUserId === targetUserId;
+
+      if (isRequesterAdmin && isSelfRemoval) {
+        const otherParticipants = await transactionalEntityManager.find(PoolParticipant, {
+          where: { poolId: poolId, role: PoolRole.PARTICIPANT },
+          order: { createdAt: 'ASC' },
+        });
+
+        if (otherParticipants.length > 0) {
+          const nextAdmin = otherParticipants[0];
+          nextAdmin.role = PoolRole.ADMIN;
+          
+          await transactionalEntityManager.save(nextAdmin);
+          
+          await transactionalEntityManager.remove(participantToRemove);
+
+        } else {
+          await transactionalEntityManager.delete(Bet, { pool: { id: poolId } });
+          await transactionalEntityManager.delete(PoolParticipant, { poolId: poolId });
+          await transactionalEntityManager.remove(pool);
+        }
+      } else {
+        // LÓGICA ANTIGA: Se não for o admin se removendo
+        if (!isSelfRemoval && !isRequesterAdmin) {
+          throw new Error('Você não tem permissão para remover este participante.');
+        }
+        await transactionalEntityManager.remove(participantToRemove);
+      }
     });
   }
 }

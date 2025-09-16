@@ -1,14 +1,25 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
+// match.entity.ts
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    CreateDateColumn,
+    UpdateDateColumn,
+    Index,
+} from 'typeorm';
 
 export enum MatchStatus {
-    SCHEDULED = 'TBD', // To Be Defined
-    NOT_STARTED = 'NS', // Not Started
+    SCHEDULED = 'TBD',
+    NOT_STARTED = 'NS',
     IN_PLAY_1ST_HALF = '1H',
     IN_PLAY_2ND_HALF = '2H',
     HALF_TIME = 'HT',
-    FINISHED = 'FT', // Finished
+    FINISHED = 'FT',
     POSTPONED = 'PST',
     CANCELLED = 'CANC',
+    ABANDONED = 'ABD',
+    PENALTY_SHOOTOUT = 'PEN',
+    AFTER_EXTRA_TIME = 'AET',
 }
 
 @Entity('matches')
@@ -29,14 +40,20 @@ export class Match {
     @Column()
     date!: Date;
 
-    @Column()
+    @Column({ nullable: true, default: 'Não declarado' })
     stadium!: string;
-    
+
+    @Column({ name: 'home_team_api_id', type: 'int', nullable: true })
+    homeTeamApiId!: number | null;
+
     @Column({ name: 'home_team_name' })
     homeTeamName!: string;
-    
+
     @Column({ name: 'home_team_logo_url' })
     homeTeamLogoUrl!: string;
+
+    @Column({ name: 'away_team_api_id', type: 'int', nullable: true })
+    awayTeamApiId!: number | null;
 
     @Column({ name: 'away_team_name' })
     awayTeamName!: string;
