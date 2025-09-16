@@ -15,12 +15,19 @@ export interface Match {
   homeScore?: number;
   awayScore?: number;
   status: string;
+  homeTeamApiId?: number | null;
+  awayTeamApiId?: number | null;
 }
 
 export const useMatchesStore = defineStore('matches', () => {
   const matches = ref<Match[]>([]);
   const loading = ref(false);
-  
+
+  /**
+   * Busca as partidas de um campeonato específico pela API.
+   * @param apiFootballId O ID do campeonato na API Football.
+   * @returns Um objeto indicando sucesso ou falha, com os dados das partidas ou uma mensagem de erro.
+   */
   async function fetchByChampionship(apiFootballId: number) {
     loading.value = true;
     try {
@@ -36,11 +43,16 @@ export const useMatchesStore = defineStore('matches', () => {
     }
   }
 
+  /**
+   * Busca as partidas de um time específico pelo nome.
+   * @param teamName O nome do time.
+   * @returns Um objeto indicando sucesso ou falha, com os dados das partidas ou uma mensagem de erro.
+   */
   async function fetchByTeam(teamName: string) {
     loading.value = true;
     try {
       const teamMatches = await $fetch<Match[]>('/api/matches/team', {
-        params: { name: teamName } 
+        params: { name: teamName }
       });
       matches.value = teamMatches;
       return { success: true, data: teamMatches };
@@ -53,10 +65,28 @@ export const useMatchesStore = defineStore('matches', () => {
     }
   }
 
+  /**
+   * Busca os últimos jogos entre dois times em um determinado campeonato.
+   * @param championshipId O ID do campeonato.
+   * @param team1Id O ID do primeiro time.
+   * @param team2Id O ID do segundo time.
+   * @returns Um objeto indicando sucesso ou falha, com os dados dos últimos jogos ou uma mensagem de erro.
+   */
+  async function fetchLastGames(championshipId: number, team1Id: number, team2Id: number) {
+    try {
+      const response = await $fetch<{ [key: number]: Match[] }>(`/api/matches/last-games/${championshipId}/${team1Id}/${team2Id}`);
+      return { success: true, data: response };
+    } catch (error: any) {
+      console.error('Erro ao buscar os últimos jogos dos times:', error);
+      return { success: false, error: error.data?.message || 'Falha ao buscar últimos jogos' };
+    }
+  }
+
   return {
     matches,
     loading,
     fetchByChampionship,
     fetchByTeam,
+    fetchLastGames,
   };
 });

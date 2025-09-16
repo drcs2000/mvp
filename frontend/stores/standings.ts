@@ -26,6 +26,10 @@ export const useStandingsStore = defineStore('standings', () => {
   const isLoading = ref(false);
   const error = ref(null);
 
+  /**
+   * Busca a tabela de classificação de um campeonato específico.
+   * @param apiFootballId O ID do campeonato na API Football.
+   */
   async function fetchStandingsByChampionshipId(apiFootballId: number) {
     isLoading.value = true;
     error.value = null;

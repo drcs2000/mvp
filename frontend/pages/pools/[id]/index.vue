@@ -49,63 +49,9 @@
         </div>
       </header>
       <div
-        v-if="featuredMatch && !stores.matches.loading"
+        v-if="!stores.matches.loading"
         class="shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white"
       >
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-bold text-gray-900">
-            {{ selectedChampionship?.name }}
-          </h2>
-          <p v-if="currentRound" class="text-sm font-semibold text-gray-500">
-            Rodada {{ currentRoundNumber }}
-          </p>
-        </div>
-        <div class="p-4 text-white bg-gray-800 rounded-xl">
-          <div class="flex items-center justify-between">
-            <div class="flex flex-col items-center w-1/3 text-center">
-              <img
-                :src="featuredMatch.homeTeamLogoUrl"
-                :alt="featuredMatch.homeTeamName"
-                class="object-contain w-16 h-16"
-              />
-              <span
-                class="block mt-2 text-sm"
-                :class="{ 'font-bold': isHomeWinner(featuredMatch) }"
-                >{{ featuredMatch.homeTeamName }}</span
-              >
-            </div>
-            <div class="text-center">
-              <div class="text-4xl font-bold">
-                <span v-if="featuredMatch.status !== 'NS'">
-                  <span :class="{ 'font-bold': isHomeWinner(featuredMatch) }">{{
-                    featuredMatch.homeScore
-                  }}</span>
-                  -
-                  <span :class="{ 'font-bold': isAwayWinner(featuredMatch) }">{{
-                    featuredMatch.awayScore
-                  }}</span>
-                </span>
-                <span v-else>{{ formatTime(featuredMatch.date) }}</span>
-              </div>
-              <span class="mt-1 text-xs text-gray-400">{{
-                getStatusText(featuredMatch.status)
-              }}</span>
-            </div>
-            <div class="flex flex-col items-center w-1/3 text-center">
-              <img
-                :src="featuredMatch.awayTeamLogoUrl"
-                :alt="featuredMatch.awayTeamName"
-                class="object-contain w-16 h-16"
-              />
-              <span
-                class="block mt-2 text-sm"
-                :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
-                >{{ featuredMatch.awayTeamName }}</span
-              >
-            </div>
-          </div>
-        </div>
-
         <div class="flex items-center justify-center mt-4">
           <div class="flex items-center gap-2">
             <button
@@ -140,83 +86,143 @@
             {{ formatDate(day) }}
           </h3>
           <div class="space-y-px">
-            <div
-              v-for="match in matches"
-              :key="match.id"
-              class="grid grid-cols-[100px_1fr_100px] gap-4 items-center px-4 py-3 border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
-            >
-              <div class="text-sm font-medium text-gray-800 text-left">
-                {{ formatTime(match.date) }}
-              </div>
+            <template v-for="match in matches" :key="match.id">
+              <div
+                class="grid grid-cols-[100px_1fr_100px] gap-4 items-center px-4 py-3 border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+                :class="{ 'cursor-pointer': match.status === 'NS' }"
+                @click="toggleMatchDetails(match)"
+              >
+                <div class="text-sm font-medium text-gray-800 text-left">
+                  {{ formatTime(match.date) }}
+                </div>
 
-              <div class="flex items-center justify-between text-sm gap-2">
-                <div class="flex items-center gap-2 flex-1 justify-end">
-                  <span
-                    class="text-right truncate max-w-[120px]"
-                    :class="{ 'font-bold': isHomeWinner(match) }"
-                    >{{ match.homeTeamName }}</span
-                  >
-                  <img
-                    :src="match.homeTeamLogoUrl"
-                    class="object-contain w-6 h-6 shrink-0"
-                  />
-                </div>
-                <div class="flex items-center gap-1">
-                  <input
-                    v-model.number="betForms[match.id].homeScoreBet"
-                    type="text"
-                    :disabled="isBettingTimeExpired(match) || !isParticipant"
-                    class="w-6 text-center border rounded-md"
-                  />
-                  <span>-</span>
-                  <input
-                    v-model.number="betForms[match.id].awayScoreBet"
-                    type="text"
-                    :disabled="isBettingTimeExpired(match) || !isParticipant"
-                    class="w-6 text-center border rounded-md"
-                  />
-                </div>
-                <div class="flex items-center gap-2 flex-1 justify-start">
-                  <img
-                    :src="match.awayTeamLogoUrl"
-                    class="object-contain w-6 h-6 shrink-0"
-                  />
-                  <span
-                    class="text-left truncate max-w-[120px]"
-                    :class="{ 'font-bold': isAwayWinner(match) }"
-                    >{{ match.awayTeamName }}</span
-                  >
-                </div>
-              </div>
-
-              <div class="flex flex-col items-end gap-1">
-                <div
-                  v-if="match.status !== 'FT'"
-                  class="flex items-center gap-1.5"
-                >
-                  <div
-                    v-if="currentPool?.betDeadlineHours !== undefined"
-                    class="text-xs font-medium text-gray-600 text-right whitespace-nowrap"
-                  >
-                    {{ countdowns[match.id] || "Calculando..." }}
-                  </div>
-                  <div class="relative group">
-                    <InformationCircleIcon class="w-4 h-4 text-gray-400" />
+                <div class="flex items-center justify-between text-sm gap-2">
+                  <div class="flex items-center gap-2 flex-1 justify-end">
                     <span
-                      class="absolute bottom-full right-0 p-1 mb-2 text-xs text-center text-white bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50"
+                      class="text-right truncate max-w-[120px]"
+                      :class="{ 'font-bold': isHomeWinner(match) }"
+                      >{{ match.homeTeamName }}</span
                     >
-                      Tempo Limite do Palpite
-                    </span>
+                    <img
+                      :src="match.homeTeamLogoUrl"
+                      class="object-contain w-6 h-6 shrink-0"
+                    />
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <input
+                      v-model.number="betForms[match.id].homeScoreBet"
+                      type="text"
+                      :disabled="isBettingTimeExpired(match) || !isParticipant"
+                      class="w-6 text-center border rounded-md"
+                      @click.stop
+                    />
+                    <span>-</span>
+                    <input
+                      v-model.number="betForms[match.id].awayScoreBet"
+                      type="text"
+                      :disabled="isBettingTimeExpired(match) || !isParticipant"
+                      class="w-6 text-center border rounded-md"
+                      @click.stop
+                    />
+                  </div>
+                  <div class="flex items-center gap-2 flex-1 justify-start">
+                    <img
+                      :src="match.awayTeamLogoUrl"
+                      class="object-contain w-6 h-6 shrink-0"
+                    />
+                    <span
+                      class="text-left truncate max-w-[120px]"
+                      :class="{ 'font-bold': isAwayWinner(match) }"
+                      >{{ match.awayTeamName }}</span
+                    >
                   </div>
                 </div>
-                <div
-                  v-else-if="match.status === 'FT'"
-                  class="font-medium text-sm text-gray-800 whitespace-nowrap"
-                >
-                  {{ match.homeScore }} - {{ match.awayScore }}
+
+                <div class="flex flex-col items-end gap-1">
+                  <div
+                    v-if="match.status !== 'FT'"
+                    class="flex items-center gap-1.5"
+                  >
+                    <div
+                      v-if="currentPool?.betDeadlineHours !== undefined"
+                      class="text-xs font-medium text-gray-600 text-right whitespace-nowrap"
+                    >
+                      {{ countdowns[match.id] || "Calculando..." }}
+                    </div>
+                    <div class="relative group">
+                      <InformationCircleIcon class="w-4 h-4 text-gray-400" />
+                      <span
+                        class="absolute bottom-full right-0 p-1 mb-2 text-xs text-center text-white bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[60]"
+                      >
+                        Tempo Limite do Palpite
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    v-else-if="match.status === 'FT'"
+                    class="font-medium text-sm text-gray-800 whitespace-nowrap"
+                  >
+                    {{ match.homeScore }} - {{ match.awayScore }}
+                  </div>
                 </div>
               </div>
-            </div>
+              <div
+                v-if="expandedMatchId === match.id"
+                class="px-4 py-3 bg-gray-100 border-b border-gray-200 transition-all duration-300 ease-in-out overflow-hidden"
+              >
+                <div v-if="stores.matches.loading">
+                  Carregando últimos jogos...
+                </div>
+                <div v-else-if="lastGamesData[match.id]">
+                  <div class="flex items-center justify-center">
+                    <h4 class="text-sm font-semibold text-gray-700">
+                      Últimos 5 jogos
+                    </h4>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4 items-start mt-2">
+                    <div class="flex flex-col gap-2 w-full items-end">
+                      <div
+                        v-for="game in lastGamesData[match.id].homeTeam"
+                        :key="game.id"
+                        class="grid grid-cols-[1fr_auto_1fr] p-1 w-full rounded-md text-xs"
+                        :class="getGameResultClass(game, match.homeTeamApiId)"
+                      >
+                        <span class="text-right truncate">{{
+                          game.homeTeamName
+                        }}</span>
+                        <span class="mx-1 whitespace-nowrap"
+                          >{{ game.homeScore }} x {{ game.awayScore }}</span
+                        >
+                        <span class="text-left truncate">{{
+                          game.awayTeamName
+                        }}</span>
+                      </div>
+                    </div>
+                    <div class="flex flex-col gap-2 w-full items-start">
+                      <div
+                        v-for="game in lastGamesData[match.id].awayTeam"
+                        :key="game.id"
+                        class="grid grid-cols-[1fr_auto_1fr] p-1 w-full rounded-md text-xs"
+                        :class="getGameResultClass(game, match.awayTeamApiId)"
+                      >
+                        <span class="text-right truncate">{{
+                          game.homeTeamName
+                        }}</span>
+                        <span class="mx-1 whitespace-nowrap"
+                          >{{ game.homeScore }} x {{ game.awayScore }}</span
+                        >
+                        <span class="text-left truncate">{{
+                          game.awayTeamName
+                        }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div v-else>
+                  Não foi possível carregar o histórico de jogos.
+                </div>
+              </div>
+            </template>
           </div>
         </div>
         <div
@@ -225,12 +231,7 @@
         >
           <button
             @click="submitAllBets"
-            :disabled="
-              !hasChanges ||
-              !allBetsAreFilled ||
-              isRoundDeadlineExpired ||
-              stores.bet.loading
-            "
+            :disabled="!hasChanges || !allBetsAreFilled || stores.bet.loading"
             class="px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
           >
             Salvar Rodada
@@ -275,6 +276,9 @@ const showToast = (message, type) => {
   toastMessage.value = message;
   toastType.value = type;
 };
+
+const expandedMatchId = ref(null);
+const lastGamesData = reactive({});
 
 const isParticipant = computed(() => {
   const currentPoolData = stores.pools.currentPool;
@@ -339,24 +343,18 @@ const hasChanges = computed(() => {
   return false;
 });
 
-// =================================================================
-// FUNÇÃO ALTERADA
-// =================================================================
 const findCurrentRound = (allMatches) => {
   const now = new Date();
-  const todayString = now.toDateString(); // Pega a data de hoje, ex: "Mon Sep 15 2025"
+  const todayString = now.toDateString();
 
-  // 1. Procura por qualquer jogo que aconteça hoje.
   const matchToday = allMatches.find(
     (m) => new Date(m.date).toDateString() === todayString
   );
 
-  // 2. Se encontrou um jogo hoje, retorna a rodada deste jogo.
   if (matchToday) {
     return matchToday.round;
   }
 
-  // 3. Se não há jogos hoje, procura pelo próximo jogo futuro (lógica original).
   const upcomingMatch = allMatches
     .filter((m) => new Date(m.date) >= now)
     .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
@@ -365,14 +363,12 @@ const findCurrentRound = (allMatches) => {
     return upcomingMatch.round;
   }
 
-  // 4. Se não há jogos hoje nem no futuro, pega a rodada do último jogo que aconteceu.
   const lastMatch = [...allMatches].sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   )[0];
 
   return lastMatch ? lastMatch.round : null;
 };
-// =================================================================
 
 const allRounds = computed(() => {
   if (!stores.matches.matches) return [];
@@ -429,14 +425,6 @@ const matchesByDay = computed(() => {
   }, {});
 });
 
-const featuredMatch = computed(() => {
-  if (matchesOfSelectedRound.value.length === 0) return null;
-  return (
-    matchesOfSelectedRound.value.find((m) => m.status !== "FT") ||
-    matchesOfSelectedRound.value[0]
-  );
-});
-
 const isBettingTimeExpired = (match) => {
   if (!currentPool.value || !match.date) return true;
   const matchDate = new Date(match.date);
@@ -446,19 +434,14 @@ const isBettingTimeExpired = (match) => {
   return new Date() > deadlineDate;
 };
 
-const isRoundDeadlineExpired = computed(() => {
-  const unplayedMatches = matchesOfSelectedRound.value.filter(
-    (m) => m.status !== "FT"
-  );
-  return unplayedMatches.some((match) => isBettingTimeExpired(match));
-});
-
 const allBetsAreFilled = computed(() => {
-  const unplayedMatches = matchesOfSelectedRound.value.filter(
-    (m) => m.status !== "FT"
+  const openMatches = matchesOfSelectedRound.value.filter(
+    (m) => m.status === "NS" && !isBettingTimeExpired(m)
   );
-  if (unplayedMatches.length === 0) return false;
-  return unplayedMatches.every((match) => {
+
+  if (openMatches.length === 0) return true;
+
+  return openMatches.every((match) => {
     const form = betForms.value[match.id];
     return (
       form &&
@@ -535,6 +518,7 @@ onMounted(async () => {
       stores.championships.selectChampionship(currentChampionship.value);
     } else {
       showToast("Campeonato não encontrado para este bolão.", "error");
+      navigateTo("/");
     }
   } else {
     showToast("Bolão não encontrado ou ocorreu um erro.", "error");
@@ -632,6 +616,69 @@ const submitAllBets = async () => {
   } else {
     showToast("Todos os palpites foram salvos com sucesso!", "success");
     initialBetForms.value = JSON.parse(JSON.stringify(betForms.value));
+  }
+};
+
+const toggleMatchDetails = async (match) => {
+  if (match.status === "FT") {
+    return;
+  }
+
+  if (expandedMatchId.value === match.id) {
+    expandedMatchId.value = null;
+    return;
+  }
+
+  expandedMatchId.value = match.id;
+
+  lastGamesData[match.id] = null;
+
+  if (
+    match.homeTeamApiId &&
+    match.awayTeamApiId &&
+    currentChampionship.value?.apiFootballId
+  ) {
+    const result = await stores.matches.fetchLastGames(
+      currentChampionship.value.apiFootballId,
+      match.homeTeamApiId,
+      match.awayTeamApiId
+    );
+    if (result.success && result.data) {
+      lastGamesData[match.id] = {
+        homeTeam: result.data[match.homeTeamApiId] || [],
+        awayTeam: result.data[match.awayTeamApiId] || [],
+      };
+    } else {
+      showToast("Erro ao carregar últimos jogos.", "error");
+    }
+  } else {
+    showToast("IDs dos times ou campeonato não encontrados.", "error");
+  }
+};
+
+const getGameResultLetter = (game, teamId) => {
+  if (game.homeScore === game.awayScore) {
+    return "D";
+  }
+  const isHomeTeam = game.homeTeamApiId === teamId;
+  if (isHomeTeam) {
+    return game.homeScore > game.awayScore ? "W" : "L";
+  } else {
+    return game.awayScore > game.homeScore ? "W" : "L";
+  }
+};
+
+const getGameResultClass = (game, teamId) => {
+  const result = getGameResultLetter(game, teamId);
+  switch (result) {
+    case "W":
+      return "bg-green-500 text-white";
+    case "L":
+      return "bg-red-500 text-white";
+    case "D":
+      return "bg-gray-400 text-white";
+    default:
+      return "bg-gray-200 text-gray-700";
   }
 };
 

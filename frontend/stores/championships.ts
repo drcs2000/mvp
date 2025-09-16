@@ -19,6 +19,9 @@ export const useChampionshipsStore = defineStore('championships', () => {
   const isLoading = ref(false);
   const selectedChampionship = ref<Championship | null>(null);
 
+  /**
+   * Busca todos os campeonatos disponíveis na API.
+   */
   async function fetchAllChampionships() {
     isLoading.value = true;
     try {
@@ -34,6 +37,10 @@ export const useChampionshipsStore = defineStore('championships', () => {
     }
   }
 
+  /**
+   * Define o campeonato atualmente selecionado na store.
+   * @param championship O objeto do campeonato a ser selecionado, ou nulo para limpar a seleção.
+   */
   function selectChampionship(championship: Championship | null) {
     selectedChampionship.value = championship;
   }

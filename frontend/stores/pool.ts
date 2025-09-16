@@ -28,6 +28,11 @@ export const usePoolsStore = defineStore('pools', () => {
   const myPools = ref<Pool[]>([]);
   const currentPool = ref<Pool | null>(null);
 
+  /**
+   * Cria um novo bolão.
+   * @param payload Os dados para a criação do bolão.
+   * @returns Um objeto com o resultado da operação (sucesso/falha) e os dados do bolão criado.
+   */
   async function createPool(payload: any): Promise<ActionReturn> {
     const authStore = useAuthStore();
 
@@ -59,6 +64,10 @@ export const usePoolsStore = defineStore('pools', () => {
     }
   }
 
+  /**
+   * Busca todos os bolões públicos disponíveis.
+   * @returns Um objeto com o resultado da operação (sucesso/falha) e a lista de bolões públicos.
+   */
   async function fetchAllPublicPools(): Promise<ActionReturn> {
     try {
       const publicPools = await $fetch<Pool[]>('/api/pool');
@@ -71,6 +80,10 @@ export const usePoolsStore = defineStore('pools', () => {
     }
   }
 
+  /**
+   * Busca os bolões em que o usuário autenticado está participando.
+   * @returns Um objeto com o resultado da operação (sucesso/falha) e a lista de bolões do usuário.
+   */
   async function fetchMyPools(): Promise<ActionReturn> {
     const authStore = useAuthStore();
 
@@ -94,6 +107,11 @@ export const usePoolsStore = defineStore('pools', () => {
     }
   }
 
+  /**
+   * Busca um bolão específico pelo seu ID.
+   * @param poolId O ID do bolão a ser buscado.
+   * @returns Um objeto com o resultado da operação (sucesso/falha) e os dados do bolão encontrado.
+   */
   async function fetchPoolById(poolId: string): Promise<ActionReturn> {
     try {
       const pool = await $fetch<Pool>(`/api/pool/${poolId}`);
@@ -106,6 +124,11 @@ export const usePoolsStore = defineStore('pools', () => {
     }
   }
 
+  /**
+   * Permite que o usuário autenticado entre em um bolão.
+   * @param poolId O ID do bolão para entrar.
+   * @returns Um objeto com o resultado da operação (sucesso/falha) e os dados do bolão atualizados.
+   */
   async function joinPool(poolId: string): Promise<ActionReturn> {
     const authStore = useAuthStore();
 
@@ -139,6 +162,11 @@ export const usePoolsStore = defineStore('pools', () => {
     }
   }
 
+  /**
+   * Exclui um bolão. Apenas o criador do bolão pode realizar esta ação.
+   * @param poolId O ID do bolão a ser excluído.
+   * @returns Um objeto indicando o sucesso ou falha da operação.
+   */
   async function deletePool(poolId: string): Promise<{ success: boolean; error: string | null }> {
     const authStore = useAuthStore();
 
@@ -170,6 +198,12 @@ export const usePoolsStore = defineStore('pools', () => {
     }
   }
 
+  /**
+   * Remove um participante de um bolão.
+   * @param poolId O ID do bolão.
+   * @param userId O ID do usuário a ser removido.
+   * @returns Um objeto indicando o sucesso ou falha da operação.
+   */
   async function removeParticipant(poolId: string, userId: number): Promise<{ success: boolean; error: string | null }> {
     const authStore = useAuthStore();
 

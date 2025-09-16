@@ -25,6 +25,11 @@ export const useBetsStore = defineStore('bets', () => {
   const allPoolBets = ref<{ [poolId: string]: Bet[] }>({});
   const loading = ref(false);
 
+  /**
+   * Busca palpites com base nos parâmetros fornecidos (userId, poolId).
+   * @param params Objeto opcional para filtrar os palpites por `userId` ou `poolId`.
+   * @returns Um objeto indicando sucesso ou falha, com os dados dos palpites ou uma mensagem de erro.
+   */
   async function fetchBets(params?: { userId?: number; poolId?: number }) {
     const authStore = useAuthStore();
 
@@ -47,6 +52,14 @@ export const useBetsStore = defineStore('bets', () => {
     }
   }
 
+  /**
+   * Cria ou atualiza um palpite para uma partida específica em um bolão.
+   * @param poolId O ID do bolão.
+   * @param matchId O ID da partida.
+   * @param homeScoreBet O palpite de gols para o time da casa.
+   * @param awayScoreBet O palpite de gols para o time visitante.
+   * @returns Um objeto indicando sucesso ou falha, com os dados do palpite atualizado ou uma mensagem de erro.
+   */
   async function createOrUpdateBet(poolId: number, matchId: number, homeScoreBet: number, awayScoreBet: number) {
     const authStore = useAuthStore();
 
@@ -91,6 +104,11 @@ export const useBetsStore = defineStore('bets', () => {
     }
   }
   
+  /**
+   * Busca todos os palpites de um bolão específico.
+   * @param poolId O ID do bolão.
+   * @returns Um objeto indicando sucesso ou falha, com os dados dos palpites ou uma mensagem de erro.
+   */
   async function fetchAllBetsByPool(poolId: string) {
     const authStore = useAuthStore();
 
