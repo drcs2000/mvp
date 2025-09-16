@@ -1,5 +1,6 @@
 import { AppDataSource } from '../../database/data-source';
 import { Match, MatchStatus } from '../../entities/match.entity';
+import { Bet } from '../../entities/bet.entity';
 import { Not, In } from 'typeorm';
 
 function normalizeTeamName(name: string): string {
@@ -12,6 +13,7 @@ function normalizeTeamName(name: string): string {
 
 class MatchService {
   private matchRepository = AppDataSource.getRepository(Match);
+  private betRepository = AppDataSource.getRepository(Bet);
 
   async saveMatchData(espnId: number, apiFootballId: number, fixtures: any[]): Promise<Match[]> {
     const savedMatches: Match[] = [];
@@ -61,7 +63,6 @@ class MatchService {
     });
   }
 
-  // Mapeamento dos status da ESPN para os status locais
   private getStatusFromEspnEvent(espnStatus: string, period: number | null = null): MatchStatus {
     switch (espnStatus) {
       case 'STATUS_FINAL':
@@ -88,20 +89,44 @@ class MatchService {
       case 'STATUS_POSTPONED':
         return MatchStatus.POSTPONED;
       default:
-        return MatchStatus.NOT_STARTED; // Default para 'NS' se não for reconhecido
+        return MatchStatus.NOT_STARTED;
     }
+  }
+
+  private calculatePoints(bet: Bet, match: Match): number {
+    if (typeof match.homeScore !== 'number' || typeof match.awayScore !== 'number') {
+      return 0;
+    }
+
+    const pointsSystem = bet.pool.points || { full: 25, partial: 12, result: 10, goal: 5 };
+
+    const { homeScore, awayScore } = match;
+    const { homeScoreBet, awayScoreBet } = bet;
+
+    const matchWinner = homeScore > awayScore ? 'home' : awayScore > homeScore ? 'away' : 'draw';
+    const betWinner = homeScoreBet > awayScoreBet ? 'home' : awayScoreBet > homeScoreBet ? 'away' : 'draw';
+
+    if (homeScoreBet === homeScore && awayScoreBet === awayScore) {
+      return pointsSystem.full;
+    }
+    if (betWinner === matchWinner && (homeScoreBet === homeScore || awayScoreBet === awayScore)) {
+      return pointsSystem.partial;
+    }
+    if (betWinner === matchWinner) {
+      return pointsSystem.result;
+    }
+    if (homeScoreBet === homeScore || awayScoreBet === awayScore) {
+      return pointsSystem.goal;
+    }
+
+    return 0;
   }
 
   public async updateMatchesFromEspn(championshipApiFootballId: number, espnEvents: any[]): Promise<{ updated: number; notFound: number }> {
     const stats = { updated: 0, notFound: 0 };
     const updatedMatches: Match[] = [];
 
-    const finishedStatuses = [
-      MatchStatus.FINISHED,
-      MatchStatus.POSTPONED,
-      MatchStatus.CANCELLED,
-    ];
-
+    const finishedStatuses = [MatchStatus.FINISHED, MatchStatus.POSTPONED, MatchStatus.CANCELLED];
     const updatableMatches = await this.matchRepository.find({
       where: {
         apiFootballId: championshipApiFootballId,
@@ -110,8 +135,7 @@ class MatchService {
     });
 
     if (updatableMatches.length === 0) {
-      stats.notFound = espnEvents.length;
-      return stats;
+      return { updated: 0, notFound: espnEvents.length };
     }
 
     const matchesMap = new Map<string, Match>();
@@ -126,7 +150,6 @@ class MatchService {
 
       const homeCompetitor = competition.competitors.find((c: any) => c.homeAway === 'home');
       const awayCompetitor = competition.competitors.find((c: any) => c.homeAway === 'away');
-
       if (!homeCompetitor || !awayCompetitor) continue;
 
       const apiKey = `${normalizeTeamName(homeCompetitor.team.displayName)}:${normalizeTeamName(awayCompetitor.team.displayName)}`;
@@ -134,9 +157,7 @@ class MatchService {
 
       if (matchToUpdate) {
         const espnStatusName = competition.status.type.name;
-        const period = competition.status.period;
-        const newStatus = this.getStatusFromEspnEvent(espnStatusName, period);
-
+        const newStatus = this.getStatusFromEspnEvent(espnStatusName, competition.status.period);
         const homeScore = parseInt(homeCompetitor.score, 10) || 0;
         const awayScore = parseInt(awayCompetitor.score, 10) || 0;
 
@@ -145,15 +166,40 @@ class MatchService {
           matchToUpdate.awayScore = awayScore;
           matchToUpdate.status = newStatus;
           updatedMatches.push(matchToUpdate);
-          stats.updated++;
         }
       } else {
         stats.notFound++;
       }
     }
 
+    stats.updated = updatedMatches.length;
+
     if (updatedMatches.length > 0) {
       await this.matchRepository.save(updatedMatches);
+
+      const newlyFinishedMatches = updatedMatches.filter(match => match.status === MatchStatus.FINISHED);
+
+      if (newlyFinishedMatches.length > 0) {
+        const allBetsToUpdate: Bet[] = [];
+        for (const finishedMatch of newlyFinishedMatches) {
+          const betsForMatch = await this.betRepository.find({
+            where: { match: { id: finishedMatch.id } },
+            relations: ['pool'],
+          });
+
+          for (const bet of betsForMatch) {
+            const points = this.calculatePoints(bet, finishedMatch);
+            if (bet.pointsEarned !== points) {
+              bet.pointsEarned = points;
+              allBetsToUpdate.push(bet);
+            }
+          }
+        }
+
+        if (allBetsToUpdate.length > 0) {
+          await this.betRepository.save(allBetsToUpdate);
+        }
+      }
     }
 
     return stats;

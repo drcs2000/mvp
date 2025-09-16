@@ -9,19 +9,20 @@ export interface Bet {
   matchId: number;
   homeScoreBet: number;
   awayScoreBet: number;
-  // A bet object from the server has nested properties
   match: {
     id: number;
-    // ...other match properties
   };
   pool: {
     id: number;
-    // ...other pool properties
+  };
+  user: {
+    id: number;
   };
 }
 
 export const useBetsStore = defineStore('bets', () => {
   const bets = ref<Bet[]>([]);
+  const allPoolBets = ref<{ [poolId: string]: Bet[] }>({});
   const loading = ref(false);
 
   async function fetchBets(params?: { userId?: number; poolId?: number }) {
@@ -62,17 +63,22 @@ export const useBetsStore = defineStore('bets', () => {
         }
       });
 
-      // Find the bet in the local state
       const existingBet = bets.value.find(bet => bet.matchId === matchId && bet.poolId === poolId);
 
-      // If the bet exists, just update its score properties
       if (existingBet) {
         existingBet.homeScoreBet = updatedBet.homeScoreBet;
         existingBet.awayScoreBet = updatedBet.awayScoreBet;
       } else {
-        // If the bet doesn't exist, we need to fetch it to get the nested 'match' object
-        // The simple fix is to refetch all bets to ensure everything is in sync
         await fetchBets({ poolId });
+      }
+
+      if (allPoolBets.value && allPoolBets.value[poolId]) {
+        const betIndexInPool = allPoolBets.value[poolId].findIndex(bet => bet.matchId === matchId);
+        if (betIndexInPool !== -1) {
+          allPoolBets.value[poolId][betIndexInPool] = updatedBet;
+        } else {
+          allPoolBets.value[poolId].push(updatedBet);
+        }
       }
 
       return { success: true, data: updatedBet };
@@ -84,11 +90,44 @@ export const useBetsStore = defineStore('bets', () => {
       loading.value = false;
     }
   }
+  
+  async function fetchAllBetsByPool(poolId: string) {
+    const authStore = useAuthStore();
+
+    if (!authStore.isAuthenticated || !authStore.token) {
+      const errorMsg = 'Você precisa estar logado para ver os palpites.';
+      return { success: false, error: errorMsg, data: null };
+    }
+
+    loading.value = true;
+    try {
+      const fetchedBets = await $fetch<Bet[]>(`/api/bets/pools/${poolId}`, {
+        headers: {
+          'Authorization': `Bearer ${authStore.token}`
+        }
+      });
+      
+      if (!allPoolBets.value) {
+        allPoolBets.value = {};
+      }
+      allPoolBets.value[poolId] = fetchedBets;
+
+      return { success: true, data: fetchedBets };
+    } catch (error: any) {
+      console.error('Erro ao buscar todos os palpites do bolão:', error);
+      const errorMessage = error.data?.message || 'Falha ao buscar palpites do bolão';
+      return { success: false, error: errorMessage, data: null };
+    } finally {
+      loading.value = false;
+    }
+  }
 
   return {
     bets,
+    allPoolBets,
     loading,
     fetchBets,
     createOrUpdateBet,
+    fetchAllBetsByPool,
   };
 });

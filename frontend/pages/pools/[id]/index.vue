@@ -14,17 +14,37 @@
           {{ currentChampionship.name }}
         </h1>
         <div class="flex items-center gap-4 ml-auto text-right">
+          <button
+            v-if="!isParticipant"
+            @click="joinPool"
+            :disabled="stores.pools.loading"
+            class="px-3 py-1.5 text-sm font-semibold text-white bg-gray-600 rounded-md hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 whitespace-nowrap"
+          >
+            Entrar no Bolão
+          </button>
+
           <NuxtLink
-            :to="`/pools/${poolId}/bets?round=${currentRoundNumber}`"
-            class="text-sm font-semibold text-gray-600 hover:text-blue-500 transition-colors duration-200 whitespace-nowrap"
+            :to="isParticipant ? `/pools/${poolId}/bets` : ''"
+            :class="[
+              'text-sm font-semibold whitespace-nowrap transition-colors duration-200',
+              isParticipant
+                ? 'text-gray-600 hover:text-slate-800'
+                : 'text-gray-400 cursor-not-allowed',
+            ]"
           >
             Ver Todos Palpites
           </NuxtLink>
+
           <NuxtLink
-            :to="`/pools/${poolId}/standings`"
-            class="text-sm font-semibold text-gray-600 hover:text-blue-500 transition-colors duration-200 whitespace-now-rap"
+            :to="isParticipant ? `/pools/${poolId}/info` : ''"
+            :class="[
+              'text-sm font-semibold whitespace-nowrap transition-colors duration-200',
+              isParticipant
+                ? 'text-gray-600 hover:text-slate-800'
+                : 'text-gray-400 cursor-not-allowed',
+            ]"
           >
-            Classificação
+            Informações
           </NuxtLink>
         </div>
       </header>
@@ -32,6 +52,14 @@
         v-if="featuredMatch && !stores.matches.loading"
         class="shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white"
       >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-gray-900">
+            {{ selectedChampionship?.name }}
+          </h2>
+          <p v-if="currentRound" class="text-sm font-semibold text-gray-500">
+            Rodada {{ currentRoundNumber }}
+          </p>
+        </div>
         <div class="p-4 text-white bg-gray-800 rounded-xl">
           <div class="flex items-center justify-between">
             <div class="flex flex-col items-center w-1/3 text-center">
@@ -48,18 +76,16 @@
             </div>
             <div class="text-center">
               <div class="text-4xl font-bold">
-                <span :class="{ 'font-bold': isHomeWinner(featuredMatch) }">{{
-                  featuredMatch.homeScore ?? ""
-                }}</span>
-                <span v-if="featuredMatch.status === 'FT'"> - </span>
-                <span v-if="featuredMatch.status !== 'FT'">{{
-                  formatTime(featuredMatch.date)
-                }}</span>
-                <span
-                  v-if="featuredMatch.status === 'FT'"
-                  :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
-                  >{{ featuredMatch.awayScore ?? "" }}</span
-                >
+                <span v-if="featuredMatch.status !== 'NS'">
+                  <span :class="{ 'font-bold': isHomeWinner(featuredMatch) }">{{
+                    featuredMatch.homeScore
+                  }}</span>
+                  -
+                  <span :class="{ 'font-bold': isAwayWinner(featuredMatch) }">{{
+                    featuredMatch.awayScore
+                  }}</span>
+                </span>
+                <span v-else>{{ formatTime(featuredMatch.date) }}</span>
               </div>
               <span class="mt-1 text-xs text-gray-400">{{
                 getStatusText(featuredMatch.status)
@@ -139,14 +165,14 @@
                   <input
                     v-model.number="betForms[match.id].homeScoreBet"
                     type="text"
-                    :disabled="isBettingTimeExpired(match)"
+                    :disabled="isBettingTimeExpired(match) || !isParticipant"
                     class="w-6 text-center border rounded-md"
                   />
                   <span>-</span>
                   <input
                     v-model.number="betForms[match.id].awayScoreBet"
                     type="text"
-                    :disabled="isBettingTimeExpired(match)"
+                    :disabled="isBettingTimeExpired(match) || !isParticipant"
                     class="w-6 text-center border rounded-md"
                   />
                 </div>
@@ -193,7 +219,10 @@
             </div>
           </div>
         </div>
-        <div class="mt-4 text-center" v-if="hasUnplayedMatches">
+        <div
+          class="mt-4 text-center"
+          v-if="hasUnplayedMatches && isParticipant"
+        >
           <button
             @click="submitAllBets"
             :disabled="
@@ -247,6 +276,30 @@ const showToast = (message, type) => {
   toastType.value = type;
 };
 
+const isParticipant = computed(() => {
+  const currentPoolData = stores.pools.currentPool;
+  const currentUser = stores.auth.user;
+
+  if (!currentPoolData || !currentUser || !currentUser.id) {
+    return false;
+  }
+
+  return currentPoolData.participants.some((p) => p.userId === currentUser.id);
+});
+
+const joinPool = async () => {
+  const result = await stores.pools.joinPool(poolId.value);
+  if (result.success) {
+    showToast("Você entrou no bolão com sucesso!", "success");
+
+    stores.pools.currentPool = result.data;
+
+    await stores.bet.fetchBets({ poolId: poolId.value });
+  } else {
+    showToast(result.error || "Ocorreu um erro ao entrar no bolão.", "error");
+  }
+};
+
 const populateBetForms = () => {
   const newBetForms = {};
   matchesOfSelectedRound.value.forEach((match) => {
@@ -274,8 +327,6 @@ const hasChanges = computed(() => {
 
   if (currentKeys.length !== initialKeys.length) return true;
 
-  // AQUI: A linha foi alterada de `for (const match of currentKeys)`
-  // para `for (const matchId of currentKeys)`
   for (const matchId of currentKeys) {
     if (
       current[matchId]?.homeScoreBet !== initial[matchId]?.homeScoreBet ||
@@ -288,20 +339,40 @@ const hasChanges = computed(() => {
   return false;
 });
 
+// =================================================================
+// FUNÇÃO ALTERADA
+// =================================================================
 const findCurrentRound = (allMatches) => {
   const now = new Date();
+  const todayString = now.toDateString(); // Pega a data de hoje, ex: "Mon Sep 15 2025"
+
+  // 1. Procura por qualquer jogo que aconteça hoje.
+  const matchToday = allMatches.find(
+    (m) => new Date(m.date).toDateString() === todayString
+  );
+
+  // 2. Se encontrou um jogo hoje, retorna a rodada deste jogo.
+  if (matchToday) {
+    return matchToday.round;
+  }
+
+  // 3. Se não há jogos hoje, procura pelo próximo jogo futuro (lógica original).
   const upcomingMatch = allMatches
     .filter((m) => new Date(m.date) >= now)
     .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
 
-  if (upcomingMatch) return upcomingMatch.round;
+  if (upcomingMatch) {
+    return upcomingMatch.round;
+  }
 
+  // 4. Se não há jogos hoje nem no futuro, pega a rodada do último jogo que aconteceu.
   const lastMatch = [...allMatches].sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   )[0];
 
   return lastMatch ? lastMatch.round : null;
 };
+// =================================================================
 
 const allRounds = computed(() => {
   if (!stores.matches.matches) return [];

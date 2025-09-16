@@ -29,7 +29,7 @@
             v-for="pool in stores.pools.myPools"
             :key="pool.id"
             :to="`/pools/${pool.id}`"
-            class="relative flex items-center p-4 transition-all duration-200 bg-white border border-gray-200 rounded-lg shadow-sm group hover:border-gray-400 hover:shadow-md"
+            class="relative flex items-center p-4 transition-all duration-200 bg-white border border-gray-200 rounded-lg shadow-sm group hover:border-gray-400 hover:shadow-md mb-4"
           >
             <span class="text-sm font-semibold text-gray-800">
               {{ pool.name }}

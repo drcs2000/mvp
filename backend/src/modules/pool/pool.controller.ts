@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
-import PoolService from './pool.service';
-import { encodeId, decodeId } from '../../utils/hashid.helper';
-import { Pool } from '../../entities/pool.entity';
+import { Request, Response } from 'express'
+import PoolService from './pool.service'
+import { encodeId, decodeId } from '../../utils/hashid.helper'
+import { Pool } from '../../entities/pool.entity'
 
 class PoolController {
   private transformPoolResponse(pool: Pool) {
@@ -9,21 +9,22 @@ class PoolController {
       userId: p.userId,
       userName: p.user?.name,
       role: p.role
-    })) || [];
+    })) || []
 
-    const { participants: _, ...poolData } = pool;
+    const { participants: _, ...poolData } = pool
 
     return {
       ...poolData,
       id: encodeId(pool.id),
+      // AQUI: Retorna a lista completa de participantes
       participants: participants
-    };
+    }
   }
 
   public create = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user.id;
-      
+      const userId = req.user.id
+
       const {
         name,
         maxParticipants,
@@ -32,10 +33,10 @@ class PoolController {
         private: isPrivate,
         points,
         entryFee
-      } = req.body;
+      } = req.body
 
       if (!name || !maxParticipants || !baseChampionshipId || !points) {
-        return res.status(400).json({ error: 'Dados incompletos para criar o bolão.' });
+        return res.status(400).json({ error: 'Dados incompletos para criar o bolão.' })
       }
 
       const newPoolEntity = await PoolService.create({
@@ -46,61 +47,115 @@ class PoolController {
         private: isPrivate,
         points,
         entryFee
-      }, userId);
+      }, userId)
 
-      const responsePool = this.transformPoolResponse(newPoolEntity);
+      const responsePool = this.transformPoolResponse(newPoolEntity)
 
-      return res.status(201).json(responsePool);
+      return res.status(201).json(responsePool)
     } catch (error: any) {
-      console.error(error);
-      return res.status(500).json({ error: 'Falha ao criar o bolão.', details: error.message });
+      console.error(error)
+      return res.status(500).json({ error: 'Falha ao criar o bolão.', details: error.message })
     }
-  };
+  }
 
   public findAllPublic = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const pools = await PoolService.findAllPublic();
-      const responsePools = pools.map(pool => this.transformPoolResponse(pool));
-      return res.status(200).json(responsePools);
+      const pools = await PoolService.findAllPublic()
+      const responsePools = pools.map(pool => this.transformPoolResponse(pool))
+      return res.status(200).json(responsePools)
     } catch (error: any) {
-      console.error(error);
-      return res.status(500).json({ error: 'Falha ao buscar bolões públicos.', details: error.message });
+      console.error(error)
+      return res.status(500).json({ error: 'Falha ao buscar bolões públicos.', details: error.message })
     }
-  };
+  }
 
   public findMyPools = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user.id;
-      const pools = await PoolService.findForUser(userId);
-      const responsePools = pools.map(pool => this.transformPoolResponse(pool));
-      return res.status(200).json(responsePools);
+      const userId = req.user.id
+      // AQUI: A função do serviço precisa garantir que a lista de participantes seja completa
+      const pools = await PoolService.findForUser(userId)
+      const responsePools = pools.map(pool => this.transformPoolResponse(pool))
+      return res.status(200).json(responsePools)
     } catch (error: any) {
-      console.error(error);
-      return res.status(500).json({ error: 'Falha ao buscar seus bolões.', details: error.message });
+      console.error(error)
+      return res.status(500).json({ error: 'Falha ao buscar seus bolões.', details: error.message })
     }
-  };
+  }
 
   public findOne = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { poolId } = req.params;
-      
-      const decodedId = decodeId(poolId);
+      const { poolId } = req.params
+
+      const decodedId = decodeId(poolId)
       if (decodedId === null) {
+        return res.status(400).json({ error: 'ID de bolão inválido.' })
+      }
+
+      const pool = await PoolService.findOne(decodedId)
+      if (!pool) {
+        return res.status(404).json({ error: 'Bolão não encontrado.' })
+      }
+
+      const responsePool = this.transformPoolResponse(pool)
+      return res.status(200).json(responsePool)
+    } catch (error: any) {
+      console.error(error)
+      return res.status(500).json({ error: 'Falha ao buscar o bolão.', details: error.message })
+    }
+  }
+
+  public joinPool = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { poolId } = req.params
+      const userId = req.user.id
+
+      const decodedId = decodeId(poolId)
+      if (decodedId === null) {
+        return res.status(400).json({ error: 'ID de bolão inválido.' })
+      }
+
+      const pool = await PoolService.joinPool(decodedId, userId)
+
+      const responsePool = this.transformPoolResponse(pool)
+      return res.status(200).json(responsePool)
+    } catch (error: any) {
+      console.error(error)
+      if (error.message.includes('Bolão não encontrado') || error.message.includes('não é público')) {
+        return res.status(404).json({ error: error.message })
+      }
+      if (error.message.includes('já é um participante')) {
+        return res.status(409).json({ error: error.message })
+      }
+      return res.status(500).json({ error: 'Falha ao entrar no bolão.', details: error.message })
+    }
+  }
+
+  public delete = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { poolId } = req.params;
+      const userId = req.user.id;
+
+      const decodedPoolId = decodeId(poolId);
+      if (decodedPoolId === null) {
         return res.status(400).json({ error: 'ID de bolão inválido.' });
       }
 
-      const pool = await PoolService.findOne(decodedId);
-      if (!pool) {
-        return res.status(404).json({ error: 'Bolão não encontrado.' });
-      }
+      await PoolService.delete(decodedPoolId, userId);
 
-      const responsePool = this.transformPoolResponse(pool);
-      return res.status(200).json(responsePool);
+      return res.status(200).json({ message: 'Bolão excluído com sucesso.' });
     } catch (error: any) {
       console.error(error);
-      return res.status(500).json({ error: 'Falha ao buscar o bolão.', details: error.message });
+
+      if (error.message === 'Bolão não encontrado.') {
+        return res.status(404).json({ error: error.message });
+      }
+      if (error.message === 'Apenas o administrador pode excluir o bolão.') {
+        return res.status(403).json({ error: error.message });
+      }
+
+      return res.status(500).json({ error: 'Falha ao excluir o bolão.', details: error.message });
     }
-  };
+  }
 }
 
-export default new PoolController();
+export default new PoolController()
