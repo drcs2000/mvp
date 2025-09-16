@@ -21,7 +21,7 @@ export class Standings {
     @Column()
     championshipApiFootballId!: number;
 
-    @Column()
+    @Column({ nullable: true })
     teamApiId!: number;
 
     @Column()

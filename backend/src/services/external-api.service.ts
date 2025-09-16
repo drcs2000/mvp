@@ -31,7 +31,17 @@ class ExternalAPIService {
     const response = await this.espnClient.get(endpoint);
     return response.data;
   }
+
+  public async getH2H(team1Id: number, team2Id: number) {
+    if (!API_FOOTBALL_KEY) {
+      throw new Error('A chave da API-FOOTBALL não está configurada no .env');
+    }
+    const endpoint = '/fixtures/headtohead';
+    const response = await this.footballApiClient.get(endpoint, {
+      params: { h2h: `${team1Id}-${team2Id}` },
+    });
+    return response.data.response;
+  }
 }
 
 export default new ExternalAPIService();
-

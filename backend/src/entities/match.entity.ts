@@ -1,4 +1,3 @@
-// match.entity.ts
 import {
     Entity,
     PrimaryGeneratedColumn,
@@ -27,10 +26,10 @@ export class Match {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column({ name: 'espn_id' })
+    @Column({ name: 'espn_id', nullable: true })
     espnId!: number;
 
-    @Column({ name: 'api_football_id' })
+    @Column({ name: 'api_football_id', nullable: true })
     apiFootballId!: number;
 
     @Column({ name: 'api_football_fixture_id', unique: true })
@@ -62,10 +61,10 @@ export class Match {
     awayTeamLogoUrl!: string;
 
     @Column({ name: 'home_score', type: 'int', nullable: true })
-    homeScore?: number;
+    homeScore?: number | null;
 
     @Column({ name: 'away_score', type: 'int', nullable: true })
-    awayScore?: number;
+    awayScore?: number | null;
 
     @Column({ type: 'enum', enum: MatchStatus, default: MatchStatus.SCHEDULED })
     status!: MatchStatus;

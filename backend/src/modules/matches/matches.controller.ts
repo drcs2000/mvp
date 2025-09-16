@@ -47,7 +47,51 @@ class MatchController {
       return res.status(500).json({ message: "Falha ao buscar jogos do time." });
     }
   }
+
+  public getLastGames = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { championshipId, team1Id, team2Id } = req.params;
+
+      const parsedChampionshipId = parseInt(championshipId, 10);
+      const teamIds = [parseInt(team1Id, 10), parseInt(team2Id, 10)].filter(id => !isNaN(id));
+
+      if (isNaN(parsedChampionshipId) || teamIds.length < 2) {
+        return res.status(400).json({ message: 'Todos os IDs (campeonato e times) devem ser fornecidos e válidos.' });
+      }
+
+      const lastGames = await MatchService.getLastGamesByTeamIds(parsedChampionshipId, teamIds);
+      return res.status(200).json(lastGames);
+
+    } catch (error) {
+      console.error('Erro ao buscar os últimos jogos:', error);
+      return res.status(500).json({ message: 'Erro interno do servidor.' });
+    }
+  }
+
+  public getH2H = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { team1Id, team2Id } = req.params;
+
+      const parsedTeam1Id = parseInt(team1Id, 10);
+      const parsedTeam2Id = parseInt(team2Id, 10);
+
+      if (isNaN(parsedTeam1Id) || isNaN(parsedTeam2Id)) {
+        return res.status(400).json({ message: 'Os IDs dos times devem ser fornecidos e válidos.' });
+      }
+
+      const h2hData = await MatchService.findH2H(parsedTeam1Id, parsedTeam2Id);
+
+      if (!h2hData || !h2hData.matches || h2hData.matches.length === 0) {
+        return res.status(404).json({ message: "Não fomos capazes de achar o histórico de confrontos desses times, pedimos desculpas" });
+      }
+
+      return res.status(200).json(h2hData.matches);
+
+    } catch (error) {
+      console.error('Erro ao buscar o histórico H2H:', error);
+      return res.status(500).json({ message: 'Erro interno do servidor.' });
+    }
+  }
 }
 
 export default new MatchController();
-
