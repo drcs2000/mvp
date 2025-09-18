@@ -11,6 +11,14 @@
         v-if="featuredMatch && !stores.matches.loading"
         class="shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white"
       >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-gray-900">
+            {{ selectedChampionship?.name }}
+          </h2>
+          <p v-if="currentRound" class="text-sm font-semibold text-gray-500">
+            Rodada {{ currentRoundNumber }}
+          </p>
+        </div>
         <div class="p-4 text-white bg-gray-800 rounded-xl">
           <div class="flex items-center justify-between">
             <div class="flex flex-col items-center w-1/3 text-center">
@@ -27,18 +35,16 @@
             </div>
             <div class="text-center">
               <div class="text-4xl font-bold">
-                <span :class="{ 'font-bold': isHomeWinner(featuredMatch) }">{{
-                  featuredMatch.homeScore ?? ""
-                }}</span>
-                <span v-if="featuredMatch.status === 'FT'"> - </span>
-                <span v-if="featuredMatch.status !== 'FT'">{{
-                  formatTime(featuredMatch.date)
-                }}</span>
-                <span
-                  v-if="featuredMatch.status === 'FT'"
-                  :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
-                  >{{ featuredMatch.awayScore ?? "" }}</span
-                >
+                <span v-if="featuredMatch.status !== 'NS'">
+                  <span :class="{ 'font-bold': isHomeWinner(featuredMatch) }">{{
+                    featuredMatch.homeScore
+                  }}</span>
+                  -
+                  <span :class="{ 'font-bold': isAwayWinner(featuredMatch) }">{{
+                    featuredMatch.awayScore
+                  }}</span>
+                </span>
+                <span v-else>{{ formatTime(featuredMatch.date) }}</span>
               </div>
               <span class="mt-1 text-xs text-gray-400">{{
                 getStatusText(featuredMatch.status)
@@ -58,28 +64,6 @@
             </div>
           </div>
         </div>
-
-        <div class="flex items-center justify-center mt-4">
-          <div class="flex items-center gap-2">
-            <button
-              @click="previousRound"
-              :disabled="isFirstRound"
-              class="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeftIcon class="w-5 h-5 text-gray-600" />
-            </button>
-            <p class="text-sm font-semibold text-gray-700 w-24 text-center">
-              Rodada {{ currentRoundNumber }}
-            </p>
-            <button
-              @click="nextRound"
-              :disabled="isLastRound"
-              class="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronRightIcon class="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -96,7 +80,6 @@
             <NuxtLink
               v-for="match in matches"
               :key="match.id"
-              :to="`/matches/${match.id}`"
               class="grid grid-cols-[100px,1fr,150px] gap-4 items-center px-4 py-3 border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
             >
               <div class="text-sm font-medium text-gray-800">

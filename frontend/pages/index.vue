@@ -118,7 +118,6 @@
               <NuxtLink
                 v-for="match in matches"
                 :key="match.id"
-                :to="`/matches/${match.id}`"
                 class="grid grid-cols-[100px,1fr,150px] gap-4 items-center px-4 py-3 border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
               >
                 <div class="text-sm font-medium text-gray-800">

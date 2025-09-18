@@ -35,57 +35,9 @@
           </div>
         </header>
         <div
-          v-if="featuredMatch && !stores.matches.loading"
+          v-if="!stores.matches.loading"
           class="shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white"
         >
-          <div class="p-4 text-white bg-gray-800 rounded-xl">
-            <div class="flex items-center justify-between">
-              <div class="flex flex-col items-center w-1/3 text-center">
-                <img
-                  :src="featuredMatch.homeTeamLogoUrl"
-                  :alt="featuredMatch.homeTeamName"
-                  class="object-contain w-16 h-16"
-                />
-                <span
-                  class="block mt-2 text-sm"
-                  :class="{ 'font-bold': isHomeWinner(featuredMatch) }"
-                  >{{ featuredMatch.homeTeamName }}</span
-                >
-              </div>
-              <div class="text-center">
-                <div class="text-4xl font-bold">
-                  <span v-if="featuredMatch.status !== 'NS'">
-                    <span
-                      :class="{ 'font-bold': isHomeWinner(featuredMatch) }"
-                      >{{ featuredMatch.homeScore }}</span
-                    >
-                    -
-                    <span
-                      :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
-                      >{{ featuredMatch.awayScore }}</span
-                    >
-                  </span>
-                  <span v-else>{{ formatTime(featuredMatch.date) }}</span>
-                </div>
-                <span class="mt-1 text-xs text-gray-400">{{
-                  getStatusText(featuredMatch.status)
-                }}</span>
-              </div>
-              <div class="flex flex-col items-center w-1/3 text-center">
-                <img
-                  :src="featuredMatch.awayTeamLogoUrl"
-                  :alt="featuredMatch.awayTeamName"
-                  class="object-contain w-16 h-16"
-                />
-                <span
-                  class="block mt-2 text-sm"
-                  :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
-                  >{{ featuredMatch.awayTeamName }}</span
-                >
-              </div>
-            </div>
-          </div>
-
           <div class="flex items-center justify-center mt-4">
             <div class="flex items-center gap-2">
               <button
@@ -324,7 +276,7 @@ const getRowClass = (bet, match) => {
     case "goal":
       return "bg-indigo-100";
     default:
-      return bet.pointsEarned > 0 ? "bg-gray-100" : "bg-gray-50";
+      return bet.pointsEarned > 0 ? "bg-red-100" : "bg-red-50";
   }
 };
 
@@ -343,7 +295,7 @@ const getTextColor = (bet, match, context) => {
     case "goal":
       return context === "points" ? "text-indigo-900" : "text-indigo-800";
     default:
-      return bet.pointsEarned > 0 ? "text-gray-800" : "text-gray-700";
+      return bet.pointsEarned > 0 ? "text-red-800" : "text-red-700";
   }
 };
 
@@ -417,14 +369,6 @@ const matchesByDay = computed(() => {
     acc[dateKey].push(match);
     return acc;
   }, {});
-});
-
-const featuredMatch = computed(() => {
-  if (matchesOfSelectedRound.value.length === 0) return null;
-  return (
-    matchesOfSelectedRound.value.find((m) => m.status !== "FT") ||
-    matchesOfSelectedRound.value[0]
-  );
 });
 
 const groupedBetsByMatch = computed(() => {
