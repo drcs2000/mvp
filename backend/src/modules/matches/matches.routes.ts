@@ -10,4 +10,3 @@ matchesRouter.get('/last-games/:championshipId/:team1Id/:team2Id', MatchControll
 matchesRouter.get('/h2h/:team1Id/:team2Id', MatchController.getH2H);
 
 export default matchesRouter;
-

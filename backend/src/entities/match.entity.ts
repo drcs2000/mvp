@@ -5,7 +5,7 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     Index,
-} from 'typeorm';
+} from 'typeorm'
 
 export enum MatchStatus {
     SCHEDULED = 'TBD',
@@ -24,57 +24,57 @@ export enum MatchStatus {
 @Entity('matches')
 export class Match {
     @PrimaryGeneratedColumn()
-    id!: number;
+    id!: number
 
     @Column({ name: 'espn_id', nullable: true })
-    espnId!: number;
+    espnId!: number
 
     @Column({ name: 'api_football_id', nullable: true })
-    apiFootballId!: number;
+    apiFootballId!: number
 
     @Column({ name: 'api_football_fixture_id', unique: true })
-    apiFootballFixtureId!: number;
+    apiFootballFixtureId!: number
 
     @Index()
     @Column()
-    date!: Date;
+    date!: Date
 
     @Column({ nullable: true, default: 'Não declarado' })
-    stadium!: string;
+    stadium!: string
 
     @Column({ name: 'home_team_api_id', type: 'int', nullable: true })
-    homeTeamApiId!: number | null;
+    homeTeamApiId!: number | null
 
     @Column({ name: 'home_team_name' })
-    homeTeamName!: string;
+    homeTeamName!: string
 
     @Column({ name: 'home_team_logo_url' })
-    homeTeamLogoUrl!: string;
+    homeTeamLogoUrl!: string
 
     @Column({ name: 'away_team_api_id', type: 'int', nullable: true })
-    awayTeamApiId!: number | null;
+    awayTeamApiId!: number | null
 
     @Column({ name: 'away_team_name' })
-    awayTeamName!: string;
+    awayTeamName!: string
 
     @Column({ name: 'away_team_logo_url' })
-    awayTeamLogoUrl!: string;
+    awayTeamLogoUrl!: string
 
     @Column({ name: 'home_score', type: 'int', nullable: true })
-    homeScore?: number | null;
+    homeScore?: number | null
 
     @Column({ name: 'away_score', type: 'int', nullable: true })
-    awayScore?: number | null;
+    awayScore?: number | null
 
     @Column({ type: 'enum', enum: MatchStatus, default: MatchStatus.SCHEDULED })
-    status!: MatchStatus;
+    status!: MatchStatus
 
     @Column({ nullable: true })
-    round!: string;
+    round!: string
 
     @CreateDateColumn({ name: 'created_at' })
-    createdAt!: Date;
+    createdAt!: Date
 
     @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt!: Date;
+    updatedAt!: Date
 }
