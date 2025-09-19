@@ -41,8 +41,8 @@
             <h2 class="text-lg font-bold text-gray-800">Informações Gerais</h2>
             <button
               v-if="isCurrentUserAdmin"
-              @click="handleDeletePool"
               class="flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-800 transition-colors duration-200"
+              @click="handleDeletePool"
             >
               <TrashIcon class="w-4 h-4" />
               <span>Excluir Bolão</span>
@@ -108,9 +108,9 @@
                   </div>
                   <button
                     v-if="shouldShowRemoveButton(participant)"
-                    @click.stop="promptRemoveParticipant(participant)"
                     class="absolute inset-0 w-full h-full flex items-center justify-center bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     title="Remover Participante"
+                    @click.stop="promptRemoveParticipant(participant)"
                   >
                     <UserMinusIcon class="w-5 h-5" />
                   </button>
@@ -183,7 +183,7 @@
                       }}</span>
                     </div>
 
-                    <div class="col-span-2 border-t border-gray-100 my-2"></div>
+                    <div class="col-span-2 border-t border-gray-100 my-2"/>
 
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-1.5 text-gray-600">
@@ -226,14 +226,14 @@
           </p>
           <div class="mt-6 flex justify-end gap-3">
             <button
-              @click="showDeleteModal = false"
               class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              @click="showDeleteModal = false"
             >
               Cancelar
             </button>
             <button
-              @click="confirmDeletePool"
               class="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700"
+              @click="confirmDeletePool"
             >
               Confirmar
             </button>
@@ -253,14 +253,14 @@
           </p>
           <div class="mt-6 flex justify-end gap-3">
             <button
-              @click="participantToRemove = null"
               class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              @click="participantToRemove = null"
             >
               Cancelar
             </button>
             <button
-              @click="confirmRemoveParticipant"
               class="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700"
+              @click="confirmRemoveParticipant"
             >
               Remover
             </button>

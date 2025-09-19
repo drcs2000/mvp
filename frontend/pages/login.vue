@@ -7,24 +7,24 @@
 
       <div class="flex p-1 mt-6 bg-gray-100 rounded-lg">
         <button
-          @click="tab = 'login'"
           :class="[
             'w-full py-2 text-[13px] font-semibold rounded-md transition-colors',
             tab === 'login'
               ? 'bg-white text-gray-800 shadow'
               : 'text-gray-500 hover:bg-gray-200',
           ]"
+          @click="tab = 'login'"
         >
           Entrar
         </button>
         <button
-          @click="tab = 'register'"
           :class="[
             'w-full py-2 text-[13px] font-semibold rounded-md transition-colors',
             tab === 'register'
               ? 'bg-white text-gray-800 shadow'
               : 'text-gray-500 hover:bg-gray-200',
           ]"
+          @click="tab = 'register'"
         >
           Criar Conta
         </button>
@@ -33,8 +33,8 @@
       <div class="mt-5">
         <form
           v-if="tab === 'login'"
-          @submit.prevent="handleLogin"
           class="space-y-4"
+          @submit.prevent="handleLogin"
         >
           <div>
             <label
@@ -44,8 +44,8 @@
               Email
             </label>
             <input
-              v-model="loginForm.email"
               id="login-email"
+              v-model="loginForm.email"
               type="email"
               required
               :class="[
@@ -54,7 +54,7 @@
                   ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                   : 'border-gray-300 focus:ring-gray-800 focus:border-gray-800',
               ]"
-            />
+            >
           </div>
           <div>
             <label
@@ -64,12 +64,12 @@
               Senha
             </label>
             <input
-              v-model="loginForm.password"
               id="login-password"
+              v-model="loginForm.password"
               type="password"
               required
               class="block w-full px-3 py-2 mt-1 text-[13px] placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800"
-            />
+            >
           </div>
           <button
             type="submit"
@@ -82,8 +82,8 @@
 
         <form
           v-if="tab === 'register'"
-          @submit.prevent="handleRegister"
           class="space-y-4"
+          @submit.prevent="handleRegister"
         >
           <div>
             <label
@@ -93,12 +93,12 @@
               Nome Completo
             </label>
             <input
-              v-model="registerForm.name"
               id="register-name"
+              v-model="registerForm.name"
               type="text"
               required
               class="block w-full px-3 py-2 mt-1 text-[13px] placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800"
-            />
+            >
           </div>
           <div>
             <label
@@ -108,8 +108,8 @@
               Email
             </label>
             <input
-              v-model="registerForm.email"
               id="register-email"
+              v-model="registerForm.email"
               type="email"
               required
               :class="[
@@ -118,7 +118,7 @@
                   ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                   : 'border-gray-300 focus:ring-gray-800 focus:border-gray-800',
               ]"
-            />
+            >
           </div>
           <div>
             <label
@@ -128,12 +128,12 @@
               Senha
             </label>
             <input
-              v-model="registerForm.password"
               id="register-password"
+              v-model="registerForm.password"
               type="password"
               required
               class="block w-full px-3 py-2 mt-1 text-[13px] placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800"
-            />
+            >
           </div>
           <button
             type="submit"
@@ -152,7 +152,6 @@
 <script setup>
 import { ref, reactive, computed } from "vue";
 import { useStores } from "~/composables/useStores";
-import { XCircleIcon } from "@heroicons/vue/24/solid";
 
 definePageMeta({
   layout: "login",
@@ -214,18 +213,18 @@ const handleRegister = async () => {
   loading.value = false;
 };
 
-const handleGoogleLogin = () => {
-  loading.value = true;
-  console.log("Iniciando login com Google...");
-  setTimeout(() => {
-    triggerErrorAlert("Serviço do Google indisponível no momento.");
-    loading.value = false;
-  }, 1000);
-};
+// const handleGoogleLogin = () => {
+//   loading.value = true;
+//   console.log("Iniciando login com Google...");
+//   setTimeout(() => {
+//     triggerErrorAlert("Serviço do Google indisponível no momento.");
+//     loading.value = false;
+//   }, 1000);
+// };
 
-const handleFacebookLogin = () => {
-  loading.value = true;
-  console.log("Iniciando login com Facebook...");
-  loading.value = false;
-};
+// const handleFacebookLogin = () => {
+//   loading.value = true;
+//   console.log("Iniciando login com Facebook...");
+//   loading.value = false;
+// };
 </script>

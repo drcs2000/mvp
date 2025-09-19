@@ -2,7 +2,7 @@
   <aside class="flex flex-col h-full gap-6">
     <div class="sticky top-0 z-10 pt-1 bg-white shrink-0">
       <div v-if="stores.auth.isAuthenticated && stores.auth.currentUser">
-        <Menu as="div" class="relative" v-slot="{ open }">
+        <Menu v-slot="{ open }" as="div" class="relative">
           <MenuButton
             class="flex items-center w-full px-2 py-1 transition-colors duration-200 border border-gray-300 rounded-md hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
           >
@@ -14,11 +14,19 @@
             <span class="ml-2 text-[13px] font-medium text-gray-800"
               >Olá, {{ firstName }}</span
             >
-            <div class="flex-grow"></div>
-            <ChevronDownIcon
-              class="w-4 h-4 text-gray-500 transition-transform duration-300"
-              :class="{ 'rotate-180': open }"
-            />
+            <div class="flex-grow" />
+            <div class="relative">
+              <ChevronDownIcon
+                class="w-4 h-4 text-gray-500 transition-transform duration-300"
+                :class="{ 'rotate-180': open }"
+              />
+              <span
+                v-if="invitationCount > 0"
+                class="absolute -top-2 -right-2 flex items-center justify-center min-w-4 h-4 px-1 text-xs text-white bg-red-500 rounded-full transform translate-x-1/4 -translate-y-1/4"
+              >
+                {{ invitationCount }}
+              </span>
+            </div>
           </MenuButton>
           <transition
             enter-active-class="transition duration-100 ease-out"
@@ -44,15 +52,33 @@
                     Meu Perfil
                   </NuxtLink>
                 </MenuItem>
+                <MenuItem v-slot="{ active }">
+                  <button
+                    :class="[
+                      active ? 'bg-gray-100' : '',
+                      'group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-700 relative',
+                    ]"
+                    @click="openInvitationsModal"
+                  >
+                    <EnvelopeIcon class="w-5 h-5 mr-2 text-gray-400" />
+                    Convites
+                    <span
+                      v-if="invitationCount > 0"
+                      class="absolute right-2 flex items-center justify-center w-4 h-4 text-xs text-white bg-red-500 rounded-full"
+                    >
+                      {{ invitationCount }}
+                    </span>
+                  </button>
+                </MenuItem>
               </div>
               <div class="px-1 py-1">
                 <MenuItem v-slot="{ active }">
                   <button
-                    @click="handleLogout"
                     :class="[
                       active ? 'bg-gray-100' : '',
                       'group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-700',
                     ]"
+                    @click="handleLogout"
                   >
                     <ArrowRightOnRectangleIcon
                       class="w-5 h-5 mr-2 text-gray-400"
@@ -99,16 +125,16 @@
 
         <div class="flex-1 overflow-y-auto no-scrollbar">
           <div
-            v-if="standingsStore.isLoading"
+            v-if="stores.standings.isLoading"
             class="flex items-center justify-center h-full text-gray-500 text-[10px]"
           >
             Carregando...
           </div>
-          <div v-else-if="standingsStore.standings.length > 0">
+          <div v-else-if="stores.standings.standings.length > 0">
             <table class="w-full text-center table-fixed">
               <tbody class="text-gray-800">
                 <tr
-                  v-for="team in standingsStore.standings"
+                  v-for="team in stores.standings.standings"
                   :key="team.teamApiId"
                   class="grid grid-cols-12 gap-2 items-center border-b border-gray-100 last:border-b-0 text-[9px]"
                   :class="getRowStyle(team.description)"
@@ -142,7 +168,7 @@
         </div>
 
         <div
-          v-if="standingsStore.standings.length > 0"
+          v-if="stores.standings.standings.length > 0"
           class="pt-3 mt-auto border-t border-gray-100 shrink-0"
         >
           <div class="space-y-1">
@@ -154,7 +180,7 @@
               <span
                 :class="getLegendIndicatorClass(legend.label)"
                 class="block w-2 h-2 rounded-full"
-              ></span>
+              />
               <span class="text-gray-600 text-[9px]">{{ legend.label }}</span>
             </div>
           </div>
@@ -168,20 +194,31 @@
       </div>
     </div>
   </aside>
+  <Teleport to="body">
+    <InvitationsModal
+      v-if="showInvitationsModal"
+      :is-open="showInvitationsModal"
+      :invitations="pendingInvitations"
+      :is-admin="isAdmin"
+      @close="showInvitationsModal = false"
+      @accept="acceptInvitation"
+      @decline="declineInvitation"
+    />
+  </Teleport>
 </template>
 
 <script setup>
-import { computed, watch } from "vue";
+import { computed, watch, ref, onMounted } from "vue";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
 import {
   ChevronDownIcon,
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
+  EnvelopeIcon,
 } from "@heroicons/vue/24/outline";
-import { useStandingsStore } from "~/stores/standings";
+import InvitationsModal from "~/components/InvitationsModal.vue";
 
 const stores = useStores();
-const standingsStore = useStandingsStore();
 
 const selectedChampionship = computed(
   () => stores.championships.selectedChampionship
@@ -194,8 +231,38 @@ const firstName = computed(() => {
   return "";
 });
 
+const showInvitationsModal = ref(false);
+const pendingInvitations = computed(() => stores.invitations.invitations);
+const invitationCount = computed(() => stores.invitations.invitationCount);
+const isAdmin = computed(() => {
+  // Pega o ID do usuário logado da store de autenticação
+  const currentUserId = stores.auth.user?.id;
+
+  // 1. Garante que temos um usuário logado e que a lista de bolões existe.
+  if (!currentUserId || !stores.pools.myPools) {
+    return false;
+  }
+
+  // 2. Usa .some() para verificar se EM PELO MENOS UM bolão o usuário é admin.
+  return stores.pools.myPools.some((pool) =>
+    // 3. Dentro de cada bolão, verifica se existe algum participante
+    //    que corresponda à condição.
+    pool.participants.some(
+      (participant) =>
+        participant.userId === currentUserId && participant.role === "admin"
+    )
+  );
+});
+
 const handleLogout = async () => {
   await stores.auth.logout();
+};
+
+const openInvitationsModal = async () => {
+  if (stores.invitations.invitations.length === 0) {
+    await stores.invitations.fetchPendingInvitations();
+  }
+  showInvitationsModal.value = true;
 };
 
 const getRowStyle = (description) => {
@@ -231,9 +298,9 @@ const getLegendIndicatorClass = (description) => {
 };
 
 const rankLegends = computed(() => {
-  if (!standingsStore.standings) return [];
+  if (!stores.standings.standings) return [];
   const legends = new Map();
-  standingsStore.standings.forEach((team) => {
+  stores.standings.standings.forEach((team) => {
     if (team.description) {
       if (!legends.has(team.description)) {
         legends.set(team.description, { label: team.description });
@@ -247,17 +314,23 @@ watch(
   selectedChampionship,
   (newChampionship) => {
     if (newChampionship && newChampionship.apiFootballId) {
-      standingsStore.fetchStandingsByChampionshipId(
+      stores.standings.fetchStandingsByChampionshipId(
         newChampionship.apiFootballId
       );
     }
   },
   { immediate: true }
 );
+
+// Buscar convites pendentes quando o componente for montado
+onMounted(async () => {
+  if (stores.auth.isAuthenticated) {
+    await stores.invitations.fetchPendingInvitations();
+  }
+});
 </script>
 
 <style scoped>
-/* Adicione esta classe ao seu CSS global ou mantenha aqui se for escopado */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

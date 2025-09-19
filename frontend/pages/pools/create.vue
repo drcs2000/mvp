@@ -54,9 +54,9 @@
 
     <main class="p-4 sm:p-6">
       <form
-        @submit.prevent="handleSubmit"
         id="tournament-form"
         class="max-w-3xl space-y-8"
+        @submit.prevent="handleSubmit"
       >
         <div class="p-6 bg-white border border-gray-200 rounded-lg">
           <h2 class="text-base font-semibold leading-7 text-gray-900">
@@ -70,12 +70,12 @@
                 >Nome do torneio</label
               >
               <input
+                id="tournament-name"
                 v-model="form.name"
                 type="text"
-                id="tournament-name"
                 required
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
-              />
+              >
             </div>
 
             <div>
@@ -85,13 +85,13 @@
                 >Máx. de participantes</label
               >
               <input
+                id="max-participants"
                 v-model.number="form.maxParticipants"
                 type="number"
-                id="max-participants"
                 required
                 min="2"
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
-              />
+              >
             </div>
 
             <div>
@@ -126,8 +126,8 @@
                       <ListboxOption
                         v-for="hour in deadlineOptions"
                         :key="hour"
-                        :value="hour"
                         v-slot="{ active, selected }"
+                        :value="hour"
                       >
                         <li
                           :class="[
@@ -188,8 +188,8 @@
                       <ListboxOption
                         v-for="championship in championships"
                         :key="championship.id"
-                        :value="championship"
                         v-slot="{ active, selected }"
+                        :value="championship"
                       >
                         <li
                           :class="[
@@ -225,9 +225,9 @@
                 >
                 <div class="grid grid-cols-2 gap-4 mt-2">
                   <RadioGroupOption
+                    v-slot="{ checked }"
                     as="template"
                     :value="false"
-                    v-slot="{ checked }"
                   >
                     <div
                       :class="[
@@ -255,9 +255,9 @@
                     </div>
                   </RadioGroupOption>
                   <RadioGroupOption
+                    v-slot="{ checked }"
                     as="template"
                     :value="true"
-                    v-slot="{ checked }"
                   >
                     <div
                       :class="[
@@ -315,13 +315,13 @@
                 </div>
               </div>
               <input
+                id="points-full"
                 v-model.number="form.points.full"
                 type="number"
-                id="points-full"
                 min="0"
                 required
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
-              />
+              >
             </div>
             <div>
               <div class="flex items-center gap-1.5">
@@ -341,13 +341,13 @@
                 </div>
               </div>
               <input
+                id="points-partial"
                 v-model.number="form.points.partial"
                 type="number"
-                id="points-partial"
                 min="0"
                 required
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
-              />
+              >
             </div>
             <div>
               <div class="flex items-center gap-1.5">
@@ -367,13 +367,13 @@
                 </div>
               </div>
               <input
+                id="points-goal"
                 v-model.number="form.points.goal"
                 type="number"
-                id="points-goal"
                 min="0"
                 required
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
-              />
+              >
             </div>
             <div>
               <div class="flex items-center gap-1.5">
@@ -393,13 +393,13 @@
                 </div>
               </div>
               <input
+                id="points-result"
                 v-model.number="form.points.result"
                 type="number"
-                id="points-result"
                 min="0"
                 required
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
-              />
+              >
             </div>
           </div>
         </div>
@@ -433,15 +433,15 @@
                 <span class="text-gray-500 sm:text-sm">R$</span>
               </div>
               <input
+                id="entry-fee"
                 v-model.number="form.entryFee"
                 type="number"
-                id="entry-fee"
                 required
                 min="0"
                 step="0.01"
                 class="block w-full px-3 py-2 pl-10 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
                 placeholder="0.00"
-              />
+              >
             </div>
           </div>
         </div>

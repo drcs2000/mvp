@@ -3,22 +3,13 @@
     <AppToast :message="toastMessage" :type="toastType" />
 
     <div v-if="currentChampionship" class="sticky top-0 z-20">
-      <header
-        class="flex items-center shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm gap-4"
-      >
-        <img
-          :src="currentChampionship.leagueLogoUrl"
-          class="w-8 h-8 object-contain"
-        />
-        <h1 class="text-xl font-bold text-gray-900">
-          {{ currentChampionship.name }}
-        </h1>
-        <div class="flex items-center gap-4 ml-auto text-right">
+      <ChampionshipHeader :championship="currentChampionship">
+        <template #right>
           <button
             v-if="!isParticipant"
-            @click="joinPool"
             :disabled="stores.pools.loading"
             class="px-3 py-1.5 text-sm font-semibold text-white bg-gray-600 rounded-md hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 whitespace-nowrap"
+            @click="joinPool"
           >
             Entrar no Bolão
           </button>
@@ -46,243 +37,339 @@
           >
             Informações
           </NuxtLink>
-        </div>
-      </header>
-      <div
+        </template>
+      </ChampionshipHeader>
+
+      <RoundSelector
         v-if="!stores.matches.loading"
-        class="shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white"
-      >
-        <div class="flex items-center justify-center mt-4">
-          <div class="flex items-center gap-2">
-            <button
-              @click="previousRound"
-              :disabled="isFirstRound"
-              class="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeftIcon class="w-5 h-5 text-gray-600" />
-            </button>
-            <p class="text-sm font-semibold text-gray-700 w-24 text-center">
-              Rodada {{ currentRoundNumber }}
-            </p>
-            <button
-              @click="nextRound"
-              :disabled="isLastRound"
-              class="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronRightIcon class="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-        </div>
-      </div>
+        :is-first-round="isFirstRound"
+        :is-last-round="isLastRound"
+        :current-round-number="currentRoundNumber"
+        @previous="previousRound"
+        @next="nextRound"
+      />
     </div>
 
-    <div class="px-4 sm:px-6 pb-6">
-      <div v-if="stores.matches.loading" class="pt-8 text-center text-gray-500">
-        A carregar jogos...
-      </div>
-      <div v-else-if="Object.keys(matchesByDay).length > 0" class="mt-2">
-        <div v-for="(matches, day) in matchesByDay" :key="day" class="mb-6">
-          <h3 class="py-2 text-sm font-semibold text-gray-500 text-left">
-            {{ formatDate(day) }}
-          </h3>
-          <div class="space-y-px">
-            <template v-for="match in matches" :key="match.id">
-              <div class="bg-white border-b border-gray-200">
+    <MatchList :matches-by-day="matchesByDay" :loading="stores.matches.loading">
+      <template #match="{ matches }">
+        <template v-for="match in matches" :key="match.id">
+          <div class="bg-white border-b border-gray-200">
+            <div
+              class="grid grid-cols-[100px_1fr_100px] gap-4 items-center px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
+              :class="{ 'cursor-pointer': match.status === 'NS' }"
+              @click="toggleMatchDetails(match, $event)"
+            >
+              <div class="text-sm font-medium text-gray-800 text-left">
+                {{ formatTime(match.date) }}
+              </div>
+
+              <div class="flex items-center justify-between text-sm gap-2">
+                <div class="flex items-center gap-2 flex-1 justify-end">
+                  <span
+                    class="text-right truncate max-w-[120px]"
+                    :class="{ 'font-bold': isHomeWinner(match) }"
+                    >{{ match.homeTeamName }}</span
+                  >
+                  <img
+                    :src="match.homeTeamLogoUrl"
+                    class="object-contain w-6 h-6 shrink-0"
+                  >
+                </div>
+                <div class="flex items-center gap-1">
+                  <input
+                    v-model.number="betForms[match.id].homeScoreBet"
+                    type="text"
+                    :disabled="isBettingTimeExpired(match) || !isParticipant"
+                    class="w-6 text-center border rounded-md"
+                    @click.stop
+                  >
+                  <span>-</span>
+                  <input
+                    v-model.number="betForms[match.id].awayScoreBet"
+                    type="text"
+                    :disabled="isBettingTimeExpired(match) || !isParticipant"
+                    class="w-6 text-center border rounded-md"
+                    @click.stop
+                  >
+                </div>
+                <div class="flex items-center gap-2 flex-1 justify-start">
+                  <img
+                    :src="match.awayTeamLogoUrl"
+                    class="object-contain w-6 h-6 shrink-0"
+                  >
+                  <span
+                    class="text-left truncate max-w-[120px]"
+                    :class="{ 'font-bold': isAwayWinner(match) }"
+                    >{{ match.awayTeamName }}</span
+                  >
+                </div>
+              </div>
+
+              <div class="flex flex-col items-end gap-1">
                 <div
-                  class="grid grid-cols-[100px_1fr_100px] gap-4 items-center px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
-                  :class="{ 'cursor-pointer': match.status === 'NS' }"
-                  @click="toggleMatchDetails(match)"
+                  v-if="match.status !== 'FT'"
+                  class="flex items-center gap-1.5"
                 >
-                  <div class="text-sm font-medium text-gray-800 text-left">
-                    {{ formatTime(match.date) }}
+                  <div
+                    v-if="currentPool?.betDeadlineHours !== undefined"
+                    class="text-xs font-medium text-gray-600 text-right whitespace-nowrap"
+                  >
+                    {{ countdowns[match.id] || "Calculando..." }}
                   </div>
-
-                  <div class="flex items-center justify-between text-sm gap-2">
-                    <div class="flex items-center gap-2 flex-1 justify-end">
-                      <span
-                        class="text-right truncate max-w-[120px]"
-                        :class="{ 'font-bold': isHomeWinner(match) }"
-                        >{{ match.homeTeamName }}</span
-                      >
-                      <img
-                        :src="match.homeTeamLogoUrl"
-                        class="object-contain w-6 h-6 shrink-0"
-                      />
-                    </div>
-                    <div class="flex items-center gap-1">
-                      <input
-                        v-model.number="betForms[match.id].homeScoreBet"
-                        type="text"
-                        :disabled="
-                          isBettingTimeExpired(match) || !isParticipant
-                        "
-                        class="w-6 text-center border rounded-md"
-                        @click.stop
-                      />
-                      <span>-</span>
-                      <input
-                        v-model.number="betForms[match.id].awayScoreBet"
-                        type="text"
-                        :disabled="
-                          isBettingTimeExpired(match) || !isParticipant
-                        "
-                        class="w-6 text-center border rounded-md"
-                        @click.stop
-                      />
-                    </div>
-                    <div class="flex items-center gap-2 flex-1 justify-start">
-                      <img
-                        :src="match.awayTeamLogoUrl"
-                        class="object-contain w-6 h-6 shrink-0"
-                      />
-                      <span
-                        class="text-left truncate max-w-[120px]"
-                        :class="{ 'font-bold': isAwayWinner(match) }"
-                        >{{ match.awayTeamName }}</span
-                      >
-                    </div>
-                  </div>
-
-                  <div class="flex flex-col items-end gap-1">
-                    <div
-                      v-if="match.status !== 'FT'"
-                      class="flex items-center gap-1.5"
+                  <div class="relative group">
+                    <InformationCircleIcon class="w-4 h-4 text-gray-400" />
+                    <span
+                      class="absolute bottom-full right-0 p-1 mb-2 text-xs text-center text-white bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[60]"
                     >
-                      <div
-                        v-if="currentPool?.betDeadlineHours !== undefined"
-                        class="text-xs font-medium text-gray-600 text-right whitespace-nowrap"
-                      >
-                        {{ countdowns[match.id] || "Calculando..." }}
-                      </div>
-                      <div class="relative group">
-                        <InformationCircleIcon class="w-4 h-4 text-gray-400" />
-                        <span
-                          class="absolute bottom-full right-0 p-1 mb-2 text-xs text-center text-white bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[60]"
-                        >
-                          Tempo Limite do Palpite
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      v-else-if="match.status === 'FT'"
-                      class="font-medium text-sm text-gray-800 whitespace-nowrap"
-                    >
-                      {{ match.homeScore }} - {{ match.awayScore }}
-                    </div>
+                      Tempo Limite do Palpite
+                    </span>
                   </div>
                 </div>
+                <div
+                  v-else-if="match.status === 'FT'"
+                  class="font-medium text-sm text-gray-800 whitespace-nowrap"
+                >
+                  {{ match.homeScore }} - {{ match.awayScore }}
+                </div>
+              </div>
+            </div>
 
-                <Transition name="expand">
-                  <div
-                    v-if="expandedMatchId === match.id"
-                    class="bg-gray-50/70 p-4 sm:p-6"
-                  >
+            <Transition name="expand">
+              <div
+                v-if="expandedMatchId === match.id"
+                class="bg-gray-50/70 p-4 sm:p-6"
+              >
+                <div
+                  v-if="detailsLoading"
+                  class="text-center text-sm text-gray-500 py-4"
+                >
+                  Analisando dados...
+                </div>
+
+                <div v-else-if="lastGamesData[match.id]">
+                  <div>
+                    <h3
+                      class="text-lg font-bold text-gray-800 text-center mb-4"
+                    >
+                      Forma Recente
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div>
+                        <div class="flex items-center gap-2 mb-3">
+                          <img
+                            :src="match.homeTeamLogoUrl"
+                            class="w-5 h-5 object-contain"
+                          >
+                          <h4 class="font-semibold text-gray-700">
+                            Últimos 5 de {{ match.homeTeamName }}
+                          </h4>
+                        </div>
+                        <div class="bg-white rounded-lg border p-2">
+                          <div
+                            v-for="game in lastGamesData[match.id].homeTeam"
+                            :key="game.id"
+                            class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 last:border-b-0"
+                          >
+                            <span
+                              class="text-right font-medium text-gray-600 truncate pr-2"
+                              >{{ game.homeTeamName }}</span
+                            >
+                            <span
+                              class="font-bold text-xs px-1.5 py-0.5 rounded"
+                              :class="
+                                getGameResultClass(game, match.homeTeamApiId)
+                              "
+                            >
+                              {{ game.homeScore }} &times;
+                              {{ game.awayScore }}
+                            </span>
+                            <span
+                              class="text-left font-medium text-gray-600 truncate pl-2"
+                              >{{ game.awayTeamName }}</span
+                            >
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <div class="flex items-center gap-2 mb-3">
+                          <img
+                            :src="match.awayTeamLogoUrl"
+                            class="w-5 h-5 object-contain"
+                          >
+                          <h4 class="font-semibold text-gray-700">
+                            Últimos 5 de {{ match.awayTeamName }}
+                          </h4>
+                        </div>
+                        <div class="bg-white rounded-lg border p-2">
+                          <div
+                            v-for="game in lastGamesData[match.id].awayTeam"
+                            :key="game.id"
+                            class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 last:border-b-0"
+                          >
+                            <span
+                              class="text-right font-medium text-gray-600 truncate pr-2"
+                              >{{ game.homeTeamName }}</span
+                            >
+                            <span
+                              class="font-bold text-xs px-1.5 py-0.5 rounded"
+                              :class="
+                                getGameResultClass(game, match.awayTeamApiId)
+                              "
+                            >
+                              {{ game.homeScore }} &times;
+                              {{ game.awayScore }}
+                            </span>
+                            <span
+                              class="text-left font-medium text-gray-600 truncate pl-2"
+                              >{{ game.awayTeamName }}</span
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <hr class="my-8 border-gray-200" >
+
+                  <div>
                     <div
-                      v-if="h2hLoading"
+                      v-if="isH2HLoading[match.id]"
                       class="text-center text-sm text-gray-500 py-4"
                     >
-                      Analisando dados...
+                      Buscando histórico de confrontos...
                     </div>
-                    <div
-                      v-else-if="h2hData[match.id] && lastGamesData[match.id]"
-                    >
-                      <div class="mb-8">
-                        <h3
-                          class="text-lg font-bold text-gray-800 text-center mb-4"
-                        >
-                          Confronto Direto
-                        </h3>
+
+                    <div v-else-if="h2hData[match.id]">
+                      <h3
+                        class="text-lg font-bold text-gray-800 text-center mb-4"
+                      >
+                        Confronto Direto
+                      </h3>
+                      <div
+                        class="grid grid-cols-3 gap-2 text-xs text-center mb-6"
+                      >
                         <div
-                          class="grid grid-cols-3 gap-2 text-xs text-center mb-6"
+                          class="border-l-4 border-blue-500 bg-white p-3 rounded-r-md shadow-sm"
                         >
-                          <div
-                            class="border-l-4 border-blue-500 bg-white p-3 rounded-r-md shadow-sm"
-                          >
-                            <div class="font-bold text-xl text-blue-800">
-                              {{ h2hStats[match.id].homeWins }}
-                            </div>
-                            <div class="text-gray-600">
-                              Vitórias {{ match.homeTeamName }}
-                            </div>
+                          <div class="font-bold text-xl text-blue-800">
+                            {{ h2hStats[match.id].homeWins }}
                           </div>
-                          <div
-                            class="border-l-4 border-gray-400 bg-white p-3 rounded-r-md shadow-sm"
-                          >
-                            <div class="font-bold text-xl text-gray-800">
-                              {{ h2hStats[match.id].draws }}
-                            </div>
-                            <div class="text-gray-600">Empates</div>
-                          </div>
-                          <div
-                            class="border-l-4 border-red-500 bg-white p-3 rounded-r-md shadow-sm"
-                          >
-                            <div class="font-bold text-xl text-red-800">
-                              {{ h2hStats[match.id].awayWins }}
-                            </div>
-                            <div class="text-gray-600">
-                              Vitórias {{ match.awayTeamName }}
-                            </div>
+                          <div class="text-gray-600">
+                            Vitórias {{ match.homeTeamName }}
                           </div>
                         </div>
+                        <div
+                          class="border-l-4 border-gray-400 bg-white p-3 rounded-r-md shadow-sm"
+                        >
+                          <div class="font-bold text-xl text-gray-800">
+                            {{ h2hStats[match.id].draws }}
+                          </div>
+                          <div class="text-gray-600">Empates</div>
+                        </div>
+                        <div
+                          class="border-l-4 border-red-500 bg-white p-3 rounded-r-md shadow-sm"
+                        >
+                          <div class="font-bold text-xl text-red-800">
+                            {{ h2hStats[match.id].awayWins }}
+                          </div>
+                          <div class="text-gray-600">
+                            Vitórias {{ match.awayTeamName }}
+                          </div>
+                        </div>
+                      </div>
 
-                        <div class="mb-6">
+                      <div class="mb-6">
+                        <h4
+                          class="text-sm font-semibold text-gray-700 mb-3 text-center"
+                        >
+                          Gols no Confronto (Total)
+                        </h4>
+                        <div class="space-y-2 text-xs">
+                          <div class="flex items-center gap-2">
+                            <span class="w-28 text-right truncate">{{
+                              match.homeTeamName
+                            }}</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-2.5">
+                              <div
+                                class="bg-blue-500 h-2.5 rounded-full"
+                                :style="{
+                                  width:
+                                    h2hGoals[match.id]?.homePercentage + '%',
+                                }"
+                              />
+                            </div>
+                            <span class="font-bold w-8 text-left">{{
+                              h2hGoals[match.id]?.homeGoals
+                            }}</span>
+                          </div>
+                          <div class="flex items-center gap-2">
+                            <span class="w-28 text-right truncate">{{
+                              match.awayTeamName
+                            }}</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-2.5">
+                              <div
+                                class="bg-red-500 h-2.5 rounded-full"
+                                :style="{
+                                  width:
+                                    h2hGoals[match.id]?.awayPercentage + '%',
+                                }"
+                              />
+                            </div>
+                            <span class="font-bold w-8 text-left">{{
+                              h2hGoals[match.id]?.awayGoals
+                            }}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
                           <h4
-                            class="text-sm font-semibold text-gray-700 mb-3 text-center"
+                            class="text-sm font-semibold text-gray-700 mb-2 text-center"
                           >
-                            Gols no Confronto (Total)
+                            Últimos 5 (Geral)
                           </h4>
-                          <div class="space-y-2 text-xs">
-                            <div class="flex items-center gap-2">
-                              <span class="w-28 text-right truncate">{{
-                                match.homeTeamName
-                              }}</span>
-                              <div
-                                class="flex-1 bg-gray-200 rounded-full h-2.5"
+                          <div class="bg-white rounded-lg border p-2">
+                            <div
+                              v-for="game in overallH2HGames[match.id]"
+                              :key="game.apiFootballFixtureId"
+                              class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 last:border-b-0"
+                            >
+                              <span
+                                class="text-right font-medium text-gray-600 truncate pr-2"
+                                >{{ game.homeTeamName }}</span
                               >
-                                <div
-                                  class="bg-blue-500 h-2.5 rounded-full"
-                                  :style="{
-                                    width:
-                                      h2hGoals[match.id]?.homePercentage + '%',
-                                  }"
-                                ></div>
-                              </div>
-                              <span class="font-bold w-8 text-left">{{
-                                h2hGoals[match.id]?.homeGoals
-                              }}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                              <span class="w-28 text-right truncate">{{
-                                match.awayTeamName
-                              }}</span>
-                              <div
-                                class="flex-1 bg-gray-200 rounded-full h-2.5"
+                              <span
+                                class="font-bold text-xs px-1.5 py-0.5 rounded"
+                                :class="
+                                  getGameResultClass(game, match.homeTeamApiId)
+                                "
+                                >{{ game.homeScore }} &times;
+                                {{ game.awayScore }}</span
                               >
-                                <div
-                                  class="bg-red-500 h-2.5 rounded-full"
-                                  :style="{
-                                    width:
-                                      h2hGoals[match.id]?.awayPercentage + '%',
-                                  }"
-                                ></div>
-                              </div>
-                              <span class="font-bold w-8 text-left">{{
-                                h2hGoals[match.id]?.awayGoals
-                              }}</span>
+                              <span
+                                class="text-left font-medium text-gray-600 truncate pl-2"
+                                >{{ game.awayTeamName }}</span
+                              >
                             </div>
                           </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <h4
-                              class="text-sm font-semibold text-gray-700 mb-2 text-center"
+                        <div>
+                          <h4
+                            class="text-sm font-semibold text-gray-700 mb-2 text-center"
+                          >
+                            {{ match.homeTeamName }} (Mandante)
+                          </h4>
+                          <div class="bg-white rounded-lg border p-2">
+                            <div
+                              v-if="
+                                homeHomeGames[match.id] &&
+                                homeHomeGames[match.id].length > 0
+                              "
                             >
-                              Últimos 5 (Geral)
-                            </h4>
-                            <div class="bg-white rounded-lg border p-2">
                               <div
-                                v-for="game in overallH2HGames[match.id]"
+                                v-for="game in homeHomeGames[match.id]"
                                 :key="game.apiFootballFixtureId"
                                 class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 last:border-b-0"
                               >
@@ -307,183 +394,53 @@
                                 >
                               </div>
                             </div>
-                          </div>
-
-                          <div>
-                            <h4
-                              class="text-sm font-semibold text-gray-700 mb-2 text-center"
+                            <div
+                              v-else
+                              class="text-center text-xs text-gray-500 py-2 h-full flex items-center justify-center"
                             >
-                              {{ match.homeTeamName }} (Mandante)
-                            </h4>
-                            <div class="bg-white rounded-lg border p-2">
-                              <div
-                                v-if="
-                                  homeHomeGames[match.id] &&
-                                  homeHomeGames[match.id].length > 0
-                                "
-                              >
-                                <div
-                                  v-for="game in homeHomeGames[match.id]"
-                                  :key="game.apiFootballFixtureId"
-                                  class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 last:border-b-0"
-                                >
-                                  <span
-                                    class="text-right font-medium text-gray-600 truncate pr-2"
-                                    >{{ game.homeTeamName }}</span
-                                  >
-                                  <span
-                                    class="font-bold text-xs px-1.5 py-0.5 rounded"
-                                    :class="
-                                      getGameResultClass(
-                                        game,
-                                        match.homeTeamApiId
-                                      )
-                                    "
-                                    >{{ game.homeScore }} &times;
-                                    {{ game.awayScore }}</span
-                                  >
-                                  <span
-                                    class="text-left font-medium text-gray-600 truncate pl-2"
-                                    >{{ game.awayTeamName }}</span
-                                  >
-                                </div>
-                              </div>
-                              <div
-                                v-else
-                                class="text-center text-xs text-gray-500 py-2 h-full flex items-center justify-center"
-                              >
-                                <p>
-                                  Nenhum jogo recente encontrado como mandante
-                                  no confronto.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <hr class="my-6 border-gray-300" />
-
-                      <div>
-                        <h3
-                          class="text-lg font-bold text-gray-800 text-center mb-4"
-                        >
-                          Forma Recente
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                          <div>
-                            <div class="flex items-center gap-2 mb-3">
-                              <img
-                                :src="match.homeTeamLogoUrl"
-                                class="w-5 h-5 object-contain"
-                              />
-                              <h4 class="font-semibold text-gray-700">
-                                Últimos 5 de {{ match.homeTeamName }}
-                              </h4>
-                            </div>
-                            <div class="bg-white rounded-lg border p-2">
-                              <div
-                                v-for="game in lastGamesData[match.id].homeTeam"
-                                :key="game.id"
-                                class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 last:border-b-0"
-                              >
-                                <span
-                                  class="text-right font-medium text-gray-600 truncate pr-2"
-                                  >{{ game.homeTeamName }}</span
-                                >
-                                <span
-                                  class="font-bold text-xs px-1.5 py-0.5 rounded"
-                                  :class="
-                                    getGameResultClass(
-                                      game,
-                                      match.homeTeamApiId
-                                    )
-                                  "
-                                  >{{ game.homeScore }} &times;
-                                  {{ game.awayScore }}</span
-                                >
-                                <span
-                                  class="text-left font-medium text-gray-600 truncate pl-2"
-                                  >{{ game.awayTeamName }}</span
-                                >
-                              </div>
-                            </div>
-                          </div>
-                          <div>
-                            <div class="flex items-center gap-2 mb-3">
-                              <img
-                                :src="match.awayTeamLogoUrl"
-                                class="w-5 h-5 object-contain"
-                              />
-                              <h4 class="font-semibold text-gray-700">
-                                Últimos 5 de {{ match.awayTeamName }}
-                              </h4>
-                            </div>
-                            <div class="bg-white rounded-lg border p-2">
-                              <div
-                                v-for="game in lastGamesData[match.id].awayTeam"
-                                :key="game.id"
-                                class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 last:border-b-0"
-                              >
-                                <span
-                                  class="text-right font-medium text-gray-600 truncate pr-2"
-                                  >{{ game.homeTeamName }}</span
-                                >
-                                <span
-                                  class="font-bold text-xs px-1.5 py-0.5 rounded"
-                                  :class="
-                                    getGameResultClass(
-                                      game,
-                                      match.awayTeamApiId
-                                    )
-                                  "
-                                  >{{ game.homeScore }} &times;
-                                  {{ game.awayScore }}</span
-                                >
-                                <span
-                                  class="text-left font-medium text-gray-600 truncate pl-2"
-                                  >{{ game.awayTeamName }}</span
-                                >
-                              </div>
+                              <p>
+                                Nenhum jogo recente encontrado como mandante no
+                                confronto.
+                              </p>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
+
+                    <div v-else class="text-center">
+                      <button
+                        class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-semibold text-gray-600 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-800"
+                        @click="loadH2H(match)"
+                      >
+                        Ver Confronto Direto
+                      </button>
+                    </div>
                   </div>
-                </Transition>
+                </div>
               </div>
-            </template>
+            </Transition>
           </div>
-        </div>
-        <div
-          class="mt-4 text-center"
-          v-if="hasUnplayedMatches && isParticipant"
-        >
-          <button
-            @click="submitAllBets"
-            :disabled="!hasChanges || !allBetsAreFilled || stores.bet.loading"
-            class="px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
-          >
-            Salvar Rodada
-          </button>
-        </div>
-      </div>
-      <div v-else class="pt-8 text-center text-gray-500">
-        <p>Nenhum jogo encontrado para esta rodada.</p>
-      </div>
+        </template>
+      </template>
+    </MatchList>
+
+    <div v-if="hasUnplayedMatches && isParticipant" class="mt-4 text-center">
+      <button
+        :disabled="!hasChanges || !allBetsAreFilled || stores.bet.loading"
+        class="px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+        @click="submitAllBets"
+      >
+        Salvar Rodada
+      </button>
     </div>
   </section>
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, watch, ref } from "vue";
+import { computed, onMounted, reactive, watch, ref, nextTick } from "vue";
 import { useRoute } from "vue-router";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  InformationCircleIcon,
-} from "@heroicons/vue/24/outline";
+import { InformationCircleIcon } from "@heroicons/vue/24/outline";
 import AppToast from "~/components/AppToast.vue";
 
 const stores = useStores();
@@ -508,17 +465,16 @@ const showToast = (message, type) => {
   toastType.value = type;
 };
 
-// State for expanding match details
 const expandedMatchId = ref(null);
 
-// Data holders for expanded details
 const lastGamesData = reactive({});
 const h2hData = reactive({});
 const h2hStats = reactive({});
 const h2hGoals = reactive({});
 const overallH2HGames = reactive({});
-const homeHomeGames = reactive({}); // Re-adicionado
-const h2hLoading = ref(false);
+const homeHomeGames = reactive({});
+const detailsLoading = ref(false);
+const isH2HLoading = reactive({});
 
 const isParticipant = computed(() => {
   const currentPoolData = stores.pools.currentPool;
@@ -704,7 +660,6 @@ const updateCountdown = (match) => {
   if (diff <= 0) {
     countdowns[match.id] = "Tempo esgotado!";
     clearInterval(countdownIntervals[match.id]);
-    delete countdownIntervals[match.id];
     return;
   }
 
@@ -728,9 +683,6 @@ const clearAllCountdowns = () => {
     clearInterval(countdownIntervals[matchId]);
   }
   countdownIntervals = {};
-  for (const matchId in countdowns) {
-    delete countdowns[matchId];
-  }
 };
 
 const calculateH2HStats = (matches, homeTeamId) => {
@@ -755,7 +707,6 @@ const calculateH2HStats = (matches, homeTeamId) => {
   return { homeWins, awayWins, draws };
 };
 
-// Função para filtrar jogos do mandante em casa
 const filterHomeHomeGames = (matches, homeTeamId) => {
   return matches
     .filter((match) => match.homeTeamApiId === homeTeamId)
@@ -803,10 +754,10 @@ const fetchH2HData = async (match) => {
     homeHomeGames[match.id] = filterHomeHomeGames(
       finishedGames,
       match.homeTeamApiId
-    ); // Populando os jogos do mandante
+    );
   } else {
     showToast("Erro ao carregar confrontos diretos.", "error");
-    h2hData[match.id] = []; // Evita tentar carregar novamente
+    h2hData[match.id] = [];
   }
 };
 
@@ -869,7 +820,7 @@ watch(
           updateCountdown(match);
           countdownIntervals[match.id] = setInterval(() => {
             updateCountdown(match);
-          }, 60000); // Roda a cada minuto para economizar recursos
+          }, 60000);
         }
       }
     });
@@ -936,28 +887,53 @@ const submitAllBets = async () => {
   }
 };
 
-
-const toggleMatchDetails = async (match) => {
+const toggleMatchDetails = async (match, event) => {
   if (match.status === "FT") return;
 
-  if (expandedMatchId.value === match.id) {
+  const isClosing = expandedMatchId.value === match.id;
+  if (isClosing) {
     expandedMatchId.value = null;
     return;
   }
 
   expandedMatchId.value = match.id;
 
-  // Se os dados ainda não foram carregados, busca todos de uma vez
-  if (!h2hData[match.id] && !lastGamesData[match.id]) {
-    h2hLoading.value = true;
+  if (event && event.currentTarget) {
+    nextTick(() => {
+      const detailsPanel = event.currentTarget.nextElementSibling;
+      if (detailsPanel) {
+        setTimeout(() => {
+          detailsPanel.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+          });
+        }, 50);
+      }
+    });
+  }
+
+  if (!lastGamesData[match.id]) {
+    detailsLoading.value = true;
     try {
-      await Promise.all([fetchH2HData(match), fetchLast5Games(match)]);
+      await fetchLast5Games(match);
     } catch (error) {
-      console.error("Falha ao carregar dados do painel:", error);
-      showToast("Não foi possível carregar todos os dados.", "error");
+      console.error("Falha ao carregar últimos jogos:", error);
+      showToast("Não foi possível carregar os últimos jogos.", "error");
     } finally {
-      h2hLoading.value = false;
+      detailsLoading.value = false;
     }
+  }
+};
+
+const loadH2H = async (match) => {
+  isH2HLoading[match.id] = true;
+  try {
+    await fetchH2HData(match);
+  } catch (error) {
+    console.error("Falha ao carregar dados de H2H:", error);
+    showToast("Não foi possível carregar o confronto direto.", "error");
+  } finally {
+    isH2HLoading[match.id] = false;
   }
 };
 
@@ -976,11 +952,11 @@ const getGameResultLetter = (game, teamId) => {
 const getGameResultClass = (game, teamId) => {
   const result = getGameResultLetter(game, teamId);
   switch (result) {
-    case "V": // Vitória
+    case "V":
       return "bg-green-100 text-green-800";
-    case "D": // Derrota
+    case "D":
       return "bg-red-100 text-red-800";
-    case "E": // Empate
+    case "E":
       return "bg-gray-200 text-gray-700";
     default:
       return "bg-gray-100 text-gray-600";
@@ -992,12 +968,6 @@ const formatTime = (dateString) =>
     hour: "2-digit",
     minute: "2-digit",
   });
-const formatDate = (dateString) =>
-  new Date(dateString + "T00:00:00").toLocaleDateString("pt-BR", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-  });
 
 const isHomeWinner = (match) =>
   match.status === "FT" && match.homeScore > match.awayScore;
@@ -1006,11 +976,10 @@ const isAwayWinner = (match) =>
 </script>
 
 <style>
-/* Animação de expandir/recolher */
 .expand-enter-active,
 .expand-leave-active {
   transition: all 0.4s ease-in-out;
-  max-height: 1200px; /* Aumentado para comportar mais conteúdo */
+  max-height: 1200px;
   overflow: hidden;
 }
 

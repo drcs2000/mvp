@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 interface IUserPayload {
   id: number;
   name: string;
+  email: string; 
   iat: number;
   exp: number;
 }
@@ -14,6 +15,7 @@ declare global {
       user: {
         id: number;
         name: string;
+        email: string; 
       }
     }
   }
@@ -43,7 +45,9 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
 
   try {
     const decoded = jwt.verify(token, jwtSecret) as IUserPayload;
-    req.user = { id: decoded.id, name: decoded.name };
+
+    req.user = { id: decoded.id, name: decoded.name, email: decoded.email }; 
+
     return next();
   } catch {
     return res.status(401).json({ error: 'Token inválido ou expirado.' });

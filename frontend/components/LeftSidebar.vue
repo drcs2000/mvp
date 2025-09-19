@@ -38,7 +38,7 @@
         </NuxtLink>
       </div>
 
-      <hr class="my-6 border-t border-gray-200" />
+      <hr class="my-6 border-t border-gray-200" >
 
       <div>
         <h3
@@ -47,21 +47,21 @@
           Navegar
         </h3>
         <div
-          @click="isFootballMenuOpen = !isFootballMenuOpen"
           class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md cursor-pointer transition-colors duration-200 border border-gray-800 font-semibold"
           :class="{
             'bg-gray-800 text-white': isFootballActive || isFootballMenuOpen,
             'text-gray-800 hover:bg-gray-800 hover:text-white':
               !isFootballActive && !isFootballMenuOpen,
           }"
+          @click="isFootballMenuOpen = !isFootballMenuOpen"
         >
           <svg-icon
             type="mdi"
             :path="mdiSoccer"
             class="w-4 h-4 mr-2 shrink-0"
-          ></svg-icon>
+          />
           <span class="text-[13px] font-medium">Futebol</span>
-          <div class="flex-grow"></div>
+          <div class="flex-grow"/>
           <ChevronRightIcon
             class="w-4 h-4 ml-auto transition-transform duration-300"
             :class="{ 'rotate-90': isFootballMenuOpen }"
@@ -105,13 +105,13 @@
                     :src="league.logo"
                     alt="League Logo"
                     class="w-4 h-4 mr-2"
-                  />
+                  >
                   <span class="text-[13px]">{{ league.title }}</span>
                 </NuxtLink>
               </div>
               <div
-                v-else
                 v-for="country in continent.children"
+                v-else
                 :key="country.title"
               >
                 <div
@@ -130,7 +130,7 @@
                     :src="country.flagUrl"
                     alt="Country Flag"
                     class="w-4 h-4 mr-2"
-                  />
+                  >
                   <span class="text-[13px] font-medium">{{
                     country.title
                   }}</span>
@@ -154,7 +154,7 @@
                       :src="league.logo"
                       alt="League Logo"
                       class="w-4 h-4 mr-2"
-                    />
+                    >
                     <span class="text-[13px]">{{ league.title }}</span>
                   </NuxtLink>
                 </div>
@@ -166,7 +166,7 @@
     </nav>
 
     <div class="shrink-0 pt-4">
-      <hr class="my-6 border-t border-gray-200" />
+      <hr class="my-6 border-t border-gray-200" >
       <NuxtLink
         to="/settings"
         class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100"

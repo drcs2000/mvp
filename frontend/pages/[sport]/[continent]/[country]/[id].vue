@@ -4,7 +4,7 @@
       <header
         class="flex items-center shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm gap-4"
       >
-        <img :src="championship.leagueLogoUrl" class="w-8 h-8 object-contain" />
+        <img :src="championship.leagueLogoUrl" class="w-8 h-8 object-contain" >
         <h1 class="text-xl font-bold text-gray-900">{{ championship.name }}</h1>
       </header>
       <div
@@ -18,7 +18,7 @@
                 :src="featuredMatch.homeTeamLogoUrl"
                 :alt="featuredMatch.homeTeamName"
                 class="object-contain w-16 h-16"
-              />
+              >
               <span
                 class="block mt-2 text-sm"
                 :class="{ 'font-bold': isHomeWinner(featuredMatch) }"
@@ -49,7 +49,7 @@
                 :src="featuredMatch.awayTeamLogoUrl"
                 :alt="featuredMatch.awayTeamName"
                 class="object-contain w-16 h-16"
-              />
+              >
               <span
                 class="block mt-2 text-sm"
                 :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
@@ -62,9 +62,9 @@
         <div class="flex items-center justify-center mt-4">
           <div class="flex items-center gap-2">
             <button
-              @click="previousRound"
               :disabled="isFirstRound"
               class="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="previousRound"
             >
               <ChevronLeftIcon class="w-5 h-5 text-gray-600" />
             </button>
@@ -72,9 +72,9 @@
               Rodada {{ currentRoundNumber }}
             </p>
             <button
-              @click="nextRound"
               :disabled="isLastRound"
               class="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="nextRound"
             >
               <ChevronRightIcon class="w-5 h-5 text-gray-600" />
             </button>
@@ -112,7 +112,7 @@
                 <img
                   :src="match.homeTeamLogoUrl"
                   class="object-contain w-6 h-6 shrink-0"
-                />
+                >
                 <span class="w-12 text-center font-bold text-gray-500">
                   <span v-if="match.status === 'FT'">
                     <span :class="{ 'font-bold': isHomeWinner(match) }">{{
@@ -128,7 +128,7 @@
                 <img
                   :src="match.awayTeamLogoUrl"
                   class="object-contain w-6 h-6 shrink-0"
-                />
+                >
                 <span
                   class="text-left truncate"
                   :class="{ 'font-bold': isAwayWinner(match) }"

@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
 import { PoolParticipant } from './pool-participant.entity';
+import { Invitation } from './invitation.entity';
 
 interface IPointsSystem {
   full: number;
@@ -32,7 +33,7 @@ export class Pool {
     type: 'jsonb',
   })
   points!: IPointsSystem;
-  
+
   @Column({
     type: 'decimal',
     precision: 10,
@@ -46,4 +47,7 @@ export class Pool {
 
   @OneToMany(() => PoolParticipant, (participant) => participant.pool)
   participants!: PoolParticipant[];
+
+  @OneToMany(() => Invitation, (invitation) => invitation.pool)
+  invitations!: Invitation[];
 }

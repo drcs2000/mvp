@@ -16,7 +16,6 @@ class PoolController {
     return {
       ...poolData,
       id: encodeId(pool.id),
-      // AQUI: Retorna a lista completa de participantes
       participants: participants
     }
   }

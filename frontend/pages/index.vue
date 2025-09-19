@@ -14,7 +14,7 @@
             type="search"
             placeholder="Pesquise"
             class="block w-full p-2 pl-10 text-sm text-gray-900 bg-gray-100 border-none rounded-lg focus:outline-none"
-          />
+          >
         </div>
         <div class="flex flex-1 items-center justify-between">
           <div
@@ -26,83 +26,93 @@
           <button
             v-for="championship in leagueChampionships"
             :key="championship.id"
-            @click="selectedChampionship = championship"
             :class="[
               'relative p-2 group transition-all duration-300',
               selectedChampionship?.id === championship.id
                 ? 'grayscale-0 opacity-100'
                 : 'grayscale opacity-60 hover:grayscale-0 hover:opacity-100',
             ]"
+            @click="selectChampionshipWithAnimation(championship)"
           >
             <img
               :src="championship.leagueLogoUrl"
               class="w-6 h-6 object-contain shrink-0"
-            />
+            >
           </button>
         </div>
       </header>
-      <div
-        v-if="featuredMatch && !stores.matches.loading"
-        class="shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white"
-      >
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-bold text-gray-900">
-            {{ selectedChampionship?.name }}
-          </h2>
-          <p v-if="currentRound" class="text-sm font-semibold text-gray-500">
-            Rodada {{ currentRoundNumber }}
-          </p>
-        </div>
-        <div class="p-4 text-white bg-gray-800 rounded-xl">
-          <div class="flex items-center justify-between">
-            <div class="flex flex-col items-center w-1/3 text-center">
-              <img
-                :src="featuredMatch.homeTeamLogoUrl"
-                :alt="featuredMatch.homeTeamName"
-                class="object-contain w-16 h-16"
-              />
-              <span
-                class="block mt-2 text-sm"
-                :class="{ 'font-bold': isHomeWinner(featuredMatch) }"
-                >{{ featuredMatch.homeTeamName }}</span
-              >
-            </div>
-            <div class="text-center">
-              <div class="text-4xl font-bold">
-                <span v-if="featuredMatch.status !== 'NS'">
-                  <span :class="{ 'font-bold': isHomeWinner(featuredMatch) }">{{
-                    featuredMatch.homeScore
-                  }}</span>
-                  -
-                  <span :class="{ 'font-bold': isAwayWinner(featuredMatch) }">{{
-                    featuredMatch.awayScore
-                  }}</span>
-                </span>
-                <span v-else>{{ formatTime(featuredMatch.date) }}</span>
+
+      <Transition name="fade" mode="out-in">
+        <div
+          v-if="showFeaturedMatch && featuredMatch && !stores.matches.loading"
+          :key="`featured-${selectedChampionship?.id}`"
+          class="shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white"
+        >
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-gray-900">
+              {{ selectedChampionship?.name }}
+            </h2>
+            <p v-if="currentRound" class="text-sm font-semibold text-gray-500">
+              Rodada {{ currentRoundNumber }}
+            </p>
+          </div>
+          <div class="p-4 text-white bg-gray-800 rounded-xl">
+            <div class="flex items-center justify-between">
+              <div class="flex flex-col items-center w-1/3 text-center">
+                <img
+                  :src="featuredMatch.homeTeamLogoUrl"
+                  :alt="featuredMatch.homeTeamName"
+                  class="object-contain w-16 h-16"
+                >
+                <span
+                  class="block mt-2 text-sm"
+                  :class="{ 'font-bold': isHomeWinner(featuredMatch) }"
+                  >{{ featuredMatch.homeTeamName }}</span
+                >
               </div>
-              <span class="mt-1 text-xs text-gray-400">{{
-                getStatusText(featuredMatch.status)
-              }}</span>
-            </div>
-            <div class="flex flex-col items-center w-1/3 text-center">
-              <img
-                :src="featuredMatch.awayTeamLogoUrl"
-                :alt="featuredMatch.awayTeamName"
-                class="object-contain w-16 h-16"
-              />
-              <span
-                class="block mt-2 text-sm"
-                :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
-                >{{ featuredMatch.awayTeamName }}</span
-              >
+              <div class="text-center">
+                <div class="text-4xl font-bold">
+                  <span v-if="featuredMatch.status !== 'NS'">
+                    <span
+                      :class="{ 'font-bold': isHomeWinner(featuredMatch) }"
+                      >{{ featuredMatch.homeScore }}</span
+                    >
+                    -
+                    <span
+                      :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
+                      >{{ featuredMatch.awayScore }}</span
+                    >
+                  </span>
+                  <span v-else>{{ formatTime(featuredMatch.date) }}</span>
+                </div>
+                <span class="mt-1 text-xs text-gray-400">{{
+                  getStatusText(featuredMatch.status)
+                }}</span>
+              </div>
+              <div class="flex flex-col items-center w-1/3 text-center">
+                <img
+                  :src="featuredMatch.awayTeamLogoUrl"
+                  :alt="featuredMatch.awayTeamName"
+                  class="object-contain w-16 h-16"
+                >
+                <span
+                  class="block mt-2 text-sm"
+                  :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
+                  >{{ featuredMatch.awayTeamName }}</span
+                >
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </Transition>
     </div>
 
     <Transition name="fade" mode="out-in">
-      <div :key="selectedChampionship?.id" class="px-4 sm:px-6 pb-6">
+      <div
+        v-if="showMatchesContent"
+        :key="`matches-${selectedChampionship?.id}`"
+        class="px-4 sm:px-6 pb-6"
+      >
         <div
           v-if="stores.matches.loading"
           class="pt-8 text-center text-gray-500"
@@ -134,7 +144,7 @@
                   <img
                     :src="match.homeTeamLogoUrl"
                     class="object-contain w-6 h-6 shrink-0"
-                  />
+                  >
                   <span class="w-12 text-center font-bold text-gray-500">
                     <span v-if="match.status !== 'NS'">
                       <span :class="{ 'font-bold': isHomeWinner(match) }">{{
@@ -150,7 +160,7 @@
                   <img
                     :src="match.awayTeamLogoUrl"
                     class="object-contain w-6 h-6 shrink-0"
-                  />
+                  >
                   <span
                     class="text-left truncate"
                     :class="{ 'font-bold': isAwayWinner(match) }"
@@ -173,7 +183,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, watch } from "vue";
+import { computed, onMounted, watch, ref, nextTick } from "vue";
 import { MagnifyingGlassIcon } from "@heroicons/vue/24/outline";
 
 const stores = useStores();
@@ -183,16 +193,44 @@ const selectedChampionship = computed({
   set: (value) => stores.championships.selectChampionship(value),
 });
 
+const showFeaturedMatch = ref(false);
+const showMatchesContent = ref(false);
+
 onMounted(async () => {
   await stores.championships.fetchAllChampionships();
   if (leagueChampionships.value.length > 0 && !selectedChampionship.value) {
     selectedChampionship.value = leagueChampionships.value[0];
   }
+
+  setTimeout(() => {
+    showFeaturedMatch.value = true;
+    showMatchesContent.value = true;
+  }, 100);
 });
+
+const selectChampionshipWithAnimation = async (championship) => {
+  showFeaturedMatch.value = false;
+  showMatchesContent.value = false;
+
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
+  selectedChampionship.value = championship;
+
+  await nextTick();
+
+  showFeaturedMatch.value = true;
+  showMatchesContent.value = true;
+};
 
 watch(selectedChampionship, async (newChampionship) => {
   if (newChampionship) {
+    showFeaturedMatch.value = false;
+    showMatchesContent.value = false;
+
     await stores.matches.fetchByChampionship(newChampionship.apiFootballId);
+
+    showFeaturedMatch.value = true;
+    showMatchesContent.value = true;
   }
 });
 
@@ -257,13 +295,6 @@ const featuredMatch = computed(() => {
   );
 });
 
-const upcomingMatches = computed(() => {
-  if (!featuredMatch.value) return [];
-  return matchesOfCurrentRound.value.filter(
-    (m) => m.id !== featuredMatch.value.id
-  );
-});
-
 const formatTime = (dateString) =>
   new Date(dateString).toLocaleTimeString("pt-BR", {
     hour: "2-digit",
@@ -287,16 +318,23 @@ const isAwayWinner = (match) =>
 </script>
 
 <style>
-/* Define a duração e a suavização da animação de entrada e saída */
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 0.25s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 
-/* Define o estado inicial da entrada e o estado final da saída */
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
   transform: translateY(10px);
+}
+
+.page-enter-active {
+  transition: all 0.4s ease-out;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
 }
 </style>

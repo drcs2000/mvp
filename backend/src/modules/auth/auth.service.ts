@@ -11,12 +11,12 @@ class AuthService {
     if (!jwtSecret) {
       throw new Error('Segredo JWT não configurado no .env');
     }
-    return jwt.sign({ id: user.id, name: user.name }, jwtSecret, { expiresIn: '1d' });
+    return jwt.sign({ id: user.id, name: user.name, email: user.email }, jwtSecret, { expiresIn: '1d' });
   }
 
   public async register(userData: { name: string, email: string, password: string }): Promise<{ user: Omit<User, 'passwordHash'>, token: string }> {
     const { name, email, password } = userData;
-    
+
     const existingUser = await this.userRepository.findOneBy({ email });
     if (existingUser) {
       throw new Error('Este email já está cadastrado.');

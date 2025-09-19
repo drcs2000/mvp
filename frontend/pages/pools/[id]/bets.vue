@@ -9,17 +9,8 @@
 
     <div v-else-if="currentChampionship">
       <div class="sticky top-0 z-20">
-        <header
-          class="flex items-center shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm gap-4"
-        >
-          <img
-            :src="currentChampionship.leagueLogoUrl"
-            class="w-8 h-8 object-contain"
-          />
-          <h1 class="text-xl font-bold text-gray-900">
-            {{ currentChampionship.name }}
-          </h1>
-          <div class="flex items-center gap-4 ml-auto text-right">
+        <ChampionshipHeader :championship="currentChampionship">
+          <template #right>
             <NuxtLink
               :to="`/pools/${poolId}`"
               class="text-sm font-semibold text-gray-600 hover:text-slate-800 transition-colors duration-200 whitespace-nowrap"
@@ -32,158 +23,127 @@
             >
               Informações
             </NuxtLink>
-          </div>
-        </header>
-        <div
+          </template>
+        </ChampionshipHeader>
+        
+        <RoundSelector
           v-if="!stores.matches.loading"
-          class="shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white"
-        >
-          <div class="flex items-center justify-center mt-4">
-            <div class="flex items-center gap-2">
-              <button
-                @click="previousRound"
-                :disabled="isFirstRound"
-                class="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeftIcon class="w-5 h-5 text-gray-600" />
-              </button>
-              <p class="text-sm font-semibold text-gray-700 w-24 text-center">
-                Rodada {{ currentRoundNumber }}
-              </p>
-              <button
-                @click="nextRound"
-                :disabled="isLastRound"
-                class="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRightIcon class="w-5 h-5 text-gray-600" />
-              </button>
-            </div>
-          </div>
-        </div>
+          :is-first-round="isFirstRound"
+          :is-last-round="isLastRound"
+          :current-round-number="currentRoundNumber"
+          @previous="previousRound"
+          @next="nextRound"
+        />
       </div>
 
-      <div class="px-4 sm:px-6 pb-6">
-        <div
-          v-if="stores.matches.loading"
-          class="pt-8 text-center text-gray-500"
-        >
-          A carregar jogos...
-        </div>
-        <div v-else-if="Object.keys(matchesByDay).length > 0" class="mt-2">
-          <div v-for="(matches, day) in matchesByDay" :key="day" class="mb-6">
-            <h3 class="py-2 text-sm font-semibold text-gray-500 text-left">
-              {{ formatDate(day) }}
-            </h3>
-            <div class="space-y-px">
-              <div
-                v-for="match in matches"
-                :key="match.id"
-                class="py-4 border-b border-gray-200"
-              >
-                <div
-                  class="grid grid-cols-[100px_1fr_100px] gap-4 items-center px-4"
-                >
-                  <div class="text-sm font-medium text-gray-800 text-left">
-                    {{ formatTime(match.date) }}
-                  </div>
-                  <div class="flex items-center justify-between text-sm gap-2">
-                    <div class="flex items-center gap-2 flex-1 justify-end">
-                      <span
-                        class="text-right truncate max-w-[120px]"
-                        :class="{ 'font-bold': isHomeWinner(match) }"
-                        >{{ match.homeTeamName }}</span
-                      >
-                      <img
-                        :src="match.homeTeamLogoUrl"
-                        class="object-contain w-6 h-6 shrink-0"
-                      />
-                    </div>
-                    <div class="flex items-center gap-1 font-bold text-base">
-                      <span class="w-8 text-center">{{
-                        match.homeScore ?? ""
-                      }}</span>
-                      <span>-</span>
-                      <span class="w-8 text-center">{{
-                        match.awayScore ?? ""
-                      }}</span>
-                    </div>
-                    <div class="flex items-center gap-2 flex-1 justify-start">
-                      <img
-                        :src="match.awayTeamLogoUrl"
-                        class="object-contain w-6 h-6 shrink-0"
-                      />
-                      <span
-                        class="text-left truncate max-w-[120px]"
-                        :class="{ 'font-bold': isAwayWinner(match) }"
-                        >{{ match.awayTeamName }}</span
-                      >
-                    </div>
-                  </div>
-                  <div class="text-sm font-medium text-gray-500 text-right">
-                    {{ getStatusText(match.status) }}
-                  </div>
-                </div>
-
-                <div
-                  v-if="groupedBetsByMatch[match.id]?.length > 0"
-                  class="mt-2 space-y-1.5"
-                >
-                  <div
-                    v-for="bet in groupedBetsByMatch[match.id]"
-                    :key="bet.id"
-                    class="rounded-md transition-colors"
-                    :class="getRowClass(bet, match)"
+      <MatchList
+        :matches-by-day="matchesByDay"
+        :loading="stores.matches.loading"
+      >
+        <template #match="{ matches }">
+          <div
+            v-for="match in matches"
+            :key="match.id"
+            class="py-4 border-b border-gray-200"
+          >
+            <div
+              class="grid grid-cols-[100px_1fr_100px] gap-4 items-center px-4"
+            >
+              <div class="text-sm font-medium text-gray-800 text-left">
+                {{ formatTime(match.date) }}
+              </div>
+              <div class="flex items-center justify-between text-sm gap-2">
+                <div class="flex items-center gap-2 flex-1 justify-end">
+                  <span
+                    class="text-right truncate max-w-[120px]"
+                    :class="{ 'font-bold': isHomeWinner(match) }"
+                    >{{ match.homeTeamName }}</span
                   >
-                    <div class="flex items-center gap-4 px-4 py-1.5">
-                      <div class="w-[100px] flex-shrink-0">
-                        <div
-                          class="text-xs text-left truncate"
-                          :class="getTextColor(bet, match, 'name')"
-                          :title="bet.user?.name ?? 'Usuário Desconhecido'"
-                        >
-                          {{ bet.user?.name ?? "Usuário Desconhecido" }}
-                        </div>
-                      </div>
-                      <div class="flex-1">
-                        <div class="flex items-center justify-center">
-                          <div
-                            class="font-semibold text-sm"
-                            :class="getTextColor(bet, match, 'bet')"
-                          >
-                            {{ bet.homeScoreBet }} - {{ bet.awayScoreBet }}
-                          </div>
-                        </div>
-                      </div>
-                      <div class="w-[100px] flex-shrink-0 flex justify-end">
-                        <span
-                          v-if="bet.pointsEarned != null"
-                          class="text-xs font-bold"
-                          :class="getTextColor(bet, match, 'points')"
-                        >
-                          +{{ bet.pointsEarned }} pts
-                        </span>
+                  <img
+                    :src="match.homeTeamLogoUrl"
+                    class="object-contain w-6 h-6 shrink-0"
+                  >
+                </div>
+                <div class="flex items-center gap-1 font-bold text-base">
+                  <span class="w-8 text-center">{{
+                    match.homeScore ?? ""
+                  }}</span>
+                  <span>-</span>
+                  <span class="w-8 text-center">{{
+                    match.awayScore ?? ""
+                  }}</span>
+                </div>
+                <div class="flex items-center gap-2 flex-1 justify-start">
+                  <img
+                    :src="match.awayTeamLogoUrl"
+                    class="object-contain w-6 h-6 shrink-0"
+                  >
+                  <span
+                    class="text-left truncate max-w-[120px]"
+                    :class="{ 'font-bold': isAwayWinner(match) }"
+                    >{{ match.awayTeamName }}</span
+                  >
+                </div>
+              </div>
+              <div class="text-sm font-medium text-gray-500 text-right">
+                {{ getStatusText(match.status) }}
+              </div>
+            </div>
+
+            <div
+              v-if="groupedBetsByMatch[match.id]?.length > 0"
+              class="mt-2 space-y-1.5"
+            >
+              <div
+                v-for="bet in groupedBetsByMatch[match.id]"
+                :key="bet.id"
+                class="rounded-md transition-colors"
+                :class="getRowClass(bet, match)"
+              >
+                <div class="flex items-center gap-4 px-4 py-1.5">
+                  <div class="w-[100px] flex-shrink-0">
+                    <div
+                      class="text-xs text-left truncate"
+                      :class="getTextColor(bet, match, 'name')"
+                      :title="bet.user?.name ?? 'Usuário Desconhecido'"
+                    >
+                      {{ bet.user?.name ?? "Usuário Desconhecido" }}
+                    </div>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-center">
+                      <div
+                        class="font-semibold text-sm"
+                        :class="getTextColor(bet, match, 'bet')"
+                      >
+                        {{ bet.homeScoreBet }} - {{ bet.awayScoreBet }}
                       </div>
                     </div>
                   </div>
-                </div>
-                <div v-else class="text-xs text-gray-400 text-center mt-3">
-                  Nenhum palpite para este jogo.
+                  <div class="w-[100px] flex-shrink-0 flex justify-end">
+                    <span
+                      v-if="bet.pointsEarned != null"
+                      class="text-xs font-bold"
+                      :class="getTextColor(bet, match, 'points')"
+                    >
+                      +{{ bet.pointsEarned }} pts
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
+            <div v-else class="text-xs text-gray-400 text-center mt-3">
+              Nenhum palpite para este jogo.
+            </div>
           </div>
-        </div>
-        <div v-else class="pt-8 text-center text-gray-500">
-          <p>Nenhum jogo encontrado para esta rodada.</p>
-        </div>
-      </div>
+        </template>
+      </MatchList>
     </div>
   </section>
 </template>
 
 <script setup>
 import { computed, ref, onMounted } from "vue";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/outline";
 
 const stores = useStores();
 const route = useRoute();
@@ -384,13 +344,6 @@ const formatTime = (dateString) =>
   new Date(dateString).toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
-  });
-
-const formatDate = (dateString) =>
-  new Date(dateString + "T00:00:00").toLocaleDateString("pt-BR", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
   });
 
 const getStatusText = (status) =>

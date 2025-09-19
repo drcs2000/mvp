@@ -30,7 +30,7 @@ export const useChampionshipsStore = defineStore('championships', () => {
       });
       
       championships.value = allChampionships;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao buscar campeonatos:', error);
     } finally {
       isLoading.value = false;
