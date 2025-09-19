@@ -6,27 +6,27 @@
           <MenuButton
             class="flex items-center w-full px-2 py-1 transition-colors duration-200 border border-gray-300 rounded-md hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
           >
-            <img
-              class="w-6 h-6 rounded-full"
-              src="https://i.pravatar.cc/28"
-              :alt="stores.auth.currentUser.name"
-            />
-            <span class="ml-2 text-[13px] font-medium text-gray-800"
-              >Olá, {{ firstName }}</span
-            >
-            <div class="flex-grow" />
-            <div class="relative">
-              <ChevronDownIcon
-                class="w-4 h-4 text-gray-500 transition-transform duration-300"
-                :class="{ 'rotate-180': open }"
-              />
+            <div class="flex-shrink-0">
               <span
-                v-if="invitationCount > 0"
-                class="absolute -top-2 -right-2 flex items-center justify-center min-w-4 h-4 px-1 text-xs text-white bg-red-500 rounded-full transform translate-x-1/4 -translate-y-1/4"
+                class="flex items-center justify-center w-6 h-6 text-xs font-bold rounded-full"
+                :class="[
+                  invitationCount > 0
+                    ? 'bg-red-500 text-white'
+                    : 'bg-gray-200 text-gray-600',
+                ]"
               >
                 {{ invitationCount }}
               </span>
             </div>
+
+            <span class="ml-2 text-[13px] font-medium text-gray-800"
+              >Olá, {{ firstName }}</span
+            >
+            <div class="flex-grow" />
+            <ChevronDownIcon
+              class="w-4 h-4 text-gray-500 transition-transform duration-300"
+              :class="{ 'rotate-180': open }"
+            />
           </MenuButton>
           <transition
             enter-active-class="transition duration-100 ease-out"
