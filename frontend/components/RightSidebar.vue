@@ -99,7 +99,7 @@
           Entrar
         </NuxtLink>
       </div>
-      <hr class="mt-4 border-t border-gray-200" />
+      <hr class="mt-4 border-t border-gray-200" >
     </div>
 
     <div
@@ -144,7 +144,7 @@
                   </td>
                   <td class="col-span-6 py-2 text-left truncate">
                     <div class="flex items-center">
-                      <img :src="team.teamLogoUrl" class="w-4 h-4 mr-2" />
+                      <img :src="team.teamLogoUrl" class="w-4 h-4 mr-2" >
                       <span class="whitespace-nowrap">{{ team.teamName }}</span>
                     </div>
                   </td>

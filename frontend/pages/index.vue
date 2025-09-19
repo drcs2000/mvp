@@ -14,7 +14,7 @@
             type="search"
             placeholder="Pesquise"
             class="block w-full p-2 pl-10 text-sm text-gray-900 bg-gray-100 border-none rounded-lg focus:outline-none"
-          >
+          />
         </div>
         <div class="flex flex-1 items-center justify-between">
           <div
@@ -37,7 +37,7 @@
             <img
               :src="championship.leagueLogoUrl"
               class="w-6 h-6 object-contain shrink-0"
-            >
+            />
           </button>
         </div>
       </header>
@@ -63,7 +63,7 @@
                   :src="featuredMatch.homeTeamLogoUrl"
                   :alt="featuredMatch.homeTeamName"
                   class="object-contain w-16 h-16"
-                >
+                />
                 <span
                   class="block mt-2 text-sm"
                   :class="{ 'font-bold': isHomeWinner(featuredMatch) }"
@@ -94,7 +94,7 @@
                   :src="featuredMatch.awayTeamLogoUrl"
                   :alt="featuredMatch.awayTeamName"
                   class="object-contain w-16 h-16"
-                >
+                />
                 <span
                   class="block mt-2 text-sm"
                   :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
@@ -144,7 +144,7 @@
                   <img
                     :src="match.homeTeamLogoUrl"
                     class="object-contain w-6 h-6 shrink-0"
-                  >
+                  />
                   <span class="w-12 text-center font-bold text-gray-500">
                     <span v-if="match.status !== 'NS'">
                       <span :class="{ 'font-bold': isHomeWinner(match) }">{{
@@ -160,7 +160,7 @@
                   <img
                     :src="match.awayTeamLogoUrl"
                     class="object-contain w-6 h-6 shrink-0"
-                  >
+                  />
                   <span
                     class="text-left truncate"
                     :class="{ 'font-bold': isAwayWinner(match) }"
@@ -198,9 +198,7 @@ const showMatchesContent = ref(false);
 
 onMounted(async () => {
   await stores.championships.fetchAllChampionships();
-  if (leagueChampionships.value.length > 0 && !selectedChampionship.value) {
-    selectedChampionship.value = leagueChampionships.value[0];
-  }
+  selectedChampionship.value = leagueChampionships.value[0];
 
   setTimeout(() => {
     showFeaturedMatch.value = true;
