@@ -1,7 +1,7 @@
 import 'reflect-metadata';
-import { AppDataSource } from '../src/database/data-source'
-import { Match } from '../src/entities/match.entity';
-import { Standings } from '../src/entities/standings.entity';
+import { AppDataSource } from '../database/data-source'
+import { Match } from '../entities/match.entity';
+import { Standings } from '../entities/standings.entity';
 import { IsNull } from 'typeorm';
 
 async function populateTeamIds(): Promise<void> {
