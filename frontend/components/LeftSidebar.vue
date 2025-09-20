@@ -1,8 +1,17 @@
 <template>
-  <aside class="flex flex-col h-full px-3">
-    <NuxtLink to="/" class="px-3 mb-6 text-2xl font-bold shrink-0">
-      MVP
-    </NuxtLink>
+  <aside
+    class="flex flex-col h-full bg-white p-3 transition-transform duration-300 ease-in-out z-50 fixed top-0 left-0 w-64 shadow-lg transform xl:relative xl:w-full xl:shadow-none xl:translate-x-0 xl:p-0"
+    :class="{
+      'translate-x-0': isSidebarOpen,
+      '-translate-x-full': !isSidebarOpen,
+    }"
+  >
+    <div class="flex items-center justify-between shrink-0 xl:block">
+      <NuxtLink to="/" class="px-3 mb-6 text-2xl font-bold"> MVP </NuxtLink>
+      <button @click="isSidebarOpen = false" class="xl:hidden p-1">
+        <XMarkIcon class="w-6 h-6" />
+      </button>
+    </div>
 
     <div class="shrink-0">
       <h3
@@ -37,7 +46,7 @@
       </NuxtLink>
     </div>
 
-    <hr class="my-6 border-t border-gray-200" >
+    <hr class="my-6 border-t border-gray-200" />
 
     <div class="flex-1 overflow-hidden flex flex-col">
       <h3
@@ -111,7 +120,7 @@
                       :src="league.logo"
                       alt="League Logo"
                       class="w-4 h-4 mr-2 flex-shrink-0"
-                    >
+                    />
                     <span class="text-[13px] truncate">{{ league.title }}</span>
                     <div class="tooltip">{{ league.title }}</div>
                   </NuxtLink>
@@ -137,7 +146,7 @@
                       :src="country.flagUrl"
                       alt="Country Flag"
                       class="w-4 h-4 mr-2 flex-shrink-0"
-                    >
+                    />
                     <span
                       class="text-[13px] font-medium truncate"
                       :title="country.title"
@@ -163,7 +172,7 @@
                         :src="league.logo"
                         alt="League Logo"
                         class="w-4 h-4 mr-2 flex-shrink-0"
-                      >
+                      />
                       <span class="text-[13px] truncate">{{
                         league.title
                       }}</span>
@@ -179,7 +188,7 @@
     </div>
 
     <div class="shrink-0 pt-4">
-      <hr class="my-6 border-t border-gray-200" >
+      <hr class="my-6 border-t border-gray-200" />
       <NuxtLink
         to="/settings"
         class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100"
@@ -200,10 +209,15 @@ import {
   PlusCircleIcon,
   QueueListIcon,
   TrophyIcon,
+  XMarkIcon, // 1. IMPORTAR O ÍCONE DE FECHAR
 } from "@heroicons/vue/24/outline";
 import SvgIcon from "@jamescoyle/vue-icon";
 import { mdiSoccer } from "@mdi/js";
 
+// 2. USAR O ESTADO GLOBAL COMPARTILHADO
+const isSidebarOpen = useSidebar();
+
+// O resto do seu script original permanece igual
 const route = useRoute();
 const stores = useStores();
 const isFootballMenuOpen = ref(false);
@@ -367,6 +381,7 @@ const isFootballActive = computed(() => {
 </script>
 
 <style scoped>
+/* Estilos originais não precisam de alteração */
 .submenu-container {
   max-height: 0;
   overflow: hidden;
