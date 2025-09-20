@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="pb-28 sm:pb-0">
     <transition
       enter-active-class="transition ease-out duration-300"
       enter-from-class="transform opacity-0 -translate-y-full"
@@ -55,7 +55,7 @@
     <main class="p-4 sm:p-6">
       <form
         id="tournament-form"
-        class="max-w-3xl space-y-8"
+        class="space-y-8"
         @submit.prevent="handleSubmit"
       >
         <div class="p-6 bg-white border border-gray-200 rounded-lg">
@@ -446,11 +446,13 @@
           </div>
         </div>
 
-        <div class="flex justify-end pt-4">
+        <div
+          class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-sm border-t border-gray-200 sm:relative sm:p-0 sm:bg-transparent sm:border-none sm:pt-4 sm:flex sm:justify-end"
+        >
           <button
             type="submit"
             :disabled="loading"
-            class="flex items-center justify-center px-6 py-2 text-sm font-semibold text-white bg-gray-800 border border-transparent rounded-md shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full flex items-center justify-center px-6 py-3 text-base font-semibold text-white bg-gray-800 border border-transparent rounded-md shadow-lg hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto sm:py-2 sm:text-sm sm:shadow-sm"
           >
             <span v-if="!loading">Criar Torneio</span>
             <span v-else>Criando...</span>

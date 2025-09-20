@@ -1,14 +1,12 @@
 <template>
-  <section class="bg-white">
-    <AppToast :message="toastMessage" :type="toastType" />
-
+  <section class="bg-white pb-28 md:pb-8">
     <div v-if="currentChampionship" class="sticky top-0 z-20">
       <ChampionshipHeader :championship="currentChampionship">
         <template #right>
           <button
             v-if="!isParticipant"
             :disabled="stores.pools.loading"
-            class="px-3 py-1.5 text-sm font-semibold text-white bg-gray-600 rounded-md hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 whitespace-nowrap"
+            class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-sm hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 whitespace-nowrap"
             @click="joinPool"
           >
             Entrar no Bolão
@@ -19,7 +17,7 @@
             :class="[
               'text-sm font-semibold whitespace-nowrap transition-colors duration-200',
               isParticipant
-                ? 'text-gray-600 hover:text-slate-800'
+                ? 'text-gray-600 hover:text-blue-600'
                 : 'text-gray-400 cursor-not-allowed',
             ]"
           >
@@ -31,7 +29,7 @@
             :class="[
               'text-sm font-semibold whitespace-nowrap transition-colors duration-200',
               isParticipant
-                ? 'text-gray-600 hover:text-slate-800'
+                ? 'text-gray-600 hover:text-blue-600'
                 : 'text-gray-400 cursor-not-allowed',
             ]"
           >
@@ -55,81 +53,103 @@
         <template v-for="match in matches" :key="match.id">
           <div class="bg-white border-b border-gray-200">
             <div
-              class="grid grid-cols-[100px_1fr_100px] gap-4 items-center px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
+              class="px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
               :class="{ 'cursor-pointer': match.status === 'NS' }"
               @click="toggleMatchDetails(match, $event)"
             >
-              <div class="text-sm font-medium text-gray-800 text-left">
-                {{ formatTime(match.date) }}
-              </div>
-
-              <div class="flex items-center justify-between text-sm gap-2">
-                <div class="flex items-center gap-2 flex-1 justify-end">
-                  <span
-                    class="text-right truncate max-w-[120px]"
-                    :class="{ 'font-bold': isHomeWinner(match) }"
-                    >{{ match.homeTeamName }}</span
-                  >
-                  <img
-                    :src="match.homeTeamLogoUrl"
-                    class="object-contain w-6 h-6 shrink-0"
-                  >
-                </div>
-                <div class="flex items-center gap-1">
-                  <input
-                    v-model.number="betForms[match.id].homeScoreBet"
-                    type="text"
-                    :disabled="isBettingTimeExpired(match) || !isParticipant"
-                    class="w-6 text-center border rounded-md"
-                    @click.stop
-                  >
-                  <span>-</span>
-                  <input
-                    v-model.number="betForms[match.id].awayScoreBet"
-                    type="text"
-                    :disabled="isBettingTimeExpired(match) || !isParticipant"
-                    class="w-6 text-center border rounded-md"
-                    @click.stop
-                  >
-                </div>
-                <div class="flex items-center gap-2 flex-1 justify-start">
-                  <img
-                    :src="match.awayTeamLogoUrl"
-                    class="object-contain w-6 h-6 shrink-0"
-                  >
-                  <span
-                    class="text-left truncate max-w-[120px]"
-                    :class="{ 'font-bold': isAwayWinner(match) }"
-                    >{{ match.awayTeamName }}</span
-                  >
-                </div>
-              </div>
-
-              <div class="flex flex-col items-end gap-1">
+              <div
+                class="flex flex-col items-center md:grid md:grid-cols-[100px_1fr_150px] md:items-center md:gap-4 w-full"
+              >
                 <div
-                  v-if="match.status !== 'FT'"
-                  class="flex items-center gap-1.5"
+                  class="order-2 md:order-1 text-center md:text-left mt-2 md:mt-0"
+                >
+                  <div class="text-sm font-medium text-gray-800">
+                    {{ formatTime(match.date) }}
+                  </div>
+                </div>
+
+                <div
+                  class="order-1 md:order-2 flex items-center justify-center w-full"
                 >
                   <div
-                    v-if="currentPool?.betDeadlineHours !== undefined"
-                    class="text-xs font-medium text-gray-600 text-right whitespace-nowrap"
+                    class="grid grid-cols-[1fr_auto_1fr] gap-x-2 items-center w-full max-w-sm"
                   >
-                    {{ countdowns[match.id] || "Calculando..." }}
-                  </div>
-                  <div class="relative group">
-                    <InformationCircleIcon class="w-4 h-4 text-gray-400" />
-                    <span
-                      class="absolute bottom-full right-0 p-1 mb-2 text-xs text-center text-white bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[60]"
-                    >
-                      Tempo Limite do Palpite
-                    </span>
+                    <div class="flex items-center gap-2 justify-end min-w-0">
+                      <span
+                        class="text-right truncate"
+                        :class="{ 'font-bold': isHomeWinner(match) }"
+                        >{{ match.homeTeamName }}</span
+                      >
+                      <img
+                        :src="match.homeTeamLogoUrl"
+                        class="object-contain w-6 h-6 shrink-0"
+                      >
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                      <input
+                        v-model.number="betForms[match.id].homeScoreBet"
+                        type="text"
+                        :disabled="
+                          isBettingTimeExpired(match) || !isParticipant
+                        "
+                        class="w-6 text-center border rounded-md"
+                        @click.stop
+                      >
+                      <span>-</span>
+                      <input
+                        v-model.number="betForms[match.id].awayScoreBet"
+                        type="text"
+                        :disabled="
+                          isBettingTimeExpired(match) || !isParticipant
+                        "
+                        class="w-6 text-center border rounded-md"
+                        @click.stop
+                      >
+                    </div>
+
+                    <div class="flex items-center gap-2 justify-start min-w-0">
+                      <img
+                        :src="match.awayTeamLogoUrl"
+                        class="object-contain w-6 h-6 shrink-0"
+                      >
+                      <span
+                        class="text-left truncate"
+                        :class="{ 'font-bold': isAwayWinner(match) }"
+                        >{{ match.awayTeamName }}</span
+                      >
+                    </div>
                   </div>
                 </div>
+
                 <div
-                  v-else-if="match.status === 'FT'"
-                  class="font-medium text-sm text-gray-800 whitespace-nowrap"
+                  class="order-3 md:order-3 text-center md:text-right mt-2 md:mt-0"
                 >
-                  {{ match.homeScore }} - {{ match.awayScore }}
+                  <div
+                    v-if="match.status !== 'FT'"
+                    class="flex items-center justify-center md:justify-end gap-1.5"
+                  >
+                    <div
+                      v-if="currentPool?.betDeadlineHours !== undefined"
+                      class="text-xs font-medium text-gray-600 whitespace-nowrap"
+                    >
+                      {{ countdowns[match.id] || "Calculando..." }}
+                    </div>
+                    <div class="relative group">
+                      <InformationCircleIcon class="w-4 h-4 text-gray-400" />
+                      <span
+                        class="absolute bottom-full right-0 p-1 mb-2 text-xs text-center text-white bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[60]"
+                      >
+                        Tempo Limite do Palpite
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    v-else-if="match.status === 'FT'"
+                    class="font-medium text-sm text-gray-800 whitespace-nowrap"
+                  >
+                    {{ match.homeScore }} - {{ match.awayScore }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -246,7 +266,7 @@
                         Confronto Direto
                       </h3>
                       <div
-                        class="grid grid-cols-3 gap-2 text-xs text-center mb-6"
+                        class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-center mb-6"
                       >
                         <div
                           class="border-l-4 border-blue-500 bg-white p-3 rounded-r-md shadow-sm"
@@ -425,10 +445,13 @@
       </template>
     </MatchList>
 
-    <div v-if="hasUnplayedMatches && isParticipant" class="mt-4 text-center">
+    <div
+      v-if="hasUnplayedMatches && isParticipant"
+      class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-sm border-t border-gray-200 md:relative md:p-0 md:bg-transparent md:border-none md:mt-6 text-center"
+    >
       <button
         :disabled="!hasChanges || !allBetsAreFilled || stores.bet.loading"
-        class="px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+        class="w-full px-4 py-3 text-base font-semibold text-white bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 md:w-auto md:px-6 md:py-2 md:text-sm md:shadow-sm"
         @click="submitAllBets"
       >
         Salvar Rodada
@@ -441,7 +464,6 @@
 import { computed, onMounted, reactive, watch, ref, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { InformationCircleIcon } from "@heroicons/vue/24/outline";
-import AppToast from "~/components/AppToast.vue";
 
 const stores = useStores();
 const route = useRoute();
@@ -457,13 +479,6 @@ const countdowns = reactive({});
 let countdownIntervals = {};
 
 const selectedRound = ref(null);
-
-const toastMessage = ref("");
-const toastType = ref("success");
-const showToast = (message, type) => {
-  toastMessage.value = message;
-  toastType.value = type;
-};
 
 const expandedMatchId = ref(null);
 
@@ -490,11 +505,11 @@ const isParticipant = computed(() => {
 const joinPool = async () => {
   const result = await stores.pools.joinPool(poolId.value);
   if (result.success) {
-    showToast("Você entrou no bolão com sucesso!", "success");
+    stores.ui.showToast("Você entrou no bolão com sucesso!", "success");
     stores.pools.currentPool = result.data;
     await stores.bet.fetchBets({ poolId: poolId.value });
   } else {
-    showToast(result.error || "Ocorreu um erro ao entrar no bolão.", "error");
+    stores.ui.showToast(result.error || "Ocorreu um erro ao entrar no bolão.", "error");
   }
 };
 
@@ -756,7 +771,7 @@ const fetchH2HData = async (match) => {
       match.homeTeamApiId
     );
   } else {
-    showToast("Erro ao carregar confrontos diretos.", "error");
+    stores.ui.showToast("Erro ao carregar confrontos diretos.", "error");
     h2hData[match.id] = [];
   }
 };
@@ -773,7 +788,7 @@ const fetchLast5Games = async (match) => {
       awayTeam: result.data[match.awayTeamApiId] || [],
     };
   } else {
-    showToast("Erro ao carregar últimos jogos.", "error");
+    stores.ui.showToast("Erro ao carregar últimos jogos.", "error");
     lastGamesData[match.id] = { homeTeam: [], awayTeam: [] };
   }
 };
@@ -800,11 +815,11 @@ onMounted(async () => {
       await stores.bet.fetchBets({ poolId: poolId.value });
       stores.championships.selectChampionship(currentChampionship.value);
     } else {
-      showToast("Campeonato não encontrado para este bolão.", "error");
+      stores.ui.showToast("Campeonato não encontrado para este bolão.", "error");
       navigateTo("/");
     }
   } else {
-    showToast("Bolão não encontrado ou ocorreu um erro.", "error");
+    stores.ui.showToast("Bolão não encontrado ou ocorreu um erro.", "error");
     navigateTo("/");
   }
 });
@@ -834,7 +849,7 @@ const submitAllBets = async () => {
   );
 
   if (!allBetsAreFilled.value) {
-    showToast(
+    stores.ui.showToast(
       "Por favor, preencha todos os jogos da rodada com palpites válidos antes de salvar.",
       "error"
     );
@@ -855,7 +870,7 @@ const submitAllBets = async () => {
   });
 
   if (betsToSubmit.length === 0) {
-    showToast(
+    stores.ui.showToast(
       "Nenhum palpite válido para salvar. Por favor, preencha os campos.",
       "error"
     );
@@ -876,13 +891,13 @@ const submitAllBets = async () => {
 
   const errors = results.filter((r) => !r.success);
   if (errors.length > 0) {
-    showToast(
+    stores.ui.showToast(
       "Ocorreu um erro ao salvar alguns palpites. Verifique o console para mais detalhes.",
       "error"
     );
     console.error("Erros ao salvar palpites:", errors);
   } else {
-    showToast("Todos os palpites foram salvos com sucesso!", "success");
+    stores.ui.showToast("Todos os palpites foram salvos com sucesso!", "success");
     initialBetForms.value = JSON.parse(JSON.stringify(betForms.value));
   }
 };
@@ -918,7 +933,7 @@ const toggleMatchDetails = async (match, event) => {
       await fetchLast5Games(match);
     } catch (error) {
       console.error("Falha ao carregar últimos jogos:", error);
-      showToast("Não foi possível carregar os últimos jogos.", "error");
+      stores.ui.showToast("Não foi possível carregar os últimos jogos.", "error");
     } finally {
       detailsLoading.value = false;
     }
@@ -931,7 +946,7 @@ const loadH2H = async (match) => {
     await fetchH2HData(match);
   } catch (error) {
     console.error("Falha ao carregar dados de H2H:", error);
-    showToast("Não foi possível carregar o confronto direto.", "error");
+    stores.ui.showToast("Não foi possível carregar o confronto direto.", "error");
   } finally {
     isH2HLoading[match.id] = false;
   }

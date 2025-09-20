@@ -23,23 +23,30 @@ interface Standing {
 
 export const useStandingsStore = defineStore('standings', () => {
   const standings = ref<Standing[]>([]);
+  const standingsCache = ref<{ [key: number]: Standing[] }>({});
   const isLoading = ref(false);
-  const error = ref(null);
+  const error = ref<unknown | null>(null);
 
   /**
    * Busca a tabela de classificação de um campeonato específico.
    * @param apiFootballId O ID do campeonato na API Football.
    */
   async function fetchStandingsByChampionshipId(apiFootballId: number) {
+    if (standingsCache.value[apiFootballId]) {
+      standings.value = standingsCache.value[apiFootballId];
+      return;
+    }
+
     isLoading.value = true;
     error.value = null;
-    standings.value = [];
 
     try {
       const data = await $fetch<Standing[]>(`/api/standings/${apiFootballId}`);
       standings.value = data;
-    } catch (err: any) {
+      standingsCache.value[apiFootballId] = data;
+    } catch (err: unknown) {
       error.value = err;
+      standings.value = [];
       console.error('Falha ao buscar a tabela de classificação:', err);
     } finally {
       isLoading.value = false;
@@ -53,3 +60,4 @@ export const useStandingsStore = defineStore('standings', () => {
     fetchStandingsByChampionshipId,
   };
 });
+

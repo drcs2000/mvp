@@ -1,7 +1,4 @@
 <template>
-  <Teleport to="body">
-    <AppToast :message="toastMessage" :type="toastType" />
-  </Teleport>
   <TransitionRoot appear :show="isOpen" as="template">
     <Dialog as="div" class="relative z-50" @close="closeModal">
       <TransitionChild
@@ -256,7 +253,6 @@ import {
   TabPanel,
 } from "@headlessui/vue";
 import { useInvitationsStore } from "~/stores/invitations";
-import AppToast from "~/components/AppToast.vue";
 
 const stores = useStores();
 const invitationsStore = useInvitationsStore();
@@ -269,12 +265,6 @@ defineProps({
 
 const emit = defineEmits(["close"]);
 const selectedIndex = ref(0);
-const toastMessage = ref("");
-const toastType = ref("success");
-const showToast = (message, type = "success") => {
-  toastMessage.value = message;
-  toastType.value = type;
-};
 const poolSearch = ref("");
 const userSearch = ref("");
 const selectedPool = ref(null);
@@ -282,13 +272,11 @@ const selectedUser = ref(null);
 const showPoolSuggestions = ref(false);
 const showUserSuggestions = ref(false);
 
-// NOVA FUNÇÃO para fechar as sugestões
 const handlePanelClick = () => {
   showPoolSuggestions.value = false;
   showUserSuggestions.value = false;
 };
 
-// ... (resto do script que já estava correto)
 const adminPools = computed(() => {
   if (stores.pools && stores.pools.myPools && stores.auth.user) {
     return stores.pools.myPools.filter((pool) =>
@@ -378,25 +366,25 @@ const formatDate = (dateString) => {
 async function acceptInvitation(invitationId) {
   const result = await invitationsStore.acceptInvitation(invitationId);
   if (result.success) {
-    showToast("Convite aceito com sucesso!", "success");
+    stores.ui.showToast("Convite aceito com sucesso!", "success");
     await stores.pools.fetchMyPools();
   } else {
-    showToast(result.error || "Erro ao aceitar o convite.", "error");
+    stores.ui.showToast(result.error || "Erro ao aceitar o convite.", "error");
   }
 }
 
 async function declineInvitation(invitationId) {
   const result = await invitationsStore.declineInvitation(invitationId);
   if (result.success) {
-    showToast("Convite recusado.", "success");
+    stores.ui.showToast("Convite recusado.", "success");
   } else {
-    showToast(result.error || "Erro ao recusar o convite.", "error");
+    stores.ui.showToast(result.error || "Erro ao recusar o convite.", "error");
   }
 }
 
 async function handleCreateInvitation() {
   if (!selectedPool.value || !selectedUser.value) {
-    showToast("Por favor, selecione um bolão e um usuário.", "error");
+    stores.ui.showToast("Por favor, selecione um bolão e um usuário.", "error");
     return;
   }
 
@@ -406,10 +394,10 @@ async function handleCreateInvitation() {
   });
 
   if (result.success) {
-    showToast("Convite enviado com sucesso!", "success");
+    stores.ui.showToast("Convite enviado com sucesso!", "success");
     resetInviteForm();
   } else {
-    showToast(result.error || "Não foi possível enviar o convite.", "error");
+    stores.ui.showToast(result.error || "Não foi possível enviar o convite.", "error");
   }
 }
 </script>
@@ -422,10 +410,10 @@ async function handleCreateInvitation() {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #d1d5db; /* Cor cinza 300 do Tailwind */
+  background-color: #d1d5db;
   border-radius: 20px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #9ca3af; /* Cor cinza 400 do Tailwind */
+  background-color: #9ca3af;
 }
 </style>

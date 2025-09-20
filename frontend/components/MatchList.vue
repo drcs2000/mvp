@@ -15,14 +15,20 @@
               :key="match.id"
               class="bg-white border-b border-gray-200"
             >
+              <!-- INÍCIO DA ALTERAÇÃO -->
               <div
-                class="grid grid-cols-[100px_1fr_100px] gap-4 items-center px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
+                class="grid grid-cols-1 md:grid-cols-[100px_1fr_100px] gap-4 items-center px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
               >
-                <div class="text-sm font-medium text-gray-800 text-left">
+                <!-- Coluna 1: Horário (Apenas Desktop) -->
+                <div
+                  class="hidden md:block text-sm font-medium text-gray-800 text-left"
+                >
                   {{ formatTime(match.date) }}
                 </div>
 
+                <!-- Coluna 2: Detalhes da Partida -->
                 <div class="flex items-center justify-between text-sm gap-2">
+                  <!-- Time da Casa -->
                   <div class="flex items-center gap-2 flex-1 justify-end">
                     <span class="text-right truncate max-w-[120px]">
                       {{ match.homeTeamName }}
@@ -33,16 +39,28 @@
                     >
                   </div>
 
-                  <div class="flex items-center gap-1 font-bold text-base">
-                    <span class="w-8 text-center">{{
-                      match.homeScore ?? ""
-                    }}</span>
-                    <span>-</span>
-                    <span class="w-8 text-center">{{
-                      match.awayScore ?? ""
-                    }}</span>
+                  <!-- Bloco do Placar/Status -->
+                  <div class="flex flex-col items-center">
+                    <div class="flex items-center gap-1 font-bold text-base">
+                      <span class="w-8 text-center">{{
+                        match.homeScore ?? ""
+                      }}</span>
+                      <span>-</span>
+                      <span class="w-8 text-center">{{
+                        match.awayScore ?? ""
+                      }}</span>
+                    </div>
+                    <!-- Horário ou Status (Apenas Mobile) -->
+                    <span class="md:hidden text-xs text-gray-500 mt-1">
+                      <span
+                        v-if="match.status === 'NS' || match.status === 'PST'"
+                        >{{ formatTime(match.date) }}</span
+                      >
+                      <span v-else>{{ getStatusText(match.status) }}</span>
+                    </span>
                   </div>
 
+                  <!-- Time Visitante -->
                   <div class="flex items-center gap-2 flex-1 justify-start">
                     <img
                       :src="match.awayTeamLogoUrl"
@@ -54,10 +72,14 @@
                   </div>
                 </div>
 
-                <div class="text-sm font-medium text-gray-500 text-right">
+                <!-- Coluna 3: Status (Apenas Desktop) -->
+                <div
+                  class="hidden md:block text-sm font-medium text-gray-500 text-right"
+                >
                   {{ getStatusText(match.status) }}
                 </div>
               </div>
+              <!-- FIM DA ALTERAÇÃO -->
             </div>
           </slot>
         </div>
@@ -97,6 +119,7 @@ const formatDate = (dateString) =>
 const getStatusText = (status) =>
   ({
     NS: "Agendado",
+    PST: "Adiado",
     FT: "Encerrado",
     HT: "Intervalo",
     "1H": "1º Tempo",

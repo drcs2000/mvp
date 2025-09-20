@@ -7,12 +7,16 @@ import standingsService from '../standings/standings.service';
 import ExternalAPIService from '../../services/external-api.service';
 import { ExternalApiH2HMatch } from '../../types/api-sports.types';
 
-function normalizeTeamName(name: string): string {
-  if (!name) return '';
+function normalizeName(name: string | null | undefined): string {
+  if (!name) {
+    return '';
+  }
   return name
     .toLowerCase()
-    .trim()
-    .replace(/[^a-zA-Z0-9]/g, '');
+    .normalize("NFD") // Remove acentos
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, '') // Mantém apenas letras e números
+    .trim();
 }
 
 class MatchService {
@@ -71,16 +75,10 @@ class MatchService {
       case 'STATUS_FULL_TIME':
         return MatchStatus.FINISHED;
       case 'STATUS_IN_PROGRESS':
-        if (period === 1) {
-          return MatchStatus.IN_PLAY_1ST_HALF;
-        } else if (period === 2) {
-          return MatchStatus.IN_PLAY_2ND_HALF;
-        }
+      case 'STATUS_FIRST_HALF':
         return MatchStatus.IN_PLAY_1ST_HALF;
       case 'STATUS_SECOND_HALF':
         return MatchStatus.IN_PLAY_2ND_HALF;
-      case 'STATUS_FIRST_HALF':
-        return MatchStatus.IN_PLAY_1ST_HALF;
       case 'STATUS_HALFTIME':
         return MatchStatus.HALF_TIME;
       case 'STATUS_SCHEDULED':
@@ -126,7 +124,8 @@ class MatchService {
     const stats = { updated: 0, notFound: 0 };
     const updatedMatches: Match[] = [];
     const finishedStatuses = [MatchStatus.FINISHED, MatchStatus.POSTPONED, MatchStatus.CANCELLED];
-    const updatableMatches = await this.matchRepository.find({
+
+    let updatableMatches = await this.matchRepository.find({
       where: {
         apiFootballId: championshipApiFootballId,
         status: Not(In(finishedStatuses)),
@@ -137,29 +136,66 @@ class MatchService {
       return { updated: 0, notFound: espnEvents.length };
     }
 
-    const matchesMap = new Map<string, Match>();
-    for (const match of updatableMatches) {
-      const key = `${normalizeTeamName(match.homeTeamName)}:${normalizeTeamName(match.awayTeamName)}`;
-      matchesMap.set(key, match);
-    }
-
     for (const event of espnEvents) {
       const competition = event.competitions[0];
       if (!competition) continue;
+
       const homeCompetitor = competition.competitors.find((c: any) => c.homeAway === 'home');
       const awayCompetitor = competition.competitors.find((c: any) => c.homeAway === 'away');
       if (!homeCompetitor || !awayCompetitor) continue;
-      const apiKey = `${normalizeTeamName(homeCompetitor.team.displayName)}:${normalizeTeamName(awayCompetitor.team.displayName)}`;
-      const matchToUpdate = matchesMap.get(apiKey);
+
+      const espnHomeName = normalizeName(homeCompetitor.team.displayName);
+      const espnAwayName = normalizeName(awayCompetitor.team.displayName);
+
+      let matchToUpdate = updatableMatches.find(match => {
+        const dbHomeName = normalizeName(match.homeTeamName);
+        const dbAwayName = normalizeName(match.awayTeamName);
+        const homeMatch = dbHomeName.includes(espnHomeName) || espnHomeName.includes(dbHomeName);
+        const awayMatch = dbAwayName.includes(espnAwayName) || espnAwayName.includes(dbAwayName);
+        return homeMatch && awayMatch;
+      });
+
+      if (!matchToUpdate) {
+        const espnStadium = normalizeName(competition?.venue?.fullName);
+        const espnEventDate = new Date(competition.date);
+
+        if (espnStadium) {
+          matchToUpdate = updatableMatches.find(match => {
+            const dbStadium = normalizeName(match.stadium);
+
+            const isSameDay = match.date.getUTCFullYear() === espnEventDate.getUTCFullYear() &&
+              match.date.getUTCMonth() === espnEventDate.getUTCMonth() &&
+              match.date.getUTCDate() === espnEventDate.getUTCDate();
+
+            const stadiumMatch = dbStadium && (dbStadium.includes(espnStadium) || espnStadium.includes(dbStadium));
+
+            return isSameDay && stadiumMatch;
+          });
+        }
+      }
+
       if (matchToUpdate) {
+        updatableMatches = updatableMatches.filter(match => match.id !== matchToUpdate.id);
+
+        const newDate = new Date(competition.date);
         const espnStatusName = competition.status.type.name;
         const newStatus = this.getStatusFromEspnEvent(espnStatusName, competition.status.period);
         const homeScore = parseInt(homeCompetitor.score, 10) || 0;
         const awayScore = parseInt(awayCompetitor.score, 10) || 0;
-        if (matchToUpdate.homeScore !== homeScore || matchToUpdate.awayScore !== awayScore || matchToUpdate.status !== newStatus) {
+        const hasDateChanged = matchToUpdate.date.getTime() !== newDate.getTime();
+
+        if (
+          matchToUpdate.homeScore !== homeScore ||
+          matchToUpdate.awayScore !== awayScore ||
+          matchToUpdate.status !== newStatus ||
+          hasDateChanged
+        ) {
           matchToUpdate.homeScore = homeScore;
           matchToUpdate.awayScore = awayScore;
           matchToUpdate.status = newStatus;
+          if (hasDateChanged) {
+            matchToUpdate.date = newDate;
+          }
           updatedMatches.push(matchToUpdate);
         }
       } else {
@@ -175,17 +211,13 @@ class MatchService {
 
       if (newlyFinishedMatches.length > 0) {
         const referenceMatch = newlyFinishedMatches[0];
-
         const roundBaseName = referenceMatch.round.split(' - ')[0];
-
         await standingsService.recalculateStandings(championshipApiFootballId, roundBaseName);
 
         const allBetsToUpdate: Bet[] = [];
         for (const finishedMatch of newlyFinishedMatches) {
-
           if (finishedMatch.homeTeamApiId && finishedMatch.awayTeamApiId) {
             console.log(`Atualizando H2H para a partida: ${finishedMatch.homeTeamName} vs ${finishedMatch.awayTeamName}`);
-
             const newH2HMatchEntry: Partial<Match> = {
               apiFootballFixtureId: finishedMatch.apiFootballFixtureId,
               date: finishedMatch.date,
@@ -201,7 +233,6 @@ class MatchService {
               status: finishedMatch.status,
               round: finishedMatch.round
             };
-
             await this.addMatchToH2H(
               finishedMatch.homeTeamApiId,
               finishedMatch.awayTeamApiId,

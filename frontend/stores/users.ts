@@ -14,7 +14,6 @@ interface User {
 }
 
 export const useUsersStore = defineStore('users', () => {
-  // STATE
   const users = ref<User[]>([]);
   const isLoading = ref(false);
 
@@ -22,7 +21,6 @@ export const useUsersStore = defineStore('users', () => {
    * Busca todos os usuários cadastrados na API.
    */
   async function fetchAllUsers() {
-    // Evita buscas repetidas se os usuários já foram carregados
     if (users.value.length > 0) return;
 
     isLoading.value = true;
@@ -30,11 +28,10 @@ export const useUsersStore = defineStore('users', () => {
       const allUsers = await $fetch<User[]>('/api/users', {
         method: 'GET',
       });
-      
+
       users.value = allUsers;
     } catch (error: unknown) {
       console.error('Erro ao buscar usuários:', error);
-      // Opcional: Adicionar um estado de erro para mostrar no UI
     } finally {
       isLoading.value = false;
     }

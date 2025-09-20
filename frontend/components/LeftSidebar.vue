@@ -1,5 +1,5 @@
 <template>
-  <aside class="flex flex-col h-full px-3">
+  <aside class="flex flex-col h-full px-3" @click="handleNavigation">
     <NuxtLink to="/" class="px-3 mb-6 text-2xl font-bold shrink-0">
       MVP
     </NuxtLink>
@@ -225,6 +225,14 @@ onMounted(() => {
 watch(isFootballMenuOpen, (newValue) => {
   localStorage.setItem("footballMenuOpen", JSON.stringify(newValue));
 });
+
+const emit = defineEmits(["navigate"]);
+
+const handleNavigation = (event) => {
+  if (event.target.closest("a")) {
+    emit("navigate");
+  }
+};
 
 const getContinent = (country) => {
   const continents = {

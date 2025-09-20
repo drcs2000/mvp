@@ -23,6 +23,10 @@ export const useChampionshipsStore = defineStore('championships', () => {
    * Busca todos os campeonatos disponíveis na API.
    */
   async function fetchAllChampionships() {
+    if (championships.value.length > 0) {
+      return;
+    }
+
     isLoading.value = true;
     try {
       const allChampionships = await $fetch<Championship[]>('/api/championships', {

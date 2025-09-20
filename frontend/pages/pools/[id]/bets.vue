@@ -3,8 +3,13 @@
     <div v-if="loading" class="pt-20 text-center text-gray-500">
       Carregando informações do bolão...
     </div>
-    <div v-else-if="error" class="pt-20 text-center text-red-500">
-      {{ error }}
+    <div
+      v-else-if="error"
+      class="flex flex-col items-center justify-center p-6 bg-white border border-red-200 rounded-lg shadow-sm"
+    >
+      <ExclamationTriangleIcon class="w-10 h-10 text-red-400" />
+      <h3 class="mt-2 text-lg font-semibold text-red-800">Ocorreu um erro</h3>
+      <p class="mt-1 text-sm text-red-600">{{ error }}</p>
     </div>
 
     <div v-else-if="currentChampionship">
@@ -13,19 +18,19 @@
           <template #right>
             <NuxtLink
               :to="`/pools/${poolId}`"
-              class="text-sm font-semibold text-gray-600 hover:text-slate-800 transition-colors duration-200 whitespace-nowrap"
+              class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap"
             >
               Palpitar
             </NuxtLink>
             <NuxtLink
               :to="`/pools/${poolId}/info`"
-              class="text-sm font-semibold text-gray-600 hover:text-slate-800 transition-colors duration-200 whitespace-nowrap"
+              class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap"
             >
               Informações
             </NuxtLink>
           </template>
         </ChampionshipHeader>
-        
+
         <RoundSelector
           v-if="!stores.matches.loading"
           :is-first-round="isFirstRound"
@@ -47,15 +52,18 @@
             class="py-4 border-b border-gray-200"
           >
             <div
-              class="grid grid-cols-[100px_1fr_100px] gap-4 items-center px-4"
+              class="grid grid-cols-1 md:grid-cols-[100px_1fr_100px] gap-x-4 gap-y-2 items-center px-4"
             >
-              <div class="text-sm font-medium text-gray-800 text-left">
+              <div
+                class="hidden md:block text-sm font-medium text-gray-800 text-left"
+              >
                 {{ formatTime(match.date) }}
               </div>
+
               <div class="flex items-center justify-between text-sm gap-2">
-                <div class="flex items-center gap-2 flex-1 justify-end">
+                <div class="flex items-center gap-2 flex-1 justify-end min-w-0">
                   <span
-                    class="text-right truncate max-w-[120px]"
+                    class="text-right truncate"
                     :class="{ 'font-bold': isHomeWinner(match) }"
                     >{{ match.homeTeamName }}</span
                   >
@@ -64,43 +72,55 @@
                     class="object-contain w-6 h-6 shrink-0"
                   >
                 </div>
-                <div class="flex items-center gap-1 font-bold text-base">
-                  <span class="w-8 text-center">{{
-                    match.homeScore ?? ""
-                  }}</span>
-                  <span>-</span>
-                  <span class="w-8 text-center">{{
-                    match.awayScore ?? ""
-                  }}</span>
+
+                <div class="flex flex-col items-center">
+                  <div class="flex items-center gap-1 font-bold text-lg">
+                    <span class="w-8 text-center">{{
+                      match.homeScore ?? ""
+                    }}</span>
+                    <span>-</span>
+                    <span class="w-8 text-center">{{
+                      match.awayScore ?? ""
+                    }}</span>
+                  </div>
+                  <div class="md:hidden text-xs text-gray-500 mt-1">
+                    {{ formatTime(match.date) }}
+                  </div>
                 </div>
-                <div class="flex items-center gap-2 flex-1 justify-start">
+
+                <div
+                  class="flex items-center gap-2 flex-1 justify-start min-w-0"
+                >
                   <img
                     :src="match.awayTeamLogoUrl"
                     class="object-contain w-6 h-6 shrink-0"
                   >
                   <span
-                    class="text-left truncate max-w-[120px]"
+                    class="text-left truncate"
                     :class="{ 'font-bold': isAwayWinner(match) }"
                     >{{ match.awayTeamName }}</span
                   >
                 </div>
               </div>
-              <div class="text-sm font-medium text-gray-500 text-right">
+
+              <div
+                class="hidden md:block text-sm font-medium text-gray-500 text-right"
+              >
                 {{ getStatusText(match.status) }}
               </div>
             </div>
 
             <div
               v-if="groupedBetsByMatch[match.id]?.length > 0"
-              class="mt-2 space-y-1.5"
+              class="mt-3 space-y-px"
             >
               <div
                 v-for="bet in groupedBetsByMatch[match.id]"
                 :key="bet.id"
-                class="rounded-md transition-colors"
+                class="transition-colors mx-4 md:mx-0"
                 :class="getRowClass(bet, match)"
               >
-                <div class="flex items-center gap-4 px-4 py-1.5">
+                <div class="hidden md:flex items-center gap-4 px-4 py-1.5">
                   <div class="w-[100px] flex-shrink-0">
                     <div
                       class="text-xs text-left truncate"
@@ -130,9 +150,32 @@
                     </span>
                   </div>
                 </div>
+
+                <div class="md:hidden text-center py-2">
+                  <div
+                    class="text-sm font-medium"
+                    :class="getTextColor(bet, match, 'name')"
+                    :title="bet.user?.name ?? 'Usuário Desconhecido'"
+                  >
+                    {{ bet.user?.name ?? "Usuário Desconhecido" }}
+                  </div>
+                  <div
+                    class="font-semibold text-base my-0.5"
+                    :class="getTextColor(bet, match, 'bet')"
+                  >
+                    {{ bet.homeScoreBet }} - {{ bet.awayScoreBet }}
+                  </div>
+                  <div
+                    v-if="bet.pointsEarned != null"
+                    class="text-xs font-bold"
+                    :class="getTextColor(bet, match, 'points')"
+                  >
+                    +{{ bet.pointsEarned }} pts
+                  </div>
+                </div>
               </div>
             </div>
-            <div v-else class="text-xs text-gray-400 text-center mt-3">
+            <div v-else class="text-xs text-gray-400 text-center mt-3 px-4">
               Nenhum palpite para este jogo.
             </div>
           </div>
@@ -223,20 +266,22 @@ const getHitType = (bet, match) => {
 
 const getRowClass = (bet, match) => {
   if (bet.pointsEarned == null) {
-    return "bg-gray-50";
+    return "bg-gray-50 md:bg-transparent";
   }
   const hitType = getHitType(bet, match);
   switch (hitType) {
     case "full":
-      return "bg-yellow-100";
+      return "bg-yellow-100/70 md:bg-yellow-100";
     case "partial":
-      return "bg-sky-100";
+      return "bg-sky-100/70 md:bg-sky-100";
     case "result":
-      return "bg-green-100";
+      return "bg-green-100/70 md:bg-green-100";
     case "goal":
-      return "bg-indigo-100";
+      return "bg-indigo-100/70 md:bg-indigo-100";
     default:
-      return bet.pointsEarned > 0 ? "bg-red-100" : "bg-red-50";
+      return bet.pointsEarned > 0
+        ? "bg-red-100/70 md:bg-red-100"
+        : "bg-gray-50 md:bg-transparent";
   }
 };
 
@@ -255,7 +300,7 @@ const getTextColor = (bet, match, context) => {
     case "goal":
       return context === "points" ? "text-indigo-900" : "text-indigo-800";
     default:
-      return bet.pointsEarned > 0 ? "text-red-800" : "text-red-700";
+      return bet.pointsEarned > 0 ? "text-red-800" : "text-gray-700";
   }
 };
 

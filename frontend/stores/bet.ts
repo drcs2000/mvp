@@ -20,6 +20,12 @@ export interface Bet {
   };
 }
 
+interface ApiError {
+  data?: {
+    message?: string;
+  };
+}
+
 export const useBetsStore = defineStore('bets', () => {
   const bets = ref<Bet[]>([]);
   const allPoolBets = ref<{ [poolId: string]: Bet[] }>({});
@@ -43,7 +49,8 @@ export const useBetsStore = defineStore('bets', () => {
       });
       bets.value = fetchedBets;
       return { success: true, data: fetchedBets };
-    } catch (error: any) {
+    } catch (e: unknown) {
+      const error = e as ApiError;
       console.error('Erro ao buscar palpites:', error);
       bets.value = [];
       return { success: false, error: error.data?.message || 'Falha ao buscar palpites' };
@@ -95,7 +102,8 @@ export const useBetsStore = defineStore('bets', () => {
       }
 
       return { success: true, data: updatedBet };
-    } catch (error: any) {
+    } catch (e: unknown) {
+      const error = e as ApiError;
       console.error('Erro ao salvar o palpite:', error);
       const errorMessage = error.data?.message || 'Falha ao salvar palpite';
       return { success: false, error: errorMessage };
@@ -103,7 +111,7 @@ export const useBetsStore = defineStore('bets', () => {
       loading.value = false;
     }
   }
-  
+
   /**
    * Busca todos os palpites de um bolão específico.
    * @param poolId O ID do bolão.
@@ -124,14 +132,15 @@ export const useBetsStore = defineStore('bets', () => {
           'Authorization': `Bearer ${authStore.token}`
         }
       });
-      
+
       if (!allPoolBets.value) {
         allPoolBets.value = {};
       }
       allPoolBets.value[poolId] = fetchedBets;
 
       return { success: true, data: fetchedBets };
-    } catch (error: any) {
+    } catch (e: unknown) {
+      const error = e as ApiError;
       console.error('Erro ao buscar todos os palpites do bolão:', error);
       const errorMessage = error.data?.message || 'Falha ao buscar palpites do bolão';
       return { success: false, error: errorMessage, data: null };

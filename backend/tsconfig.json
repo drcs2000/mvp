@@ -14,5 +14,5 @@
   },
   "include": [
     "src/**/*"
-  ]
+, "src/plugins", "../frontend/plugins/api.client.ts"  ]
 }

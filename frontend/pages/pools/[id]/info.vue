@@ -3,45 +3,56 @@
     <div v-if="loading" class="pt-20 text-center text-gray-500">
       Carregando informações do bolão...
     </div>
-    <div v-else-if="error" class="pt-20 text-center text-red-500">
-      {{ error }}
+    <div
+      v-else-if="error"
+      class="flex flex-col items-center justify-center p-6 bg-white border border-red-200 rounded-lg shadow-sm"
+    >
+      <ExclamationTriangleIcon class="w-10 h-10 text-red-400" />
+      <h3 class="mt-2 text-lg font-semibold text-red-800">Ocorreu um erro</h3>
+      <p class="mt-1 text-sm text-red-600">{{ error }}</p>
     </div>
 
     <div v-else-if="pool">
       <header
-        class="sticky top-0 z-30 flex items-center shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white/95 backdrop-blur-sm gap-4 h-[88px]"
+        class="sticky top-0 z-30 p-4 sm:p-6 border-b border-gray-200 bg-white/95 backdrop-blur-sm"
       >
-        <div class="flex-col">
-          <h1 class="text-xl font-bold text-gray-900 leading-tight">
-            {{ pool.name }}
-          </h1>
-          <p class="text-xs text-gray-500">{{ championshipName }}</p>
-        </div>
-        <div class="flex items-center gap-4 ml-auto text-right">
-          <NuxtLink
-            :to="`/pools/${poolId}/bets`"
-            class="text-sm font-semibold text-gray-600 hover:text-slate-800 transition-colors duration-200 whitespace-nowrap"
-          >
-            Ver Todos Palpites
-          </NuxtLink>
-          <NuxtLink
-            :to="`/pools/${poolId}`"
-            class="text-sm font-semibold text-gray-600 hover:text-slate-800 transition-colors duration-200 whitespace-nowrap"
-          >
-            Palpitar
-          </NuxtLink>
+        <div
+          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        >
+          <div class="flex-col">
+            <h1 class="text-xl font-bold text-gray-900 leading-tight">
+              {{ pool.name }}
+            </h1>
+            <p class="text-xs text-gray-500">{{ championshipName }}</p>
+          </div>
+          <div class="flex items-center gap-4 text-left sm:text-right">
+            <NuxtLink
+              :to="`/pools/${poolId}/bets`"
+              class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap"
+            >
+              Ver Todos Palpites
+            </NuxtLink>
+            <NuxtLink
+              :to="`/pools/${poolId}`"
+              class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap"
+            >
+              Palpitar
+            </NuxtLink>
+          </div>
         </div>
       </header>
 
       <div
-        class="sticky top-[88px] z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200"
+        class="sticky top-[124px] sm:top-[88px] z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200"
       >
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div class="flex justify-between items-center mb-4">
+          <div
+            class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4"
+          >
             <h2 class="text-lg font-bold text-gray-800">Informações Gerais</h2>
             <button
               v-if="isCurrentUserAdmin"
-              class="flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-800 transition-colors duration-200"
+              class="flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-800 transition-colors duration-200 self-start sm:self-center"
               @click="handleDeletePool"
             >
               <TrashIcon class="w-4 h-4" />
@@ -91,11 +102,11 @@
             class="border border-gray-200 bg-white rounded-lg transition-shadow hover:shadow-md cursor-pointer"
             @click="toggleExpand(participant.userId)"
           >
-            <div class="grid grid-cols-[40px_1fr_auto] gap-4 items-center p-4">
-              <span class="font-semibold text-sm text-gray-400 text-center"
+            <div class="grid grid-cols-[auto_1fr_auto] gap-4 items-center p-4">
+              <span class="font-semibold text-sm text-gray-400 text-center w-8"
                 >#{{ index + 1 }}</span
               >
-              <div class="flex items-center gap-3 overflow-hidden">
+              <div class="flex items-center gap-3 min-w-0">
                 <div class="relative group flex-shrink-0">
                   <div
                     class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-600 transition-opacity"
@@ -108,14 +119,14 @@
                   </div>
                   <button
                     v-if="shouldShowRemoveButton(participant)"
-                    class="absolute inset-0 w-full h-full flex items-center justify-center bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    class="absolute inset-0 w-full h-full hidden sm:flex items-center justify-center bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     title="Remover Participante"
                     @click.stop="promptRemoveParticipant(participant)"
                   >
                     <UserMinusIcon class="w-5 h-5" />
                   </button>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 min-w-0">
                   <p
                     class="font-semibold text-gray-800 truncate"
                     :title="participant.userName"
@@ -129,10 +140,7 @@
                   />
                 </div>
               </div>
-              <div class="flex items-center gap-6">
-                <span class="font-bold text-lg text-blue-600 w-20 text-right"
-                  >{{ participant.stats.totalPoints }} pts</span
-                >
+              <div class="flex items-center">
                 <ChevronDownIcon
                   class="w-5 h-5 text-gray-400 transition-transform"
                   :class="isExpanded(participant.userId) ? 'rotate-180' : ''"
@@ -143,7 +151,17 @@
             <transition name="expand">
               <div v-if="isExpanded(participant.userId)" class="px-4 pb-4">
                 <div class="border-t border-gray-200 pt-4 text-xs">
-                  <div class="grid grid-cols-2 gap-x-8 gap-y-3">
+                  <div
+                    class="flex items-center justify-between pb-3 mb-3 border-b border-gray-100"
+                  >
+                    <span class="text-sm text-gray-500 font-medium"
+                      >Pontuação Total</span
+                    >
+                    <span class="font-bold text-lg text-blue-600"
+                      >{{ participant.stats.totalPoints }} pts</span
+                    >
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-1.5 text-gray-600">
                         <StarIcon class="w-4 h-4 text-yellow-400" />
@@ -183,7 +201,9 @@
                       }}</span>
                     </div>
 
-                    <div class="col-span-2 border-t border-gray-100 my-2" />
+                    <div
+                      class="col-span-1 sm:col-span-2 border-t border-gray-100 my-2"
+                    />
 
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-1.5 text-gray-600">
@@ -207,6 +227,22 @@
                         }}%</span
                       >
                     </div>
+                  </div>
+                  <div
+                    v-if="shouldShowRemoveButton(participant)"
+                    class="mt-4 pt-4 border-t border-gray-100 sm:hidden"
+                  >
+                    <button
+                      class="w-full flex items-center justify-center gap-2 text-sm font-semibold text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-md py-2 transition-colors"
+                      @click.stop="promptRemoveParticipant(participant)"
+                    >
+                      <UserMinusIcon class="w-4 h-4" />
+                      <span>{{
+                        isCurrentUserAdmin
+                          ? "Remover do Bolão"
+                          : "Sair do Bolão"
+                      }}</span>
+                    </button>
                   </div>
                 </div>
               </div>
