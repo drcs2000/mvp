@@ -7,6 +7,7 @@ import { useBetsStore } from '~/stores/bet'
 import { useInvitationsStore } from '~/stores/invitations'
 import { useStandingsStore } from '~/stores/standings'
 import { useUsersStore } from '~/stores/users'
+import { useUiStore } from '~/stores/ui'
 
 export default defineNuxtPlugin(() => {
   const stores = {
@@ -18,6 +19,7 @@ export default defineNuxtPlugin(() => {
     invitations: useInvitationsStore(),
     standings: useStandingsStore(),
     users: useUsersStore(),
+    ui: useUiStore(),
   }
 
   return {

@@ -3,7 +3,9 @@
     <div
       class="w-full max-w-sm p-6 py-8 mx-auto bg-white border border-gray-200 rounded-lg shadow-sm"
     >
-      <h1 class="text-xl font-bold text-center text-gray-800">MVP</h1>
+      <NuxtLink to="/" class="text-xl font-bold text-center text-gray-800">
+        MVP
+      </NuxtLink>
 
       <div class="flex p-1 mt-6 bg-gray-100 rounded-lg">
         <button

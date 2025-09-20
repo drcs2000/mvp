@@ -2,6 +2,7 @@ import { AppDataSource } from '../../database/data-source';
 import { Pool } from '../../entities/pool.entity';
 import { PoolParticipant, PoolRole } from '../../entities/pool-participant.entity';
 import { Bet } from '../../entities/bet.entity';
+import { Invitation } from '../../entities/invitation.entity';
 
 interface ICreatePoolDTO {
   name: string;
@@ -114,6 +115,7 @@ class PoolService {
         throw new Error('Apenas o administrador pode excluir o bolão.');
       }
 
+      await transactionalEntityManager.delete(Invitation, { pool: { id: poolId } });
       await transactionalEntityManager.delete(Bet, { pool: { id: poolId } });
       await transactionalEntityManager.delete(PoolParticipant, { poolId: poolId });
       await transactionalEntityManager.remove(pool);
@@ -153,9 +155,9 @@ class PoolService {
         if (otherParticipants.length > 0) {
           const nextAdmin = otherParticipants[0];
           nextAdmin.role = PoolRole.ADMIN;
-          
+
           await transactionalEntityManager.save(nextAdmin);
-          
+
           await transactionalEntityManager.remove(participantToRemove);
 
         } else {

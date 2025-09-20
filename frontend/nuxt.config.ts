@@ -13,6 +13,18 @@ export default defineNuxtConfig({
     'nuxt-icon',
   ],
 
+  tailwindcss: {
+    config: {
+      theme: {
+        extend: {
+          screens: {
+            'wide': '1285px',
+          },
+        },
+      },
+    }
+  },
+
   app: {
     head: {
       title: 'MVP',
@@ -26,7 +38,7 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/api/**': {
-      proxy: 'https://api-mvp-maax.onrender.com/**',
+      proxy: 'http://localhost:3333/**',
     }
   },
 })

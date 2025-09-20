@@ -183,7 +183,7 @@
                       }}</span>
                     </div>
 
-                    <div class="col-span-2 border-t border-gray-100 my-2"/>
+                    <div class="col-span-2 border-t border-gray-100 my-2" />
 
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-1.5 text-gray-600">
@@ -298,15 +298,16 @@ const participantToRemove = ref(null);
 
 const expandedParticipants = ref(new Set());
 const toggleExpand = (userId) => {
-  expandedParticipants.value.has(userId)
-    ? expandedParticipants.value.delete(userId)
-    : expandedParticipants.value.add(userId);
+  if (expandedParticipants.value.has(userId)) {
+    expandedParticipants.value.delete(userId);
+  } else {
+    expandedParticipants.value.add(userId);
+  }
 };
 const isExpanded = (userId) => expandedParticipants.value.has(userId);
 
 const pool = computed(() => stores.pools.currentPool);
 const allBets = computed(() => stores.bet.allPoolBets[poolId] || []);
-const allMatches = computed(() => stores.matches.matches);
 const championships = computed(() => stores.championships.championships);
 
 const isCurrentUserAdmin = computed(() => {
@@ -322,9 +323,10 @@ const handleDeletePool = () => {
 const confirmDeletePool = async () => {
   const result = await stores.pools.deletePool(poolId);
   if (result.success) {
-    navigateTo("/pools/my-pools");
+    stores.ui.showToast("Bolão excluído com sucesso!", "success");
+    navigateTo("/");
   } else {
-    error.value = result.error || "Falha ao excluir o bolão.";
+    stores.ui.showToast(result.error || "Falha ao excluir o bolão.", "error");
   }
   showDeleteModal.value = false;
 };
@@ -345,11 +347,12 @@ const confirmRemoveParticipant = async () => {
   const result = await stores.pools.removeParticipant(poolId, userToRemoveId);
 
   if (result.error) {
-    error.value = result.error;
-  }
-
-  if (!result.error && userToRemoveId === authStore.user?.id) {
-    navigateTo("/pools/my-pools");
+    stores.ui.showToast(result.error, "error");
+  } else {
+    stores.ui.showToast("Participante removido com sucesso!", "success");
+    if (userToRemoveId === authStore.user?.id) {
+      navigateTo("/");
+    }
   }
 
   participantToRemove.value = null;

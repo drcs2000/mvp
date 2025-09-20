@@ -12,7 +12,7 @@
     </header>
 
     <main class="p-4 sm:p-6">
-      <div class="max-w-5xl space-y-3">
+      <div class="space-y-3">
         <div v-if="loading" class="text-center text-gray-500">
           Carregando seus torneios...
         </div>

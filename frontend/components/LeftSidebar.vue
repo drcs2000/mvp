@@ -37,7 +37,7 @@
       </NuxtLink>
     </div>
 
-    <hr class="my-6 border-t border-gray-200" />
+    <hr class="my-6 border-t border-gray-200" >
 
     <div class="flex-1 overflow-hidden flex flex-col">
       <h3
@@ -111,7 +111,7 @@
                       :src="league.logo"
                       alt="League Logo"
                       class="w-4 h-4 mr-2 flex-shrink-0"
-                    />
+                    >
                     <span class="text-[13px] truncate">{{ league.title }}</span>
                     <div class="tooltip">{{ league.title }}</div>
                   </NuxtLink>
@@ -137,7 +137,7 @@
                       :src="country.flagUrl"
                       alt="Country Flag"
                       class="w-4 h-4 mr-2 flex-shrink-0"
-                    />
+                    >
                     <span
                       class="text-[13px] font-medium truncate"
                       :title="country.title"
@@ -163,7 +163,7 @@
                         :src="league.logo"
                         alt="League Logo"
                         class="w-4 h-4 mr-2 flex-shrink-0"
-                      />
+                      >
                       <span class="text-[13px] truncate">{{
                         league.title
                       }}</span>
@@ -179,7 +179,7 @@
     </div>
 
     <div class="shrink-0 pt-4">
-      <hr class="my-6 border-t border-gray-200" />
+      <hr class="my-6 border-t border-gray-200" >
       <NuxtLink
         to="/settings"
         class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100"
