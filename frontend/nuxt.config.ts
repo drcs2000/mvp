@@ -26,7 +26,7 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/api/**': {
-      proxy: 'https://api-mvp-maax.onrender.com/**',
+      proxy: `${process.env.API_PROXY_URL}/**`,
     }
   },
 })
