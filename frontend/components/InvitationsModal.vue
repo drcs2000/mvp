@@ -252,10 +252,8 @@ import {
   TabPanels,
   TabPanel,
 } from "@headlessui/vue";
-import { useInvitationsStore } from "~/stores/invitations";
 
 const stores = useStores();
-const invitationsStore = useInvitationsStore();
 
 defineProps({
   isOpen: Boolean,
@@ -364,7 +362,7 @@ const formatDate = (dateString) => {
 };
 
 async function acceptInvitation(invitationId) {
-  const result = await invitationsStore.acceptInvitation(invitationId);
+  const result = await stores.invitations.acceptInvitation(invitationId);
   if (result.success) {
     stores.ui.showToast("Convite aceito com sucesso!", "success");
     await stores.pools.fetchMyPools();
@@ -374,7 +372,7 @@ async function acceptInvitation(invitationId) {
 }
 
 async function declineInvitation(invitationId) {
-  const result = await invitationsStore.declineInvitation(invitationId);
+  const result = await stores.invitations.declineInvitation(invitationId);
   if (result.success) {
     stores.ui.showToast("Convite recusado.", "success");
   } else {
@@ -388,7 +386,7 @@ async function handleCreateInvitation() {
     return;
   }
 
-  const result = await invitationsStore.createInvitation({
+  const result = await stores.invitations.createInvitation({
     poolId: selectedPool.value.id,
     inviteeId: selectedUser.value.id,
   });

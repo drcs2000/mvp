@@ -28,9 +28,11 @@
         <AppBar
           @toggle-left="toggleLeftSidebar"
           @toggle-right="toggleRightSidebar"
+          class="shrink-0"
         />
 
-        <main class="flex-1 overflow-y-auto p-4">
+        <!-- Alteração: Removido p-4. As páginas agora controlam seu próprio padding. -->
+        <main class="flex-1 bg-gray-50 overflow-y-auto">
           <slot />
         </main>
 
@@ -126,3 +128,4 @@ body,
   display: none;
 }
 </style>
+

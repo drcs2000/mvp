@@ -3,38 +3,40 @@
     <div v-if="currentChampionship" class="sticky top-0 z-20">
       <ChampionshipHeader :championship="currentChampionship">
         <template #right>
-          <button
-            v-if="!isParticipant"
-            :disabled="stores.pools.loading"
-            class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-sm hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 whitespace-nowrap"
-            @click="joinPool"
-          >
-            Entrar no Bolão
-          </button>
+          <div class="flex items-center flex-wrap justify-end gap-x-4 gap-y-2">
+            <button
+              v-if="!isParticipant"
+              :disabled="stores.pools.loading"
+              class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-sm hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 whitespace-nowrap"
+              @click="joinPool"
+            >
+              Entrar no Bolão
+            </button>
 
-          <NuxtLink
-            :to="isParticipant ? `/pools/${poolId}/bets` : ''"
-            :class="[
-              'text-sm font-semibold whitespace-nowrap transition-colors duration-200',
-              isParticipant
-                ? 'text-gray-600 hover:text-blue-600'
-                : 'text-gray-400 cursor-not-allowed',
-            ]"
-          >
-            Ver Todos Palpites
-          </NuxtLink>
+            <NuxtLink
+              :to="isParticipant ? `/pools/${poolId}/bets` : ''"
+              :class="[
+                'text-sm font-semibold whitespace-nowrap transition-colors duration-200',
+                isParticipant
+                  ? 'text-gray-600 hover:text-blue-600'
+                  : 'text-gray-400 cursor-not-allowed',
+              ]"
+            >
+              Ver Todos Palpites
+            </NuxtLink>
 
-          <NuxtLink
-            :to="isParticipant ? `/pools/${poolId}/info` : ''"
-            :class="[
-              'text-sm font-semibold whitespace-nowrap transition-colors duration-200',
-              isParticipant
-                ? 'text-gray-600 hover:text-blue-600'
-                : 'text-gray-400 cursor-not-allowed',
-            ]"
-          >
-            Informações
-          </NuxtLink>
+            <NuxtLink
+              :to="isParticipant ? `/pools/${poolId}/info` : ''"
+              :class="[
+                'text-sm font-semibold whitespace-nowrap transition-colors duration-200',
+                isParticipant
+                  ? 'text-gray-600 hover:text-blue-600'
+                  : 'text-gray-400 cursor-not-allowed',
+              ]"
+            >
+              Informações
+            </NuxtLink>
+          </div>
         </template>
       </ChampionshipHeader>
 
@@ -54,25 +56,29 @@
           <div class="bg-white border-b border-gray-200">
             <div
               class="px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
-              :class="{ 'cursor-pointer': match.status === 'NS' }"
+              :class="{ 'cursor-pointer': match.status !== 'FT' }"
               @click="toggleMatchDetails(match, $event)"
             >
               <div
-                class="flex flex-col items-center md:grid md:grid-cols-[100px_1fr_150px] md:items-center md:gap-4 w-full"
+                class="flex flex-col md:grid md:grid-cols-[100px_1fr_150px] md:items-center md:gap-4 w-full"
               >
-                <div
-                  class="order-2 md:order-1 text-center md:text-left mt-2 md:mt-0"
-                >
-                  <div class="text-sm font-medium text-gray-800">
-                    {{ formatTime(match.date) }}
-                  </div>
+                <!-- Coluna 1: Horário (Desktop) -->
+                <div class="hidden md:block text-sm font-medium text-gray-800">
+                  {{ formatTime(match.date) }}
                 </div>
 
-                <div
-                  class="order-1 md:order-2 flex items-center justify-center w-full"
-                >
+                <!-- Coluna 2: Conteúdo Principal (Times, Inputs, e Info mobile) -->
+                <div class="w-full">
+                  <!-- Horário (Mobile - Sempre acima do palpite) -->
                   <div
-                    class="grid grid-cols-[1fr_auto_1fr] gap-x-2 items-center w-full max-w-sm"
+                    class="md:hidden text-center text-sm font-medium text-gray-800 mb-2"
+                  >
+                    {{ formatTime(match.date) }}
+                  </div>
+
+                  <!-- Linha Superior: Times e Inputs -->
+                  <div
+                    class="grid grid-cols-[1fr_auto_1fr] gap-x-2 items-center w-full max-w-sm mx-auto"
                   >
                     <div class="flex items-center gap-2 justify-end min-w-0">
                       <span
@@ -108,7 +114,9 @@
                       >
                     </div>
 
-                    <div class="flex items-center gap-2 justify-start min-w-0">
+                    <div
+                      class="flex items-center gap-2 justify-start min-w-0"
+                    >
                       <img
                         :src="match.awayTeamLogoUrl"
                         class="object-contain w-6 h-6 shrink-0"
@@ -120,34 +128,44 @@
                       >
                     </div>
                   </div>
+
+                  <!-- Linha Inferior (Mobile): Countdown OU Placar Final -->
+                  <div class="md:hidden text-center mt-2">
+                    <!-- Para jogos não finalizados, mostrar countdown -->
+                    <div
+                      v-if="match.status !== 'FT'"
+                      class="flex items-center justify-center gap-1.5 text-xs text-gray-600"
+                    >
+                      {{ countdowns[match.id] || "..." }}
+                      <InformationCircleIcon class="w-4 h-4 text-gray-400" />
+                    </div>
+                    <!-- Para jogos finalizados, mostrar placar final -->
+                    <div v-else>
+                      <p class="font-semibold text-sm text-gray-800">
+                        {{ match.homeScore }} - {{ match.awayScore }}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
+                <!-- Coluna 3: Info Direita (Desktop) -->
                 <div
-                  class="order-3 md:order-3 text-center md:text-right mt-2 md:mt-0"
+                  class="hidden md:flex flex-col items-end justify-center text-right"
                 >
                   <div
                     v-if="match.status !== 'FT'"
-                    class="flex items-center justify-center md:justify-end gap-1.5"
+                    class="flex items-center gap-1.5"
                   >
                     <div
-                      v-if="currentPool?.betDeadlineHours !== undefined"
                       class="text-xs font-medium text-gray-600 whitespace-nowrap"
                     >
-                      {{ countdowns[match.id] || "Calculando..." }}
+                      {{ countdowns[match.id] || "..." }}
                     </div>
                     <div class="relative group">
                       <InformationCircleIcon class="w-4 h-4 text-gray-400" />
-                      <span
-                        class="absolute bottom-full right-0 p-1 mb-2 text-xs text-center text-white bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[60]"
-                      >
-                        Tempo Limite do Palpite
-                      </span>
                     </div>
                   </div>
-                  <div
-                    v-else-if="match.status === 'FT'"
-                    class="font-medium text-sm text-gray-800 whitespace-nowrap"
-                  >
+                  <div v-else class="font-semibold text-sm text-gray-800">
                     {{ match.homeScore }} - {{ match.awayScore }}
                   </div>
                 </div>
@@ -509,7 +527,10 @@ const joinPool = async () => {
     stores.pools.currentPool = result.data;
     await stores.bet.fetchBets({ poolId: poolId.value });
   } else {
-    stores.ui.showToast(result.error || "Ocorreu um erro ao entrar no bolão.", "error");
+    stores.ui.showToast(
+      result.error || "Ocorreu um erro ao entrar no bolão.",
+      "error"
+    );
   }
 };
 
@@ -553,16 +574,8 @@ const hasChanges = computed(() => {
 });
 
 const findCurrentRound = (allMatches) => {
+  if (!allMatches || allMatches.length === 0) return null;
   const now = new Date();
-  const todayString = now.toDateString();
-
-  const matchToday = allMatches.find(
-    (m) => new Date(m.date).toDateString() === todayString
-  );
-
-  if (matchToday) {
-    return matchToday.round;
-  }
 
   const upcomingMatch = allMatches
     .filter((m) => new Date(m.date) >= now)
@@ -627,7 +640,11 @@ const matchesOfSelectedRound = computed(() => {
 
 const matchesByDay = computed(() => {
   return matchesOfSelectedRound.value.reduce((acc, match) => {
-    const dateKey = match.date.split("T")[0];
+    const localDate = new Date(match.date);
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, "0");
+    const day = String(localDate.getDate()).padStart(2, "0");
+    const dateKey = `${year}-${month}-${day}`;
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(match);
     return acc;
@@ -635,6 +652,7 @@ const matchesByDay = computed(() => {
 });
 
 const isBettingTimeExpired = (match) => {
+  if (match.status === 'FT') return true; // Always expired for finished games
   if (!currentPool.value || !match.date) return true;
   const matchDate = new Date(match.date);
   const deadlineDate = new Date(
@@ -642,6 +660,7 @@ const isBettingTimeExpired = (match) => {
   );
   return new Date() > deadlineDate;
 };
+
 
 const allBetsAreFilled = computed(() => {
   const openMatches = matchesOfSelectedRound.value.filter(
@@ -1004,3 +1023,4 @@ const isAwayWinner = (match) =>
   max-height: 0;
 }
 </style>
+

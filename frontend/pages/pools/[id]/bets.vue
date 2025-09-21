@@ -305,19 +305,19 @@ const getTextColor = (bet, match, context) => {
 };
 
 const findCurrentRound = (allMatches) => {
+  if (!allMatches || allMatches.length === 0) return null;
   const now = new Date();
-  const todayString = now.toDateString();
-  const matchToday = allMatches.find(
-    (m) => new Date(m.date).toDateString() === todayString
-  );
-  if (matchToday) return matchToday.round;
+
   const upcomingMatch = allMatches
     .filter((m) => new Date(m.date) >= now)
     .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+
   if (upcomingMatch) return upcomingMatch.round;
+
   const lastMatch = [...allMatches].sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   )[0];
+
   return lastMatch ? lastMatch.round : null;
 };
 
@@ -369,7 +369,11 @@ const matchesOfSelectedRound = computed(() => {
 
 const matchesByDay = computed(() => {
   return matchesOfSelectedRound.value.reduce((acc, match) => {
-    const dateKey = match.date.split("T")[0];
+    const localDate = new Date(match.date);
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, "0");
+    const day = String(localDate.getDate()).padStart(2, "0");
+    const dateKey = `${year}-${month}-${day}`;
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(match);
     return acc;
