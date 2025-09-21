@@ -8,7 +8,8 @@ class PoolController {
     const participants = pool.participants?.map(p => ({
       userId: p.userId,
       userName: p.user?.name,
-      role: p.role
+      role: p.role,
+      paid: p.paid
     })) || []
 
     const { participants: _, ...poolData } = pool
@@ -71,7 +72,6 @@ class PoolController {
   public findMyPools = async (req: Request, res: Response): Promise<Response> => {
     try {
       const userId = req.user.id
-      // AQUI: A função do serviço precisa garantir que a lista de participantes seja completa
       const pools = await PoolService.findForUser(userId)
       const responsePools = pools.map(pool => this.transformPoolResponse(pool))
       return res.status(200).json(responsePools)
@@ -172,8 +172,6 @@ class PoolController {
       }
 
       await PoolService.removeParticipant(decodedPoolId, targetUserId, requestingUserId);
-
-      // Retorna sucesso
       return res.status(200).json({ message: 'Participante removido com sucesso.' });
     } catch (error: any) {
       console.error(error);
@@ -186,6 +184,37 @@ class PoolController {
       }
 
       return res.status(500).json({ error: 'Falha ao remover o participante.', details: error.message });
+    }
+  }
+
+  public confirmPayment = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { poolId, userId: targetUserIdString } = req.params;
+
+      const decodedPoolId = decodeId(poolId);
+      if (decodedPoolId === null) {
+        return res.status(400).json({ error: 'ID de bolão inválido.' });
+      }
+
+      const targetUserId = parseInt(targetUserIdString, 10);
+      if (isNaN(targetUserId)) {
+        return res.status(400).json({ error: 'ID de usuário inválido.' });
+      }
+      
+      await PoolService.confirmParticipantPayment(decodedPoolId, targetUserId);
+
+      return res.status(200).json({ message: 'Pagamento do participante confirmado com sucesso.' });
+    } catch (error: any) {
+      console.error(error);
+
+      if (error.message.includes('Participante não encontrado')) {
+        return res.status(404).json({ error: error.message });
+      }
+      if (error.message.includes('já efetuou o pagamento')) {
+        return res.status(409).json({ error: error.message }); // 409 Conflict
+      }
+
+      return res.status(500).json({ error: 'Falha ao confirmar o pagamento.', details: error.message });
     }
   }
 }

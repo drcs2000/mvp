@@ -1,45 +1,31 @@
 <template>
-  <section class="bg-white">
+  <section class="bg-gray-50 min-h-screen">
     <div class="sticky top-0 z-20">
-      <header
-        class="flex items-center shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm gap-4"
-      >
-        <div class="relative w-full max-w-xs">
+      <header class="bg-white/95 backdrop-blur-sm">
+        <nav class="w-full overflow-x-auto no-scrollbar">
           <div
-            class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+            v-if="!stores.championships.loading"
+            class="flex border-b border-gray-200"
           >
-            <MagnifyingGlassIcon class="w-5 h-5 text-gray-400" />
-          </div>
-          <input
-            type="search"
-            placeholder="Pesquise"
-            class="block w-full p-2 pl-10 text-sm text-gray-900 bg-gray-100 border-none rounded-lg focus:outline-none"
-          >
-        </div>
-        <div class="flex flex-1 items-center justify-between">
-          <div
-            v-if="stores.championships.loading"
-            class="text-sm text-gray-400 whitespace-nowrap"
-          >
-            A carregar ligas...
-          </div>
-          <button
-            v-for="championship in leagueChampionships"
-            :key="championship.id"
-            :class="[
-              'relative p-2 group transition-all duration-300',
-              selectedChampionship?.id === championship.id
-                ? 'grayscale-0 opacity-100'
-                : 'grayscale opacity-60 hover:grayscale-0 hover:opacity-100',
-            ]"
-            @click="selectChampionshipWithAnimation(championship)"
-          >
-            <img
-              :src="championship.leagueLogoUrl"
-              class="w-6 h-6 object-contain shrink-0"
+            <button
+              v-for="championship in leagueChampionships"
+              :key="championship.id"
+              :class="[
+                'flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0',
+                selectedChampionship?.id === championship.id
+                  ? 'border-b-2 border-gray-800 text-gray-800 font-semibold'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-b-2 hover:border-gray-300',
+              ]"
+              @click="selectChampionshipWithAnimation(championship)"
             >
-          </button>
-        </div>
+              <img
+                :src="championship.leagueLogoUrl"
+                class="w-5 h-5 object-contain shrink-0"
+              >
+              <span>{{ championship.name }}</span>
+            </button>
+          </div>
+        </nav>
       </header>
 
       <Transition name="fade" mode="out-in">
@@ -124,23 +110,19 @@
             <h3 class="py-2 px-4 sm:px-6 text-sm font-semibold text-gray-500">
               {{ formatDate(day) }}
             </h3>
-            <div class="space-y-px">
-              <!-- INÍCIO DA ALTERAÇÃO -->
+            <div class="space-y-px bg-white">
               <NuxtLink
                 v-for="match in matches"
                 :key="match.id"
                 class="grid grid-cols-1 md:grid-cols-[100px,1fr,150px] gap-4 items-center px-4 sm:px-6 py-3 border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
               >
-                <!-- Coluna 1: Horário (Apenas Desktop) -->
                 <div class="hidden md:block text-sm font-medium text-gray-800">
                   {{ formatTime(match.date) }}
                 </div>
 
-                <!-- Coluna 2: Detalhes da Partida (Principal) -->
                 <div
                   class="grid grid-cols-[1fr,auto,auto,auto,1fr] items-center gap-3 text-sm"
                 >
-                  <!-- Time da Casa -->
                   <span
                     class="text-right truncate"
                     :class="{ 'font-bold': isHomeWinner(match) }"
@@ -150,7 +132,6 @@
                     :src="match.homeTeamLogoUrl"
                     class="object-contain w-6 h-6 shrink-0"
                   >
-                  <!-- Bloco do Placar/Status -->
                   <div class="flex flex-col items-center">
                     <span
                       class="w-12 text-center font-bold text-base text-gray-800"
@@ -168,7 +149,6 @@
                       </span>
                       <span v-else>vs</span>
                     </span>
-                    <!-- Horário ou Status (Apenas Mobile) -->
                     <span class="md:hidden text-xs text-gray-500 mt-1">
                       <span
                         v-if="match.status === 'NS' || match.status === 'PST'"
@@ -178,7 +158,6 @@
                     </span>
                   </div>
 
-                  <!-- Time Visitante -->
                   <img
                     :src="match.awayTeamLogoUrl"
                     class="object-contain w-6 h-6 shrink-0"
@@ -190,7 +169,6 @@
                   >
                 </div>
 
-                <!-- Coluna 3: Estádio ou Status (Apenas Desktop) -->
                 <div
                   class="hidden md:block text-sm text-right text-gray-500 truncate"
                 >
@@ -203,7 +181,6 @@
                   }}</span>
                 </div>
               </NuxtLink>
-              <!-- FIM DA ALTERAÇÃO -->
             </div>
           </div>
         </div>
@@ -217,7 +194,6 @@
 
 <script setup>
 import { computed, onMounted, watch, ref, nextTick } from "vue";
-import { MagnifyingGlassIcon } from "@heroicons/vue/24/outline";
 
 const stores = useStores();
 
@@ -374,5 +350,14 @@ const isAwayWinner = (match) =>
 .page-enter-from {
   opacity: 0;
   transform: translateY(20px);
+}
+
+/* Classe para esconder a barra de rolagem */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 </style>

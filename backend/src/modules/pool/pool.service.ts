@@ -16,9 +16,7 @@ interface ICreatePoolDTO {
 
 class PoolService {
   private poolRepository = AppDataSource.getRepository(Pool);
-  private poolParticipantRepository = AppDataSource.getRepository(PoolParticipant);
-
-  // ... (métodos create, findAllPublic, findForUser, findOne, joinPool) ...
+  private participantRepository = AppDataSource.getRepository(PoolParticipant);
 
   public async create(poolData: ICreatePoolDTO, adminUserId: number): Promise<Pool> {
     return AppDataSource.manager.transaction(async (transactionalEntityManager) => {
@@ -29,6 +27,7 @@ class PoolService {
         poolId: newPool.id,
         userId: adminUserId,
         role: PoolRole.ADMIN,
+        paid: true,
       });
       await transactionalEntityManager.save(adminParticipant);
 
@@ -155,24 +154,42 @@ class PoolService {
         if (otherParticipants.length > 0) {
           const nextAdmin = otherParticipants[0];
           nextAdmin.role = PoolRole.ADMIN;
-
           await transactionalEntityManager.save(nextAdmin);
-
           await transactionalEntityManager.remove(participantToRemove);
-
         } else {
           await transactionalEntityManager.delete(Bet, { pool: { id: poolId } });
           await transactionalEntityManager.delete(PoolParticipant, { poolId: poolId });
           await transactionalEntityManager.remove(pool);
         }
       } else {
-        // LÓGICA ANTIGA: Se não for o admin se removendo
         if (!isSelfRemoval && !isRequesterAdmin) {
           throw new Error('Você não tem permissão para remover este participante.');
         }
         await transactionalEntityManager.remove(participantToRemove);
       }
     });
+  }
+  
+  public async confirmParticipantPayment(poolId: number, userId: number): Promise<PoolParticipant> {
+    const participant = await this.participantRepository.findOne({
+      where: {
+        poolId: poolId,
+        userId: userId,
+      }
+    });
+
+    if (!participant) {
+      throw new Error('Participante não encontrado neste bolão.');
+    }
+
+    if (participant.paid) {
+      throw new Error('Este participante já efetuou o pagamento.');
+    }
+
+    participant.paid = true;
+    await this.participantRepository.save(participant);
+
+    return participant;
   }
 }
 

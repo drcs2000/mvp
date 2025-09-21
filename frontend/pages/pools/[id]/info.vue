@@ -43,51 +43,63 @@
       </header>
 
       <div
-        class="sticky top-[124px] sm:top-[88px] z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200"
+        class="sticky top-[124px] sm:top-[88px] z-20 bg-white border-b border-gray-200"
       >
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div
-            class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4"
+            class="flex items-center justify-between cursor-pointer md:cursor-default"
+            @click="isMobile ? (isInfoExpanded = !isInfoExpanded) : null"
           >
             <h2 class="text-lg font-bold text-gray-800">Informações Gerais</h2>
-            <button
-              v-if="isCurrentUserAdmin"
-              class="flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-800 transition-colors duration-200 self-start sm:self-center"
-              @click="handleDeletePool"
-            >
-              <TrashIcon class="w-4 h-4" />
-              <span>Excluir Bolão</span>
-            </button>
+            <ChevronDownIcon
+              class="w-5 h-5 text-gray-400 transition-transform md:hidden"
+              :class="isInfoExpanded ? 'rotate-180' : ''"
+            />
           </div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4">
-            <div>
-              <p class="text-xs text-gray-500">Visibilidade</p>
-              <p
-                class="text-sm font-semibold"
-                :class="pool.private ? 'text-red-600' : 'text-green-600'"
-              >
-                {{ pool.private ? "Privado" : "Público" }}
-              </p>
+
+          <transition name="expand">
+            <div v-show="isInfoExpanded || !isMobile" class="mt-4">
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4">
+                <div>
+                  <p class="text-xs text-gray-500">Visibilidade</p>
+                  <p
+                    class="text-sm font-semibold"
+                    :class="pool.private ? 'text-red-600' : 'text-green-600'"
+                  >
+                    {{ pool.private ? "Privado" : "Público" }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">Taxa de Entrada</p>
+                  <p class="text-sm font-semibold text-gray-900">
+                    {{ formatCurrency(pool.entryFee) }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">Participantes</p>
+                  <p class="text-sm font-semibold text-gray-900">
+                    {{ pool.participants.length }} / {{ pool.maxParticipants }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">Prazo para Palpites</p>
+                  <p class="text-sm font-semibold text-gray-900">
+                    {{ pool.betDeadlineHours }}h antes do jogo
+                  </p>
+                </div>
+              </div>
+
+              <div v-if="isCurrentUserAdmin" class="mt-6">
+                <button
+                  class="flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-800 transition-colors duration-200"
+                  @click="handleDeletePool"
+                >
+                  <TrashIcon class="w-4 h-4" />
+                  <span>Excluir Bolão</span>
+                </button>
+              </div>
             </div>
-            <div>
-              <p class="text-xs text-gray-500">Taxa de Entrada</p>
-              <p class="text-sm font-semibold text-gray-900">
-                {{ formatCurrency(pool.entryFee) }}
-              </p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-500">Participantes</p>
-              <p class="text-sm font-semibold text-gray-900">
-                {{ pool.participants.length }} / {{ pool.maxParticipants }}
-              </p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-500">Prazo para Palpites</p>
-              <p class="text-sm font-semibold text-gray-900">
-                {{ pool.betDeadlineHours }}h antes do jogo
-              </p>
-            </div>
-          </div>
+          </transition>
         </div>
       </div>
 
@@ -106,38 +118,62 @@
               <span class="font-semibold text-sm text-gray-400 text-center w-8"
                 >#{{ index + 1 }}</span
               >
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="relative group flex-shrink-0">
-                  <div
-                    class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-600 transition-opacity"
-                    :class="{
-                      'group-hover:opacity-0':
-                        shouldShowRemoveButton(participant),
-                    }"
-                  >
-                    {{ participant.userName.charAt(0).toUpperCase() }}
+              <div
+                class="flex items-center justify-between flex-1 min-w-0 gap-4"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="relative group flex-shrink-0">
+                    <div
+                      class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-600 transition-opacity"
+                      :class="{
+                        'group-hover:opacity-0':
+                          shouldShowRemoveButton(participant),
+                      }"
+                    >
+                      {{ participant.userName.charAt(0).toUpperCase() }}
+                    </div>
+                    <button
+                      v-if="shouldShowRemoveButton(participant)"
+                      class="absolute inset-0 w-full h-full hidden sm:flex items-center justify-center bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Remover Participante"
+                      @click.stop="promptRemoveParticipant(participant)"
+                    >
+                      <UserMinusIcon class="w-5 h-5" />
+                    </button>
                   </div>
-                  <button
-                    v-if="shouldShowRemoveButton(participant)"
-                    class="absolute inset-0 w-full h-full hidden sm:flex items-center justify-center bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Remover Participante"
-                    @click.stop="promptRemoveParticipant(participant)"
-                  >
-                    <UserMinusIcon class="w-5 h-5" />
-                  </button>
+                  <div class="flex items-center gap-2 min-w-0">
+                    <p
+                      class="font-semibold text-gray-800 truncate"
+                      :title="participant.userName"
+                    >
+                      {{ participant.userName }}
+                    </p>
+                    <StarIcon
+                      v-if="participant.role === 'ADMIN'"
+                      class="w-4 h-4 text-yellow-500 flex-shrink-0"
+                      title="Administrador"
+                    />
+                  </div>
                 </div>
-                <div class="flex items-center gap-2 min-w-0">
-                  <p
-                    class="font-semibold text-gray-800 truncate"
-                    :title="participant.userName"
+
+                <div v-if="!participant.paid && pool.entryFee > 0">
+                  <button
+                    v-if="isCurrentUserAdmin && !isMobile"
+                    class="text-xs font-semibold bg-red-100 text-red-700 px-2 py-1 rounded-full flex items-center gap-1.5 shrink-0 transition-colors hover:bg-red-200"
+                    title="Confirmar Pagamento"
+                    @click.stop="promptConfirmPayment(participant)"
                   >
-                    {{ participant.userName }}
-                  </p>
-                  <StarIcon
-                    v-if="participant.role === 'ADMIN'"
-                    class="w-4 h-4 text-yellow-500 flex-shrink-0"
-                    title="Administrador"
-                  />
+                    <CreditCardIcon class="w-4 h-4" />
+                    <span class="hidden sm:inline">Não Pago</span>
+                  </button>
+                  <span
+                    v-else
+                    class="text-xs font-semibold bg-red-100 text-red-700 px-2 py-1 rounded-full flex items-center gap-1.5 shrink-0"
+                    title="Pagamento pendente"
+                  >
+                    <CreditCardIcon class="w-4 h-4" />
+                    <span class="hidden sm:inline">Não Pago</span>
+                  </span>
                 </div>
               </div>
               <div class="flex items-center">
@@ -200,11 +236,9 @@
                         participant.stats.goalHits
                       }}</span>
                     </div>
-
                     <div
                       class="col-span-1 sm:col-span-2 border-t border-gray-100 my-2"
                     />
-
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-1.5 text-gray-600">
                         <ClipboardDocumentListIcon
@@ -228,11 +262,24 @@
                       >
                     </div>
                   </div>
+
                   <div
-                    v-if="shouldShowRemoveButton(participant)"
-                    class="mt-4 pt-4 border-t border-gray-100 sm:hidden"
+                    class="mt-4 pt-4 border-t border-gray-100 sm:hidden space-y-2"
                   >
                     <button
+                      v-if="
+                        isCurrentUserAdmin &&
+                        !participant.paid &&
+                        pool.entryFee > 0
+                      "
+                      class="w-full flex items-center justify-center gap-2 text-sm font-semibold text-green-700 hover:text-green-800 bg-green-50 hover:bg-green-100 rounded-md py-2 transition-colors"
+                      @click.stop="promptConfirmPayment(participant)"
+                    >
+                      <CurrencyDollarIcon class="w-4 h-4" />
+                      <span>Confirmar Pagamento</span>
+                    </button>
+                    <button
+                      v-if="shouldShowRemoveButton(participant)"
                       class="w-full flex items-center justify-center gap-2 text-sm font-semibold text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-md py-2 transition-colors"
                       @click.stop="promptRemoveParticipant(participant)"
                     >
@@ -278,27 +325,125 @@
       </div>
 
       <div
-        v-if="participantToRemove"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+        v-if="participantToConfirmPayment"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        @click="participantToConfirmPayment = null"
       >
-        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm mx-4">
-          <h3 class="text-lg font-bold text-gray-900">Remover Participante</h3>
+        <div
+          class="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4 p-6 text-center"
+          @click.stop
+        >
+          <div
+            class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100"
+          >
+            <CurrencyDollarIcon
+              class="h-6 w-6 text-green-600"
+              aria-hidden="true"
+            />
+          </div>
+          <h3 class="mt-4 text-lg font-semibold text-gray-900">
+            Confirmar Pagamento
+          </h3>
+          <p class="mt-2 text-sm text-gray-600">
+            Você confirma que
+            <strong>{{ participantToConfirmPayment.userName }}</strong> efetuou
+            o pagamento da taxa de entrada?
+          </p>
+          <div class="mt-6 flex justify-center gap-3">
+            <button
+              class="px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 w-full flex items-center justify-center"
+              :disabled="isActionLoading"
+              :class="{ 'opacity-75 cursor-not-allowed': isActionLoading }"
+              @click="confirmPayment"
+            >
+              <svg
+                v-if="isActionLoading"
+                class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                />
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <span v-if="isActionLoading">Processando...</span>
+              <span v-else>Confirmar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        v-if="participantToRemove"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        @click="participantToRemove = null"
+      >
+        <div
+          class="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4 p-6 text-center"
+          @click.stop
+        >
+          <div
+            class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100"
+          >
+            <ExclamationTriangleIcon
+              class="h-6 w-6 text-red-600"
+              aria-hidden="true"
+            />
+          </div>
+          <h3 class="mt-4 text-lg font-semibold text-gray-900">
+            {{
+              isCurrentUserAdmin &&
+              participantToRemove.userId !== authStore.user?.id
+                ? "Remover Participante"
+                : "Sair do Bolão"
+            }}
+          </h3>
           <p class="mt-2 text-sm text-gray-600">
             Você tem certeza que deseja remover
-            <strong>{{ participantToRemove.userName }}</strong> do bolão?
+            <strong>{{ participantToRemove.userName }}</strong> do bolão? Essa
+            ação não pode ser desfeita.
           </p>
-          <div class="mt-6 flex justify-end gap-3">
+          <div class="mt-6 flex justify-center gap-3">
             <button
-              class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-              @click="participantToRemove = null"
-            >
-              Cancelar
-            </button>
-            <button
-              class="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700"
+              class="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 w-full flex items-center justify-center"
+              :disabled="isActionLoading"
+              :class="{ 'opacity-75 cursor-not-allowed': isActionLoading }"
               @click="confirmRemoveParticipant"
             >
-              Remover
+              <svg
+                v-if="isActionLoading"
+                class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                />
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <span v-if="isActionLoading">Removendo...</span>
+              <span v-else>Remover</span>
             </button>
           </div>
         </div>
@@ -310,16 +455,19 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRoute, navigateTo } from "#app";
+import { useWindowSize } from "@vueuse/core";
 import {
   TrashIcon,
   StarIcon,
   ChevronDownIcon,
   CheckCircleIcon,
-  ScaleIcon,
   AdjustmentsHorizontalIcon,
   UserMinusIcon,
   ClipboardDocumentListIcon,
   TrophyIcon,
+  ExclamationTriangleIcon,
+  CreditCardIcon,
+  CurrencyDollarIcon,
 } from "@heroicons/vue/24/solid";
 
 const stores = useStores();
@@ -329,8 +477,11 @@ const authStore = stores.auth;
 const poolId = route.params.id;
 const loading = ref(true);
 const error = ref(null);
+
 const showDeleteModal = ref(false);
 const participantToRemove = ref(null);
+const participantToConfirmPayment = ref(null);
+const isActionLoading = ref(false);
 
 const expandedParticipants = ref(new Set());
 const toggleExpand = (userId) => {
@@ -342,6 +493,11 @@ const toggleExpand = (userId) => {
 };
 const isExpanded = (userId) => expandedParticipants.value.has(userId);
 
+const { width } = useWindowSize();
+const isMobile = computed(() => width.value < 768);
+const isInfoExpanded = ref(false);
+
+// --- Computeds ---
 const pool = computed(() => stores.pools.currentPool);
 const allBets = computed(() => stores.bet.allPoolBets[poolId] || []);
 const championships = computed(() => stores.championships.championships);
@@ -350,6 +506,14 @@ const isCurrentUserAdmin = computed(() => {
   if (!pool.value || !authStore.user) return false;
   const admin = pool.value.participants.find((p) => p.role === "admin");
   return admin?.userId === authStore.user.id;
+});
+
+const championshipName = computed(() => {
+  if (!pool.value || !championships.value) return "Campeonato";
+  const champ = championships.value.find(
+    (c) => c.id === pool.value.baseChampionshipId
+  );
+  return champ ? champ.name : "Campeonato";
 });
 
 const handleDeletePool = () => {
@@ -377,30 +541,49 @@ const promptRemoveParticipant = (participant) => {
 };
 
 const confirmRemoveParticipant = async () => {
-  if (!participantToRemove.value) return;
+  if (!participantToRemove.value || isActionLoading.value) return;
 
-  const userToRemoveId = participantToRemove.value.userId;
-  const result = await stores.pools.removeParticipant(poolId, userToRemoveId);
+  isActionLoading.value = true;
+  try {
+    const userToRemoveId = participantToRemove.value.userId;
+    const result = await stores.pools.removeParticipant(poolId, userToRemoveId);
 
-  if (result.error) {
-    stores.ui.showToast(result.error, "error");
-  } else {
-    stores.ui.showToast("Participante removido com sucesso!", "success");
-    if (userToRemoveId === authStore.user?.id) {
-      navigateTo("/");
+    if (result.error) {
+      stores.ui.showToast(result.error, "error");
+    } else {
+      stores.ui.showToast("Participante removido com sucesso!", "success");
+      if (userToRemoveId === authStore.user?.id) {
+        navigateTo("/");
+      }
     }
+  } finally {
+    isActionLoading.value = false;
+    participantToRemove.value = null;
   }
-
-  participantToRemove.value = null;
 };
 
-const championshipName = computed(() => {
-  if (!pool.value || !championships.value) return "Campeonato";
-  const champ = championships.value.find(
-    (c) => c.id === pool.value.baseChampionshipId
-  );
-  return champ ? champ.name : "Campeonato";
-});
+const promptConfirmPayment = (participant) => {
+  participantToConfirmPayment.value = participant;
+};
+
+const confirmPayment = async () => {
+  if (!participantToConfirmPayment.value || isActionLoading.value) return;
+
+  isActionLoading.value = true;
+  try {
+    const userToConfirmId = participantToConfirmPayment.value.userId;
+    const result = await stores.pools.confirmPayment(poolId, userToConfirmId);
+
+    if (result.error) {
+      stores.ui.showToast(result.error, "error");
+    } else {
+      stores.ui.showToast("Pagamento confirmado com sucesso!", "success");
+    }
+  } finally {
+    isActionLoading.value = false;
+    participantToConfirmPayment.value = null;
+  }
+};
 
 const participantStats = computed(() => {
   if (!pool.value || !allBets.value) {
@@ -423,9 +606,9 @@ const participantStats = computed(() => {
   const pointsConfig = pool.value.points;
 
   const statsList = pool.value.participants.map((participant) => {
-    const participantBets = allBets.value.filter((b) => {
-      return b.user.id === participant.userId;
-    });
+    const participantBets = allBets.value.filter(
+      (b) => b.user.id === participant.userId
+    );
 
     const stats = {
       totalPoints: 0,
@@ -465,6 +648,7 @@ const participantStats = computed(() => {
 });
 
 onMounted(async () => {
+  isInfoExpanded.value = !isMobile.value;
   try {
     const poolResult = await stores.pools.fetchPoolById(poolId);
     if (!poolResult.success || !poolResult.data) {
@@ -478,9 +662,8 @@ onMounted(async () => {
     }
   } catch (e) {
     error.value = e.message;
-  } finally {
-    loading.value = false;
   }
+  loading.value = false;
 });
 
 const formatCurrency = (value) => {
@@ -497,18 +680,14 @@ const formatCurrency = (value) => {
 .expand-leave-active {
   transition: all 0.3s ease-in-out;
   overflow: hidden;
+  max-height: 500px;
 }
 .expand-enter-from,
 .expand-leave-to {
   max-height: 0;
   opacity: 0;
+  margin-top: 0;
   padding-top: 0;
   padding-bottom: 0;
-  margin-top: 0;
-}
-.expand-enter-to,
-.expand-leave-from {
-  max-height: 500px;
-  opacity: 1;
 }
 </style>

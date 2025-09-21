@@ -6,8 +6,8 @@ class MatchController {
     try {
       const { espnId, apiFootballId, fixtures } = req.body;
 
-      if (!espnId || !apiFootballId || !fixtures || !Array.isArray(fixtures)) {
-        return res.status(400).json({ message: "espnId, apiFootballId and fixtures array are required" });
+      if (!apiFootballId || !fixtures || !Array.isArray(fixtures)) {
+        return res.status(400).json({ message: "apiFootballId and fixtures array are required" });
       }
 
       const matches = await MatchService.saveMatchData(espnId, apiFootballId, fixtures);
@@ -106,7 +106,7 @@ class MatchController {
       if (!updatedH2H) {
         return res.status(404).json({ message: "Registro H2H para os times informados não foi encontrado." });
       }
-      
+
       return res.status(200).json(updatedH2H);
 
     } catch (error) {

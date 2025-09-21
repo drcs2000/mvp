@@ -7,6 +7,7 @@ interface Participant {
   userId: number;
   userName: string;
   role: string;
+  paid: boolean; // Adicionado
 }
 
 interface PointSystem {
@@ -236,7 +237,6 @@ export const usePoolsStore = defineStore('pools', () => {
    */
   async function deletePool(poolId: string): Promise<{ success: boolean; error: string | null }> {
     const authStore = useAuthStore();
-    const matchStore = useMatchesStore();
 
     if (!authStore.isAuthenticated || !authStore.token) {
       return { success: false, error: 'Você precisa estar logado para excluir um bolão.' };
@@ -256,8 +256,6 @@ export const usePoolsStore = defineStore('pools', () => {
         currentPool.value = null;
       }
       invalidatePoolsCache();
-
-      console.log(matchStore)
 
       return { success: true, error: null };
     } catch (error: unknown) {
@@ -303,12 +301,51 @@ export const usePoolsStore = defineStore('pools', () => {
 
       invalidatePoolsCache();
 
-      console.log(matchStore)
-
       return { success: true, error: null };
     } catch (error: unknown) {
       console.error('Erro ao remover participante:', error);
       const errorMessage = getErrorMessage(error, 'Falha ao remover o participante.');
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  /**
+   * Confirma o pagamento de um participante. Apenas o admin pode fazer isso.
+   * @param poolId O ID do bolão.
+   * @param userId O ID do usuário a ser marcado como pago.
+   * @returns Um objeto indicando o sucesso ou falha da operação.
+   */
+  async function confirmPayment(poolId: string, userId: number): Promise<{ success: boolean; error: string | null }> {
+    const authStore = useAuthStore();
+    if (!authStore.isAuthenticated || !authStore.token) {
+      return { success: false, error: 'Você precisa estar logado para realizar esta ação.' };
+    }
+
+    try {
+      await $fetch(`/api/pool/${poolId}/${userId}/payment`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${authStore.token}` }
+      });
+
+      const updateParticipantAsPaid = (pool: Pool) => {
+        const participant = pool.participants.find(p => p.userId === userId);
+        if (participant) {
+          participant.paid = true;
+        }
+      };
+
+      if (currentPool.value?.id === poolId) {
+        updateParticipantAsPaid(currentPool.value);
+      }
+      const poolInCache = poolsCache.value[poolId];
+      if (poolInCache) {
+        updateParticipantAsPaid(poolInCache);
+      }
+
+      return { success: true, error: null };
+    } catch (error: unknown) {
+      console.error('Erro ao confirmar pagamento:', error);
+      const errorMessage = getErrorMessage(error, 'Falha ao confirmar o pagamento.');
       return { success: false, error: errorMessage };
     }
   }
@@ -324,6 +361,6 @@ export const usePoolsStore = defineStore('pools', () => {
     joinPool,
     deletePool,
     removeParticipant,
+    confirmPayment,
   };
 });
-

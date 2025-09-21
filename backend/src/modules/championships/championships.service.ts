@@ -39,7 +39,11 @@ class ChampionshipService {
   }
 
   public async getAll(): Promise<Championship[]> {
-    return this.championshipRepository.find();
+    return this.championshipRepository.find({
+      where: {
+        type: ChampionshipType.LEAGUE,
+      },
+    });
   }
 }
 

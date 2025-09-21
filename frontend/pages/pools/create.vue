@@ -1,46 +1,5 @@
 <template>
   <div class="pb-28 sm:pb-0">
-    <transition
-      enter-active-class="transition ease-out duration-300"
-      enter-from-class="transform opacity-0 -translate-y-full"
-      enter-to-class="transform opacity-100 translate-y-0"
-      leave-active-class="transition ease-in duration-200"
-      leave-from-class="transform opacity-100 translate-y-0"
-      leave-to-class="transform opacity-0 -translate-y-full"
-    >
-      <div
-        v-if="notification.show"
-        class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 mt-5"
-      >
-        <div
-          class="flex items-center p-4 mx-4 rounded-lg shadow-lg"
-          :class="{
-            'bg-red-100 border border-red-300': notification.type === 'error',
-            'bg-green-100 border border-green-300':
-              notification.type === 'success',
-          }"
-        >
-          <XCircleIcon
-            v-if="notification.type === 'error'"
-            class="w-6 h-6 mr-3 text-red-600 shrink-0"
-          />
-          <CheckCircleIcon
-            v-else
-            class="w-6 h-6 mr-3 text-green-600 shrink-0"
-          />
-          <p
-            class="text-[13px] font-medium"
-            :class="{
-              'text-red-800': notification.type === 'error',
-              'text-green-800': notification.type === 'success',
-            }"
-          >
-            {{ notification.message }}
-          </p>
-        </div>
-      </div>
-    </transition>
-
     <header
       class="sticky top-0 z-10 p-4 bg-white/80 sm:p-6 backdrop-blur-sm border-b border-gray-200"
     >
@@ -67,8 +26,9 @@
               <label
                 for="tournament-name"
                 class="block text-sm font-medium text-gray-700"
-                >Nome do torneio</label
               >
+                Nome do torneio
+              </label>
               <input
                 id="tournament-name"
                 v-model="form.name"
@@ -480,8 +440,6 @@ import {
   CheckIcon,
   ChevronUpDownIcon,
   InformationCircleIcon,
-  XCircleIcon,
-  CheckCircleIcon,
 } from "@heroicons/vue/20/solid";
 
 useHead({
@@ -490,24 +448,6 @@ useHead({
 
 const stores = useStores();
 const loading = ref(false);
-const notification = reactive({
-  show: false,
-  message: "",
-  type: "success",
-});
-let notificationTimeout = null;
-
-const showNotification = (message, type = "success") => {
-  notification.message = message;
-  notification.type = type;
-  notification.show = true;
-
-  if (notificationTimeout) clearTimeout(notificationTimeout);
-
-  notificationTimeout = setTimeout(() => {
-    notification.show = false;
-  }, 5000);
-};
 
 const championships = computed(() => stores.championships.championships);
 const deadlineOptions = ref(Array.from({ length: 12 }, (_, i) => i + 1));
@@ -540,7 +480,7 @@ const handleSubmit = async () => {
   loading.value = true;
 
   if (!form.baseChampionship) {
-    showNotification("Por favor, selecione um campeonato base.", "error");
+    stores.ui.showToast("Por favor, selecione um campeonato base.", "error");
     loading.value = false;
     return;
   }
@@ -559,9 +499,9 @@ const handleSubmit = async () => {
   const result = await stores.pools.createPool(payload);
 
   if (!result.success) {
-    showNotification(result.error, "error");
+    stores.ui.showToast(result.error || "Erro ao aceitar o convite.", "error");
   } else {
-    showNotification("Torneio criado com sucesso!", "success");
+    stores.ui.showToast("Torneio criado com sucesso!", "success");
   }
 
   loading.value = false;

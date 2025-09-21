@@ -20,15 +20,31 @@ export interface Bet {
   };
 }
 
-interface ApiError {
-  data?: {
-    message?: string;
-  };
+/**
+ * Extrai de forma segura a mensagem de erro de uma resposta da API.
+ * @param error O erro capturado.
+ * @param defaultMessage A mensagem padrão a ser retornada se nenhuma mensagem for encontrada.
+ * @returns A mensagem de erro.
+ */
+function getErrorMessage(error: unknown, defaultMessage: string): string {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'data' in error &&
+    typeof (error as { data: unknown }).data === 'object' &&
+    (error as { data: unknown }).data !== null
+  ) {
+    const errorData = (error as { data: { message?: unknown } }).data;
+    if (typeof errorData.message === 'string') {
+      return errorData.message;
+    }
+  }
+  return defaultMessage;
 }
 
 export const useBetsStore = defineStore('bets', () => {
   const bets = ref<Bet[]>([]);
-  const allPoolBets = ref<{ [poolId: string]: Bet[] }>({});
+  const allPoolBets = ref<{ [poolId: string]: Bet[] }>({}); 
   const loading = ref(false);
 
   /**
@@ -38,7 +54,6 @@ export const useBetsStore = defineStore('bets', () => {
    */
   async function fetchBets(params?: { userId?: number; poolId?: number }) {
     const authStore = useAuthStore();
-
     loading.value = true;
     try {
       const fetchedBets = await $fetch<Bet[]>('/api/bets', {
@@ -50,17 +65,17 @@ export const useBetsStore = defineStore('bets', () => {
       bets.value = fetchedBets;
       return { success: true, data: fetchedBets };
     } catch (e: unknown) {
-      const error = e as ApiError;
-      console.error('Erro ao buscar palpites:', error);
+      console.error('Erro ao buscar palpites:', e);
       bets.value = [];
-      return { success: false, error: error.data?.message || 'Falha ao buscar palpites' };
+      const message = getErrorMessage(e, 'Falha ao buscar palpites');
+      return { success: false, error: message };
     } finally {
       loading.value = false;
     }
   }
 
   /**
-   * Cria ou atualiza um palpite para uma partida específica em um bolão.
+   * Cria ou atualiza um palpite, atualizando os estados locais 'bets' e 'allPoolBets'.
    * @param poolId O ID do bolão.
    * @param matchId O ID da partida.
    * @param homeScoreBet O palpite de gols para o time da casa.
@@ -69,7 +84,6 @@ export const useBetsStore = defineStore('bets', () => {
    */
   async function createOrUpdateBet(poolId: number, matchId: number, homeScoreBet: number, awayScoreBet: number) {
     const authStore = useAuthStore();
-
     loading.value = true;
     try {
       const updatedBet = await $fetch<Bet>(`/api/bets/pools/${poolId}/matches/${matchId}`, {
@@ -84,16 +98,15 @@ export const useBetsStore = defineStore('bets', () => {
       });
 
       const existingBet = bets.value.find(bet => bet.matchId === matchId && bet.poolId === poolId);
-
       if (existingBet) {
         existingBet.homeScoreBet = updatedBet.homeScoreBet;
         existingBet.awayScoreBet = updatedBet.awayScoreBet;
       } else {
-        await fetchBets({ poolId });
+        await fetchBets({ poolId, userId: authStore.user?.id });
       }
 
-      if (allPoolBets.value && allPoolBets.value[poolId]) {
-        const betIndexInPool = allPoolBets.value[poolId].findIndex(bet => bet.matchId === matchId);
+      if (allPoolBets.value[poolId]) {
+        const betIndexInPool = allPoolBets.value[poolId].findIndex(bet => bet.id === updatedBet.id);
         if (betIndexInPool !== -1) {
           allPoolBets.value[poolId][betIndexInPool] = updatedBet;
         } else {
@@ -103,26 +116,27 @@ export const useBetsStore = defineStore('bets', () => {
 
       return { success: true, data: updatedBet };
     } catch (e: unknown) {
-      const error = e as ApiError;
-      console.error('Erro ao salvar o palpite:', error);
-      const errorMessage = error.data?.message || 'Falha ao salvar palpite';
-      return { success: false, error: errorMessage };
+      console.error('Erro ao salvar o palpite:', e);
+      const message = getErrorMessage(e, 'Falha ao salvar palpite');
+      return { success: false, error: message };
     } finally {
       loading.value = false;
     }
   }
 
   /**
-   * Busca todos os palpites de um bolão específico.
+   * Busca todos os palpites de um bolão, utilizando 'allPoolBets' como cache.
    * @param poolId O ID do bolão.
    * @returns Um objeto indicando sucesso ou falha, com os dados dos palpites ou uma mensagem de erro.
    */
   async function fetchAllBetsByPool(poolId: string) {
-    const authStore = useAuthStore();
+    if (allPoolBets.value[poolId]) {
+      return { success: true, data: allPoolBets.value[poolId] };
+    }
 
-    if (!authStore.isAuthenticated || !authStore.token) {
-      const errorMsg = 'Você precisa estar logado para ver os palpites.';
-      return { success: false, error: errorMsg, data: null };
+    const authStore = useAuthStore();
+    if (!authStore.isAuthenticated) {
+      return { success: false, error: 'Você precisa estar logado para ver os palpites.' };
     }
 
     loading.value = true;
@@ -133,17 +147,12 @@ export const useBetsStore = defineStore('bets', () => {
         }
       });
 
-      if (!allPoolBets.value) {
-        allPoolBets.value = {};
-      }
       allPoolBets.value[poolId] = fetchedBets;
-
       return { success: true, data: fetchedBets };
     } catch (e: unknown) {
-      const error = e as ApiError;
-      console.error('Erro ao buscar todos os palpites do bolão:', error);
-      const errorMessage = error.data?.message || 'Falha ao buscar palpites do bolão';
-      return { success: false, error: errorMessage, data: null };
+      console.error('Erro ao buscar todos os palpites do bolão:', e);
+      const message = getErrorMessage(e, 'Falha ao buscar palpites do bolão');
+      return { success: false, error: message };
     } finally {
       loading.value = false;
     }

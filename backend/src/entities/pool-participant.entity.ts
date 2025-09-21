@@ -25,6 +25,9 @@ export class PoolParticipant {
   })
   role!: PoolRole;
 
+  @Column({ type: 'boolean', default: false })
+  paid!: boolean;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt!: Date;
 
