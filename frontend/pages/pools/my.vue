@@ -35,18 +35,15 @@
             :to="`/pools/${pool.id}`"
             class="block p-4 transition-all duration-200 bg-white border border-gray-200 rounded-lg shadow-sm group hover:border-gray-400 hover:shadow-md"
           >
-            <!-- Linha superior com Nome e Ícones de Desktop -->
             <div class="flex items-center justify-between">
               <span class="text-sm font-semibold text-gray-800 truncate pr-4">
                 {{ pool.name }}
               </span>
 
-              <!-- Container para ícones de Desktop com efeito hover -->
               <div
                 class="hidden md:block relative h-5 shrink-0"
                 style="width: 170px"
               >
-                <!-- Informações que aparecem no hover -->
                 <div
                   class="absolute right-0 flex items-center gap-4 text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 >
@@ -60,7 +57,6 @@
                   </span>
                 </div>
 
-                <!-- Ícone de cadeado que some no hover -->
                 <div
                   class="absolute right-0 transition-opacity duration-300 group-hover:opacity-0"
                 >
@@ -73,7 +69,6 @@
               </div>
             </div>
 
-            <!-- Container de informações apenas para Mobile -->
             <div
               class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 md:hidden"
             >

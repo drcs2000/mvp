@@ -85,6 +85,11 @@ const isRightSidebarOpen = ref(false);
 
 const isMounted = ref(false);
 onMounted(() => {
+  if (!stores.auth.user) {
+    stores.auth.logout()
+    stores.ui.showToast("Sua sessão expirou. Por favor, faça login novamente.", "error");
+    return;
+  }
   isMounted.value = true;
 });
 

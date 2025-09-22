@@ -234,19 +234,15 @@ const firstName = computed(() => {
 const showInvitationsModal = ref(false);
 const pendingInvitations = computed(() => stores.invitations.invitations);
 const invitationCount = computed(() => stores.invitations.invitationCount);
+
 const isAdmin = computed(() => {
-  // Pega o ID do usuário logado da store de autenticação
   const currentUserId = stores.auth.user?.id;
 
-  // 1. Garante que temos um usuário logado e que a lista de bolões existe.
   if (!currentUserId || !stores.pools.myPools) {
     return false;
   }
 
-  // 2. Usa .some() para verificar se EM PELO MENOS UM bolão o usuário é admin.
   return stores.pools.myPools.some((pool) =>
-    // 3. Dentro de cada bolão, verifica se existe algum participante
-    //    que corresponda à condição.
     pool.participants.some(
       (participant) =>
         participant.userId === currentUserId && participant.role === "admin"
