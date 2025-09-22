@@ -44,7 +44,7 @@ function getErrorMessage(error: unknown, defaultMessage: string): string {
 
 export const useBetsStore = defineStore('bets', () => {
   const bets = ref<Bet[]>([]);
-  const allPoolBets = ref<{ [poolId: string]: Bet[] }>({}); 
+  const allPoolBets = ref<{ [poolId: string]: Bet[] }>({});
   const loading = ref(false);
 
   /**
@@ -106,11 +106,11 @@ export const useBetsStore = defineStore('bets', () => {
       }
 
       if (allPoolBets.value[poolId]) {
-        const betIndexInPool = allPoolBets.value[poolId].findIndex(bet => bet.id === updatedBet.id);
+        const betIndexInPool = allPoolBets?.value[poolId]?.findIndex(bet => bet.id === updatedBet.id);
         if (betIndexInPool !== -1) {
           allPoolBets.value[poolId][betIndexInPool] = updatedBet;
         } else {
-          allPoolBets.value[poolId].push(updatedBet);
+          allPoolBets?.value[poolId]?.push(updatedBet);
         }
       }
 
@@ -129,8 +129,8 @@ export const useBetsStore = defineStore('bets', () => {
    * @param poolId O ID do bolão.
    * @returns Um objeto indicando sucesso ou falha, com os dados dos palpites ou uma mensagem de erro.
    */
-  async function fetchAllBetsByPool(poolId: string) {
-    if (allPoolBets.value[poolId]) {
+  async function fetchAllBetsByPool(poolId: string, forceRefresh: boolean = false) {
+    if (allPoolBets.value[poolId] && !forceRefresh) {
       return { success: true, data: allPoolBets.value[poolId] };
     }
 
@@ -158,6 +158,35 @@ export const useBetsStore = defineStore('bets', () => {
     }
   }
 
+  /**
+   * Dispara a sincronização de pontos para um bolão específico no backend.
+   * Após a sincronização, força a atualização dos dados locais.
+   * @param poolId O ID do bolão a ser sincronizado.
+   * @returns Um objeto indicando sucesso ou falha, com uma mensagem de erro se aplicável.
+   */
+  async function syncPool(poolId: string) {
+    const authStore = useAuthStore();
+    loading.value = true;
+    try {
+      await $fetch(`/api/bets/pools/${poolId}/sync`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authStore.token}`
+        }
+      });
+
+      await fetchAllBetsByPool(poolId, true);
+
+      return { success: true };
+    } catch (e: unknown) {
+      console.error('Erro ao sincronizar o bolão:', e);
+      const message = getErrorMessage(e, 'Falha ao sincronizar as pontuações do bolão');
+      return { success: false, error: message };
+    } finally {
+      loading.value = false;
+    }
+  }
+
   return {
     bets,
     allPoolBets,
@@ -165,5 +194,6 @@ export const useBetsStore = defineStore('bets', () => {
     fetchBets,
     createOrUpdateBet,
     fetchAllBetsByPool,
+    syncPool
   };
 });

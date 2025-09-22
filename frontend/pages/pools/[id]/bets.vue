@@ -16,6 +16,18 @@
       <div class="sticky top-0 z-20">
         <ChampionshipHeader :championship="currentChampionship">
           <template #right>
+            <button
+              type="button"
+              @click="handleSync"
+              :disabled="stores.bet.loading"
+              class="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap disabled:opacity-50 disabled:cursor-wait"
+            >
+              <ArrowPathIcon
+                class="w-4 h-4"
+                :class="{ 'animate-spin': stores.bet.loading }"
+              />
+              Sincronizar
+            </button>
             <NuxtLink
               :to="`/pools/${poolId}`"
               class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap"
@@ -70,7 +82,7 @@
                   <img
                     :src="match.homeTeamLogoUrl"
                     class="object-contain w-6 h-6 shrink-0"
-                  >
+                  />
                 </div>
 
                 <div class="flex flex-col items-center">
@@ -94,7 +106,7 @@
                   <img
                     :src="match.awayTeamLogoUrl"
                     class="object-contain w-6 h-6 shrink-0"
-                  >
+                  />
                   <span
                     class="text-left truncate"
                     :class="{ 'font-bold': isAwayWinner(match) }"
@@ -187,6 +199,10 @@
 
 <script setup>
 import { computed, ref, onMounted } from "vue";
+import {
+  ExclamationTriangleIcon,
+  ArrowPathIcon,
+} from "@heroicons/vue/20/solid";
 
 const stores = useStores();
 const route = useRoute();
@@ -233,6 +249,22 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+const handleSync = async () => {
+  const result = await stores.bet.syncPool(poolId.value);
+  if (result.success) {
+    stores.ui.showToast("Bolão sincronizado com sucesso!", "success");
+    const betsResult = await stores.bet.fetchAllBetsByPool(poolId.value, true);
+    if (betsResult.success && betsResult.data) {
+      allBets.value = betsResult.data;
+    }
+  } else {
+    stores.ui.showToast(
+      result.error || "Ocorreu um erro ao sincronizar.",
+      "error"
+    );
+  }
+};
 
 const getHitType = (bet, match) => {
   if (

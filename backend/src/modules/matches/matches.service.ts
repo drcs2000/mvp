@@ -93,7 +93,7 @@ class MatchService {
     }
   }
 
-  private calculatePoints(bet: Bet, match: Match): number {
+  public calculatePoints(bet: Bet, match: Match): number {
     if (typeof match.homeScore !== 'number' || typeof match.awayScore !== 'number') {
       return 0;
     }
@@ -175,7 +175,7 @@ class MatchService {
       }
 
       if (matchToUpdate) {
-        updatableMatches = updatableMatches.filter(match => match.id !== matchToUpdate.id);
+        updatableMatches = updatableMatches.filter(match => match.id !== matchToUpdate?.id);
 
         const newDate = new Date(competition.date);
         const espnStatusName = competition.status.type.name;

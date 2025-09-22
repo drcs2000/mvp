@@ -425,6 +425,7 @@
 
 <script setup>
 import { reactive, ref, computed, onMounted } from "vue";
+import { useRouter } from 'vue-router';
 import {
   Listbox,
   ListboxButton,
@@ -447,6 +448,7 @@ useHead({
 });
 
 const stores = useStores();
+const router = useRouter();
 const loading = ref(false);
 
 const championships = computed(() => stores.championships.championships);
@@ -468,6 +470,12 @@ const form = reactive({
 });
 
 onMounted(async () => {
+  if (!stores.auth.user) {
+    stores.ui.showToast("Você precisa estar logado para criar um bolão.", "info");
+    router.push('/login'); 
+    return;
+  }
+
   if (championships.value.length === 0) {
     await stores.championships.fetchAllChampionships();
   }
@@ -477,6 +485,12 @@ onMounted(async () => {
 });
 
 const handleSubmit = async () => {
+  if (!stores.auth.user) {
+    stores.ui.showToast("Sua sessão expirou. Por favor, faça login novamente.", "error");
+    router.push('/login');
+    return;
+  }
+  
   loading.value = true;
 
   if (!form.baseChampionship) {
@@ -499,9 +513,10 @@ const handleSubmit = async () => {
   const result = await stores.pools.createPool(payload);
 
   if (!result.success) {
-    stores.ui.showToast(result.error || "Erro ao aceitar o convite.", "error");
+    stores.ui.showToast(result.error || "Erro ao criar o bolão.", "error");
   } else {
     stores.ui.showToast("Torneio criado com sucesso!", "success");
+    router.push(`/pool/${result.poolId}`);
   }
 
   loading.value = false;

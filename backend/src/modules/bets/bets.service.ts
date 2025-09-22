@@ -1,8 +1,10 @@
 import { AppDataSource } from '../../database/data-source'
 import { Bet } from '../../entities/bet.entity'
-import { Match } from '../../entities/match.entity'
+import { Match, MatchStatus } from '../../entities/match.entity'
 import { Pool } from '../../entities/pool.entity'
 import { PoolParticipant } from '../../entities/pool-participant.entity'
+import MatchService from '../matches/matches.service';
+import { IsNull } from 'typeorm';
 
 class BetsService {
   private betRepository = AppDataSource.getRepository(Bet)
@@ -91,6 +93,43 @@ class BetsService {
       .where('bet.poolId = :poolId', { poolId })
       .orderBy('match.date', 'ASC')
       .getMany();
+  }
+
+  public async syncPoolPoints(poolId: number): Promise<void> {
+    const pool = await this.poolRepository.findOneBy({ id: poolId });
+    if (!pool) {
+      throw new Error("Bolão não encontrado.");
+    }
+  
+    const betsToScore = await this.betRepository.find({
+      where: {
+        pool: { id: poolId },
+        match: { status: MatchStatus.FINISHED },
+        pointsEarned: IsNull() 
+      },
+      relations: ['match', 'pool'],
+    });
+  
+    console.log(`Encontradas ${betsToScore.length} apostas para pontuar.`);
+  
+    if (betsToScore.length === 0) {
+      console.log(`Nenhuma aposta nova para pontuar no bolão ${poolId}.`);
+      return;
+    }
+  
+    const betsToUpdate: Bet[] = [];
+  
+    for (const bet of betsToScore) {
+      const newPoints = MatchService.calculatePoints(bet, bet.match);
+  
+      bet.pointsEarned = newPoints;
+      betsToUpdate.push(bet);
+    }
+  
+    if (betsToUpdate.length > 0) {
+      await this.betRepository.save(betsToUpdate);
+      console.log(`${betsToUpdate.length} apostas foram pontuadas com sucesso no bolão ${poolId}.`);
+    }
   }
 }
 
