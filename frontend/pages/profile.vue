@@ -547,7 +547,7 @@
             <div class="mt-8 flex justify-end">
               <button
                 type="submit"
-                :disabled="isLoading"
+                disabled
                 class="inline-flex items-center justify-center rounded-lg bg-gray-800 py-3 px-6 text-sm font-semibold text-white shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg
