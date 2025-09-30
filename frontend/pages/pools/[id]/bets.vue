@@ -1,15 +1,22 @@
 <template>
-  <section class="bg-white">
-    <div v-if="loading" class="pt-20 text-center text-gray-500">
+  <section class="bg-white dark:bg-gray-800">
+    <div
+      v-if="loading"
+      class="pt-20 text-center text-gray-500 dark:text-gray-400"
+    >
       Carregando informações do bolão...
     </div>
     <div
       v-else-if="error"
-      class="flex flex-col items-center justify-center p-6 bg-white border border-red-200 rounded-lg shadow-sm"
+      class="flex flex-col items-center justify-center p-6 bg-white border border-red-200 rounded-lg shadow-sm dark:bg-red-900/20 dark:border-red-500/30"
     >
-      <ExclamationTriangleIcon class="w-10 h-10 text-red-400" />
-      <h3 class="mt-2 text-lg font-semibold text-red-800">Ocorreu um erro</h3>
-      <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+      <ExclamationTriangleIcon
+        class="w-10 h-10 text-red-400 dark:text-red-300"
+      />
+      <h3 class="mt-2 text-lg font-semibold text-red-800 dark:text-red-200">
+        Ocorreu um erro
+      </h3>
+      <p class="mt-1 text-sm text-red-600 dark:text-red-300">{{ error }}</p>
     </div>
 
     <div v-else-if="currentChampionship">
@@ -18,9 +25,9 @@
           <template #right>
             <button
               type="button"
-              @click="handleSync"
               :disabled="stores.bet.loading"
-              class="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap disabled:opacity-50 disabled:cursor-wait"
+              class="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap disabled:opacity-50 disabled:cursor-wait dark:text-gray-300 dark:hover:text-blue-400"
+              @click="handleSync"
             >
               <ArrowPathIcon
                 class="w-4 h-4"
@@ -30,13 +37,13 @@
             </button>
             <NuxtLink
               :to="`/pools/${poolId}`"
-              class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap"
+              class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap dark:text-gray-300 dark:hover:text-blue-400"
             >
               Palpitar
             </NuxtLink>
             <NuxtLink
               :to="`/pools/${poolId}/info`"
-              class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap"
+              class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap dark:text-gray-300 dark:hover:text-blue-400"
             >
               Informações
             </NuxtLink>
@@ -61,13 +68,13 @@
           <div
             v-for="match in matches"
             :key="match.id"
-            class="py-4 border-b border-gray-200"
+            class="py-4 border-b border-gray-200 dark:border-gray-700"
           >
             <div
               class="grid grid-cols-1 md:grid-cols-[100px_1fr_100px] gap-x-4 gap-y-2 items-center px-4"
             >
               <div
-                class="hidden md:block text-sm font-medium text-gray-800 text-left"
+                class="hidden md:block text-sm font-medium text-gray-800 dark:text-gray-300 text-left"
               >
                 {{ formatTime(match.date) }}
               </div>
@@ -75,7 +82,7 @@
               <div class="flex items-center justify-between text-sm gap-2">
                 <div class="flex items-center gap-2 flex-1 justify-end min-w-0">
                   <span
-                    class="text-right truncate"
+                    class="text-right truncate dark:text-gray-200"
                     :class="{ 'font-bold': isHomeWinner(match) }"
                     >{{ match.homeTeamName }}</span
                   >
@@ -86,16 +93,20 @@
                 </div>
 
                 <div class="flex flex-col items-center">
-                  <div class="flex items-center gap-1 font-bold text-lg">
+                  <div
+                    class="flex items-center gap-1 font-bold text-lg dark:text-gray-200"
+                  >
                     <span class="w-8 text-center">{{
                       match.homeScore ?? ""
                     }}</span>
-                    <span>-</span>
+                    <span class="dark:text-gray-400">-</span>
                     <span class="w-8 text-center">{{
                       match.awayScore ?? ""
                     }}</span>
                   </div>
-                  <div class="md:hidden text-xs text-gray-500 mt-1">
+                  <div
+                    class="md:hidden text-xs text-gray-500 dark:text-gray-400 mt-1"
+                  >
                     {{ formatTime(match.date) }}
                   </div>
                 </div>
@@ -108,7 +119,7 @@
                     class="object-contain w-6 h-6 shrink-0"
                   />
                   <span
-                    class="text-left truncate"
+                    class="text-left truncate dark:text-gray-200"
                     :class="{ 'font-bold': isAwayWinner(match) }"
                     >{{ match.awayTeamName }}</span
                   >
@@ -116,7 +127,7 @@
               </div>
 
               <div
-                class="hidden md:block text-sm font-medium text-gray-500 text-right"
+                class="hidden md:block text-sm font-medium text-gray-500 dark:text-gray-400 text-right"
               >
                 {{ getStatusText(match.status) }}
               </div>
@@ -187,7 +198,10 @@
                 </div>
               </div>
             </div>
-            <div v-else class="text-xs text-gray-400 text-center mt-3 px-4">
+            <div
+              v-else
+              class="text-xs text-gray-400 dark:text-gray-500 text-center mt-3 px-4"
+            >
               Nenhum palpite para este jogo.
             </div>
           </div>

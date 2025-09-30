@@ -1,24 +1,22 @@
 <template>
   <div
-    class="flex flex-col items-center justify-center min-h-screen px-4 bg-gradient-to-br from-slate-50 to-gray-200"
+    class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-gray-200 dark:from-gray-900 dark:to-slate-800 md:px-4"
   >
-    <!-- Card Principal -->
     <div
-      class="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-xl"
+      class="flex flex-col justify-center w-full min-h-screen p-8 space-y-8 bg-white dark:bg-gray-800 md:min-h-0 md:h-auto md:rounded-2xl md:shadow-xl md:max-w-md"
     >
-      <!-- Cabeçalho com Logo -->
       <div class="text-center">
         <NuxtLink
           to="/"
-          class="inline-block text-3xl font-bold tracking-tight text-gray-900"
+          class="inline-block text-3xl font-bold tracking-tight text-gray-900 dark:text-white"
         >
           MVP
         </NuxtLink>
         <div class="mt-4">
-          <h2 class="text-2xl font-bold text-gray-800">
+          <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
             {{ tab === "login" ? "Bem-vindo de volta" : "Crie sua conta" }}
           </h2>
-          <p class="mt-1 text-sm text-gray-500">
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {{
               tab === "login"
                 ? "Insira seus dados para continuar."
@@ -28,14 +26,13 @@
         </div>
       </div>
 
-      <!-- Seletor de Abas -->
-      <div class="flex p-1 bg-slate-100 rounded-lg">
+      <div class="flex p-1 bg-slate-100 dark:bg-gray-700 rounded-lg">
         <button
           :class="[
             'w-full py-2.5 text-sm font-semibold rounded-md transition-all',
             tab === 'login'
-              ? 'bg-white text-gray-800 shadow'
-              : 'text-gray-500 hover:text-gray-800',
+              ? 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 shadow'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100',
           ]"
           @click="tab = 'login'"
         >
@@ -45,8 +42,8 @@
           :class="[
             'w-full py-2.5 text-sm font-semibold rounded-md transition-all',
             tab === 'register'
-              ? 'bg-white text-gray-800 shadow'
-              : 'text-gray-500 hover:text-gray-800',
+              ? 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 shadow'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100',
           ]"
           @click="tab = 'register'"
         >
@@ -54,17 +51,14 @@
         </button>
       </div>
 
-      <!-- Formulários com Transição -->
       <div class="relative overflow-hidden">
         <Transition name="slide-fade" mode="out-in">
-          <!-- Formulário de Login -->
           <form
             v-if="tab === 'login'"
             class="space-y-5"
             :class="{ shake: loginError }"
             @submit.prevent="handleLogin"
           >
-            <!-- Campo de Email -->
             <div class="relative">
               <EnvelopeIcon
                 class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -76,14 +70,13 @@
                 required
                 placeholder="seu@email.com"
                 :class="[
-                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors',
+                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400',
                   isLoginEmailInvalid || loginError
                     ? 'border-red-500 focus:ring-1 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 focus:ring-1 focus:ring-gray-800 focus:border-gray-800',
+                    : 'border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-gray-800 dark:focus:ring-gray-200 focus:border-gray-800 dark:focus:border-gray-200',
                 ]"
               >
             </div>
-            <!-- Campo de Senha -->
             <div class="relative">
               <LockClosedIcon
                 class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -95,22 +88,21 @@
                 required
                 placeholder="Sua senha"
                 :class="[
-                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors',
+                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400',
                   loginError
                     ? 'border-red-500 focus:ring-1 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 focus:ring-1 focus:ring-gray-800 focus:border-gray-800',
+                    : 'border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-gray-800 dark:focus:ring-gray-200 focus:border-gray-800 dark:focus:border-gray-200',
                 ]"
               >
             </div>
-            <!-- Botão de Login -->
             <button
               type="submit"
               :disabled="loading"
-              class="flex items-center justify-center w-full px-4 py-3 text-sm font-semibold text-white bg-gray-800 border border-transparent rounded-lg shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 disabled:bg-gray-400 transition-all duration-300"
+              class="flex items-center justify-center w-full px-4 py-3 text-sm font-semibold text-white bg-gray-800 border border-transparent rounded-lg shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 disabled:bg-gray-400 transition-all duration-300 dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300 dark:focus:ring-gray-400 dark:disabled:bg-gray-500"
             >
               <svg
                 v-if="loading"
-                class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                class="animate-spin -ml-1 mr-3 h-5 w-5 text-white dark:text-gray-800"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -133,14 +125,12 @@
             </button>
           </form>
 
-          <!-- Formulário de Registro -->
           <form
             v-else
             class="space-y-5"
             :class="{ shake: registerError }"
             @submit.prevent="handleRegister"
           >
-            <!-- Campo de Nome -->
             <div class="relative">
               <UserIcon
                 class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -152,14 +142,13 @@
                 required
                 placeholder="Nome completo"
                 :class="[
-                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors',
+                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400',
                   registerError
                     ? 'border-red-500 focus:ring-1 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 focus:ring-1 focus:ring-gray-800 focus:border-gray-800',
+                    : 'border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-gray-800 dark:focus:ring-gray-200 focus:border-gray-800 dark:focus:border-gray-200',
                 ]"
               >
             </div>
-            <!-- Campo de Email -->
             <div class="relative">
               <EnvelopeIcon
                 class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -171,14 +160,13 @@
                 required
                 placeholder="seu@email.com"
                 :class="[
-                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors',
+                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400',
                   isRegisterEmailInvalid || registerError
                     ? 'border-red-500 focus:ring-1 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 focus:ring-1 focus:ring-gray-800 focus:border-gray-800',
+                    : 'border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-gray-800 dark:focus:ring-gray-200 focus:border-gray-800 dark:focus:border-gray-200',
                 ]"
               >
             </div>
-            <!-- Campo de Senha -->
             <div class="relative">
               <LockClosedIcon
                 class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -190,22 +178,21 @@
                 required
                 placeholder="Crie uma senha"
                 :class="[
-                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors',
+                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400',
                   registerError
                     ? 'border-red-500 focus:ring-1 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 focus:ring-1 focus:ring-gray-800 focus:border-gray-800',
+                    : 'border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-gray-800 dark:focus:ring-gray-200 focus:border-gray-800 dark:focus:border-gray-200',
                 ]"
               >
             </div>
-            <!-- Botão de Registro -->
             <button
               type="submit"
               :disabled="loading"
-              class="flex items-center justify-center w-full px-4 py-3 text-sm font-semibold text-white bg-gray-800 border border-transparent rounded-lg shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 disabled:bg-gray-400 transition-all duration-300"
+              class="flex items-center justify-center w-full px-4 py-3 text-sm font-semibold text-white bg-gray-800 border border-transparent rounded-lg shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 disabled:bg-gray-400 transition-all duration-300 dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300 dark:focus:ring-gray-400 dark:disabled:bg-gray-500"
             >
               <svg
                 v-if="loading"
-                class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                class="animate-spin -ml-1 mr-3 h-5 w-5 text-white dark:text-gray-800"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"

@@ -27,14 +27,14 @@
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel
-              class="w-full max-w-md p-5 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg"
+              class="w-full max-w-md p-5 overflow-hidden text-left align-middle transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-lg"
               @click="handlePanelClick"
             >
               <TabGroup
                 :selected-index="selectedIndex"
                 @change="selectedIndex = $event"
               >
-                <TabList class="flex border-b border-gray-100">
+                <TabList class="flex border-b border-gray-100 dark:border-gray-700">
                   <Tab
                     v-for="category in ['Convites', 'Convidar']"
                     :key="category"
@@ -46,8 +46,8 @@
                         'w-full py-3 text-sm font-medium leading-5 transition-colors duration-150',
                         'focus:outline-none -mb-px',
                         selected
-                          ? 'text-gray-900 border-b-2 border-gray-800'
-                          : 'text-gray-500 hover:text-gray-700',
+                          ? 'text-gray-900 dark:text-white border-b-2 border-gray-800 dark:border-white'
+                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
                       ]"
                     >
                       {{ category }}
@@ -59,7 +59,7 @@
                   <TabPanel class="h-full flex flex-col focus:outline-none">
                     <DialogTitle
                       as="h3"
-                      class="text-sm font-medium text-gray-900"
+                      class="text-sm font-medium text-gray-900 dark:text-gray-100"
                     >
                       Convites Pendentes
                     </DialogTitle>
@@ -68,44 +68,44 @@
                         <div
                           v-for="invitation in invitations"
                           :key="invitation.id"
-                          class="p-3 transition-colors border border-gray-100 rounded-lg hover:bg-gray-50"
+                          class="p-3 transition-colors border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50"
                         >
                           <div class="flex items-start gap-3">
                             <div
-                              class="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center"
+                              class="flex-shrink-0 w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center"
                             >
-                              <span class="text-sm font-medium text-gray-600">
+                              <span class="text-sm font-medium text-gray-600 dark:text-gray-300">
                                 {{ getInitials(invitation.inviter.name) }}
                               </span>
                             </div>
                             <div class="flex-1 min-w-0">
-                              <p class="text-sm text-gray-900 font-medium">
+                              <p class="text-sm text-gray-900 dark:text-gray-100 font-medium">
                                 {{ invitation.inviter.name }}
                               </p>
-                              <p class="text-sm text-gray-600">
+                              <p class="text-sm text-gray-600 dark:text-gray-400">
                                 convidou você para o bolão:
                               </p>
                             </div>
                           </div>
                           <div class="flex items-end justify-between mt-3">
                             <div>
-                              <p class="font-medium text-gray-800">
+                              <p class="font-medium text-gray-800 dark:text-gray-200">
                                 {{ invitation.pool.name }}
                               </p>
-                              <p class="text-xs text-gray-500 mt-1">
+                              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 Recebido em
                                 {{ formatDate(invitation.createdAt) }}
                               </p>
                             </div>
                             <div class="flex justify-end space-x-2">
                               <button
-                                class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                                class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 dark:bg-gray-600 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
                                 @click="declineInvitation(invitation.id)"
                               >
                                 Recusar
                               </button>
                               <button
-                                class="px-3 py-1.5 text-xs font-medium text-white bg-gray-800 rounded hover:bg-gray-900 transition-colors"
+                                class="px-3 py-1.5 text-xs font-medium text-white bg-gray-800 dark:bg-gray-200 dark:text-gray-800 rounded hover:bg-gray-900 dark:hover:bg-gray-300 transition-colors"
                                 @click="acceptInvitation(invitation.id)"
                               >
                                 Aceitar
@@ -116,10 +116,10 @@
                       </div>
                       <div
                         v-else
-                        class="h-full flex flex-col items-center justify-center text-sm text-gray-500"
+                        class="h-full flex flex-col items-center justify-center text-sm text-gray-500 dark:text-gray-400"
                       >
                         <div
-                          class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3"
+                          class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-3"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -144,7 +144,7 @@
                   <TabPanel class="h-full flex flex-col focus:outline-none">
                     <DialogTitle
                       as="h3"
-                      class="text-sm font-medium text-gray-900"
+                      class="text-sm font-medium text-gray-900 dark:text-gray-100"
                     >
                       Convidar para um Bolão
                     </DialogTitle>
@@ -152,24 +152,24 @@
                       <div class="space-y-4">
                         <div class="relative" @click.stop>
                           <label
-                            class="block text-sm font-medium text-gray-700 mb-1"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                             >Buscar Bolão</label
                           >
                           <input
                             v-model="poolSearch"
                             type="text"
                             placeholder="Digite para buscar bolões"
-                            class="block w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                            class="block w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 focus:border-gray-400 dark:focus:border-gray-500"
                             @focus="showPoolSuggestions = true"
                           >
                           <div
                             v-if="showPoolSuggestions && filteredPools.length"
-                            class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-y-auto custom-scrollbar"
+                            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-40 overflow-y-auto custom-scrollbar"
                           >
                             <div
                               v-for="pool in filteredPools"
                               :key="pool.id"
-                              class="px-3 py-2 text-sm cursor-pointer hover:bg-gray-50"
+                              class="px-3 py-2 text-sm cursor-pointer hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-600"
                               @mousedown="selectPool(pool)"
                             >
                               {{ pool.name }}
@@ -179,24 +179,24 @@
 
                         <div class="relative" @click.stop>
                           <label
-                            class="block text-sm font-medium text-gray-700 mb-1"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                             >Buscar Usuário</label
                           >
                           <input
                             v-model="userSearch"
                             type="text"
                             placeholder="Digite nome ou e-mail do usuário"
-                            class="block w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                            class="block w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 focus:border-gray-400 dark:focus:border-gray-500"
                             @focus="showUserSuggestions = true"
                           >
                           <div
                             v-if="showUserSuggestions && filteredUsers.length"
-                            class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-y-auto custom-scrollbar"
+                            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-40 overflow-y-auto custom-scrollbar"
                           >
                             <div
                               v-for="user in filteredUsers"
                               :key="user.id"
-                              class="px-3 py-2 text-sm cursor-pointer hover:bg-gray-50"
+                              class="px-3 py-2 text-sm cursor-pointer hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-600"
                               @mousedown="selectUser(user)"
                             >
                               {{ user.name }} ({{ user.email }})
@@ -209,11 +209,11 @@
                 </TabPanels>
               </TabGroup>
 
-              <div class="mt-4 pt-4 border-t border-gray-100">
+              <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                 <div class="flex justify-end space-x-3">
                   <button
                     type="button"
-                    class="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors focus:outline-none"
+                    class="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors focus:outline-none dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
                     @click="closeModal"
                   >
                     Fechar
@@ -221,7 +221,7 @@
                   <button
                     v-if="selectedIndex === 1"
                     type="button"
-                    class="px-4 py-2.5 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900 transition-colors focus:outline-none disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    class="px-4 py-2.5 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900 transition-colors focus:outline-none disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300 dark:disabled:bg-gray-500"
                     :disabled="!selectedPool || !selectedUser"
                     @click="handleCreateInvitation"
                   >
@@ -238,7 +238,6 @@
 </template>
 
 <script setup>
-// ... (imports e props como antes)
 import { ref, computed, onMounted, watch } from "vue";
 import {
   TransitionRoot,

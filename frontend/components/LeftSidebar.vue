@@ -1,27 +1,27 @@
 <template>
-  <aside class="flex flex-col h-full px-3" @click="handleNavigation">
-    <NuxtLink to="/" class="px-3 mb-6 text-2xl font-bold shrink-0">
+  <aside class="flex flex-col h-full px-3 dark:bg-gray-800" @click="handleNavigation">
+    <NuxtLink to="/" class="px-3 mb-6 text-2xl font-bold shrink-0 dark:text-white">
       MVP
     </NuxtLink>
 
     <div class="shrink-0">
       <h3
-        class="px-3 mb-2 text-xs font-semibold tracking-wider text-gray-400 uppercase"
+        class="px-3 mb-2 text-xs font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
       >
         Gerenciar
       </h3>
       <NuxtLink
         to="/pools/create"
-        class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100"
-        active-class="bg-green-50 text-green-600 font-semibold"
+        class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+        active-class="bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
       >
         <PlusCircleIcon class="w-4 h-4 mr-2 shrink-0" />
         <span class="text-[13px] font-medium truncate">Criar Bolão</span>
       </NuxtLink>
       <NuxtLink
         to="/pools"
-        class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100"
-        active-class="bg-green-50 text-green-600 font-semibold"
+        class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+        active-class="bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
       >
         <QueueListIcon class="w-4 h-4 mr-2 shrink-0" />
         <span class="text-[13px] font-medium truncate">Listar Bolões</span>
@@ -29,19 +29,19 @@
 
       <NuxtLink
         to="/pools/my"
-        class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100"
-        active-class="bg-green-50 text-green-600 font-semibold"
+        class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+        active-class="bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
       >
         <TrophyIcon class="w-4 h-4 mr-2 shrink-0" />
         <span class="text-[13px] font-medium truncate">Meus Bolões</span>
       </NuxtLink>
     </div>
 
-    <hr class="my-6 border-t border-gray-200" >
+    <hr class="my-6 border-t border-gray-200 dark:border-gray-700" >
 
     <div class="flex-1 overflow-hidden flex flex-col">
       <h3
-        class="px-3 mb-2 text-xs font-semibold tracking-wider text-gray-400 uppercase shrink-0"
+        class="px-3 mb-2 text-xs font-semibold tracking-wider text-gray-400 uppercase shrink-0 dark:text-gray-500"
       >
         Navegar
       </h3>
@@ -51,8 +51,8 @@
           <div
             class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md cursor-pointer transition-colors duration-200"
             :class="{
-              'bg-green-50 text-green-600 font-semibold': isFootballActive,
-              'text-gray-800 hover:bg-green-50 hover:text-green-600':
+              'bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400': isFootballActive,
+              'text-gray-800 hover:bg-green-50 hover:text-green-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-200':
                 !isFootballActive,
             }"
             @click="isFootballMenuOpen = !isFootballMenuOpen"
@@ -71,16 +71,16 @@
           </div>
 
           <div
-            class="submenu-container"
+            class="submenu-container border-l border-gray-200 dark:border-gray-700"
             :style="{ maxHeight: isFootballMenuOpen ? '700px' : '0px' }"
           >
             <div v-for="continent in menuData" :key="continent.title">
               <div
                 class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md cursor-pointer transition-colors duration-200"
                 :class="{
-                  'bg-green-50 text-green-600 font-semibold':
+                  'bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400':
                     isParentActive(continent),
-                  'hover:bg-green-50 hover:text-green-600 text-gray-800':
+                  'hover:bg-green-50 hover:text-green-600 text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-200':
                     !isParentActive(continent),
                 }"
                 @click="toggleMenu(continent)"
@@ -96,7 +96,7 @@
                 />
               </div>
               <div
-                class="submenu-container"
+                class="submenu-container border-l border-gray-200 dark:border-gray-700"
                 :style="{ maxHeight: continent.isOpen ? '500px' : '0px' }"
               >
                 <div v-if="continent.title === 'Internacional'">
@@ -104,8 +104,8 @@
                     v-for="league in continent.children"
                     :key="league.id"
                     :to="league.path"
-                    class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-500 hover:bg-green-50 hover:text-green-600 relative group"
-                    active-class="!bg-green-50 !text-green-600 font-semibold"
+                    class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-500 hover:bg-green-50 hover:text-green-600 relative group dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                    active-class="!bg-green-50 !text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
                   >
                     <img
                       :src="league.logo"
@@ -125,9 +125,9 @@
                     v-if="country.children"
                     class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md cursor-pointer transition-colors duration-200"
                     :class="{
-                      'bg-green-50 text-green-600 font-semibold':
+                      'bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400':
                         isParentActive(country),
-                      'hover:bg-green-50 hover:text-green-600 text-gray-800':
+                      'hover:bg-green-50 hover:text-green-600 text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-200':
                         !isParentActive(country),
                     }"
                     @click="toggleMenu(country)"
@@ -149,15 +149,15 @@
                     />
                   </div>
                   <div
-                    class="submenu-container"
+                    class="submenu-container border-l border-gray-200 dark:border-gray-700"
                     :style="{ maxHeight: country.isOpen ? '200px' : '0px' }"
                   >
                     <NuxtLink
                       v-for="league in country.children"
                       :key="league.id"
                       :to="league.path"
-                      class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-500 hover:bg-green-50 hover:text-green-600 relative group"
-                      active-class="!bg-green-50 !text-green-600 font-semibold"
+                      class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-500 hover:bg-green-50 hover:text-green-600 relative group dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                      active-class="!bg-green-50 !text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
                     >
                       <img
                         :src="league.logo"
@@ -179,11 +179,11 @@
     </div>
 
     <div class="shrink-0 pt-4">
-      <hr class="my-6 border-t border-gray-200" >
+      <hr class="my-6 border-t border-gray-200 dark:border-gray-700" >
       <NuxtLink
         to="/settings"
-        class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100"
-        active-class="bg-green-50 text-green-600 font-semibold"
+        class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+        active-class="bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
       >
         <Cog6ToothIcon class="w-4 h-4 mr-2 shrink-0" />
         <span class="text-[13px] font-medium truncate">Configurações</span>

@@ -1,10 +1,10 @@
 <template>
-  <aside class="flex flex-col h-full gap-6">
-    <div class="sticky top-0 z-10 pt-1 bg-white shrink-0">
+  <aside class="flex flex-col h-full gap-6" @click="handleNavigation">
+    <div class="sticky top-0 z-10 pt-1 bg-white dark:bg-gray-800 shrink-0">
       <div v-if="stores.auth.isAuthenticated && stores.auth.currentUser">
         <Menu v-slot="{ open }" as="div" class="relative">
           <MenuButton
-            class="flex items-center w-full px-2 py-1 transition-colors duration-200 border border-gray-300 rounded-md hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
+            class="flex items-center w-full px-2 py-1 transition-colors duration-200 border border-gray-300 rounded-md hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:hover:border-gray-500 dark:focus:ring-gray-600"
           >
             <div class="flex-shrink-0">
               <span
@@ -12,19 +12,19 @@
                 :class="[
                   invitationCount > 0
                     ? 'bg-red-500 text-white'
-                    : 'bg-gray-200 text-gray-600',
+                    : 'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-200',
                 ]"
               >
                 {{ invitationCount }}
               </span>
             </div>
 
-            <span class="ml-2 text-[13px] font-medium text-gray-800"
+            <span class="ml-2 text-[13px] font-medium text-gray-800 dark:text-gray-200"
               >Olá, {{ firstName }}</span
             >
             <div class="flex-grow" />
             <ChevronDownIcon
-              class="w-4 h-4 text-gray-500 transition-transform duration-300"
+              class="w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform duration-300"
               :class="{ 'rotate-180': open }"
             />
           </MenuButton>
@@ -37,30 +37,30 @@
             leave-to-class="transform scale-95 opacity-0"
           >
             <MenuItems
-              class="absolute right-0 w-full mt-2 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none"
+              class="absolute right-0 w-full mt-2 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none dark:bg-gray-800 dark:border-gray-700 dark:divide-gray-700"
             >
               <div class="px-1 py-1">
                 <MenuItem v-slot="{ active }">
                   <NuxtLink
                     to="/profile"
                     :class="[
-                      active ? 'bg-gray-100' : '',
-                      'group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-700',
+                      active ? 'bg-gray-100 dark:bg-gray-700' : '',
+                      'group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-700 dark:text-gray-300',
                     ]"
                   >
-                    <UserCircleIcon class="w-5 h-5 mr-2 text-gray-400" />
+                    <UserCircleIcon class="w-5 h-5 mr-2 text-gray-400 dark:text-gray-500" />
                     Meu Perfil
                   </NuxtLink>
                 </MenuItem>
                 <MenuItem v-slot="{ active }">
                   <button
                     :class="[
-                      active ? 'bg-gray-100' : '',
-                      'group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-700 relative',
+                      active ? 'bg-gray-100 dark:bg-gray-700' : '',
+                      'group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-700 dark:text-gray-300 relative',
                     ]"
                     @click="openInvitationsModal"
                   >
-                    <EnvelopeIcon class="w-5 h-5 mr-2 text-gray-400" />
+                    <EnvelopeIcon class="w-5 h-5 mr-2 text-gray-400 dark:text-gray-500" />
                     Convites
                     <span
                       v-if="invitationCount > 0"
@@ -75,13 +75,13 @@
                 <MenuItem v-slot="{ active }">
                   <button
                     :class="[
-                      active ? 'bg-gray-100' : '',
-                      'group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-700',
+                      active ? 'bg-gray-100 dark:bg-gray-700' : '',
+                      'group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-700 dark:text-gray-300',
                     ]"
                     @click="handleLogout"
                   >
                     <ArrowRightOnRectangleIcon
-                      class="w-5 h-5 mr-2 text-gray-400"
+                      class="w-5 h-5 mr-2 text-gray-400 dark:text-gray-500"
                     />
                     Logout
                   </button>
@@ -94,24 +94,24 @@
       <div v-else>
         <NuxtLink
           to="/login"
-          class="flex items-center justify-center w-full px-2 py-1 font-semibold text-white transition-colors duration-200 bg-gray-800 border border-transparent rounded-md text-[13px] hover:bg-gray-900"
+          class="flex items-center justify-center w-full px-2 py-1 font-semibold text-white transition-colors duration-200 bg-gray-800 border border-transparent rounded-md text-[13px] hover:bg-gray-900 dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300"
         >
           Entrar
         </NuxtLink>
       </div>
-      <hr class="mt-4 border-t border-gray-200" >
+      <hr class="mt-4 border-t border-gray-200 dark:border-gray-700" >
     </div>
 
     <div
-      class="flex flex-col flex-1 p-3 overflow-hidden border border-gray-200 rounded-lg"
+      class="flex flex-col flex-1 p-3 overflow-hidden border border-gray-200 rounded-lg dark:border-gray-700"
     >
       <div v-if="selectedChampionship" class="flex flex-col flex-1 min-h-0">
         <div class="shrink-0">
-          <h3 class="mb-3 text-sm font-semibold text-gray-800">
+          <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-200">
             {{ selectedChampionship.name }}
           </h3>
           <div
-            class="grid grid-cols-12 gap-2 text-center text-gray-500 border-b border-gray-200 text-[9px] uppercase"
+            class="grid grid-cols-12 gap-2 text-center text-gray-500 border-b border-gray-200 text-[9px] uppercase dark:text-gray-400 dark:border-gray-600"
           >
             <div class="col-span-1 py-1 font-normal text-left">#</div>
             <div class="col-span-6 py-1 font-normal text-left">Time</div>
@@ -126,17 +126,17 @@
         <div class="flex-1 overflow-y-auto no-scrollbar">
           <div
             v-if="stores.standings.isLoading"
-            class="flex items-center justify-center h-full text-gray-500 text-[10px]"
+            class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 text-[10px]"
           >
             Carregando...
           </div>
           <div v-else-if="stores.standings.standings.length > 0">
             <table class="w-full text-center table-fixed">
-              <tbody class="text-gray-800">
+              <tbody class="text-gray-800 dark:text-gray-200">
                 <tr
                   v-for="team in stores.standings.standings"
                   :key="team.teamApiId"
-                  class="grid grid-cols-12 gap-2 items-center border-b border-gray-100 last:border-b-0 text-[9px]"
+                  class="grid grid-cols-12 gap-2 items-center border-b border-gray-100 last:border-b-0 text-[9px] dark:border-gray-700"
                   :class="getRowStyle(team.description)"
                 >
                   <td class="col-span-1 py-2 font-medium text-left">
@@ -149,19 +149,19 @@
                     </div>
                   </td>
                   <td class="col-span-1 py-2 font-bold">{{ team.points }}</td>
-                  <td class="col-span-1 py-2 text-gray-500">
+                  <td class="col-span-1 py-2 text-gray-500 dark:text-gray-400">
                     {{ team.played }}
                   </td>
-                  <td class="col-span-1 py-2 text-gray-500">{{ team.win }}</td>
-                  <td class="col-span-1 py-2 text-gray-500">{{ team.draw }}</td>
-                  <td class="col-span-1 py-2 text-gray-500">{{ team.lose }}</td>
+                  <td class="col-span-1 py-2 text-gray-500 dark:text-gray-400">{{ team.win }}</td>
+                  <td class="col-span-1 py-2 text-gray-500 dark:text-gray-400">{{ team.draw }}</td>
+                  <td class="col-span-1 py-2 text-gray-500 dark:text-gray-400">{{ team.lose }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
           <div
             v-else
-            class="flex items-center justify-center h-full text-gray-500 text-[10px]"
+            class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 text-[10px]"
           >
             Classificação não disponível.
           </div>
@@ -169,7 +169,7 @@
 
         <div
           v-if="stores.standings.standings.length > 0"
-          class="pt-3 mt-auto border-t border-gray-100 shrink-0"
+          class="pt-3 mt-auto border-t border-gray-100 shrink-0 dark:border-gray-700"
         >
           <div class="space-y-1">
             <div
@@ -181,14 +181,14 @@
                 :class="getLegendIndicatorClass(legend.label)"
                 class="block w-2 h-2 rounded-full"
               />
-              <span class="text-gray-600 text-[9px]">{{ legend.label }}</span>
+              <span class="text-gray-600 dark:text-gray-300 text-[9px]">{{ legend.label }}</span>
             </div>
           </div>
         </div>
       </div>
       <div v-else>
-        <h3 class="text-base font-semibold text-gray-800">Classificação</h3>
-        <p class="mt-2 text-gray-500 text-[10px]">
+        <h3 class="text-base font-semibold text-gray-800 dark:text-gray-200">Classificação</h3>
+        <p class="mt-2 text-gray-500 dark:text-gray-400 text-[10px]">
           Selecione um campeonato para ver a tabela.
         </p>
       </div>
@@ -223,6 +223,16 @@ const stores = useStores();
 const selectedChampionship = computed(
   () => stores.championships.selectedChampionship
 );
+
+
+
+const emit = defineEmits(["navigate"]);
+
+const handleNavigation = (event) => {
+  if (event.target.closest("a")) {
+    emit("navigate");
+  }
+};
 
 const firstName = computed(() => {
   if (stores.auth.currentUser && stores.auth.currentUser.name) {
@@ -266,13 +276,13 @@ const getRowStyle = (description) => {
   const desc = description.toLowerCase();
 
   if (desc.includes("champions league") || desc.includes("libertadores"))
-    return "bg-blue-50";
+    return "bg-blue-50 dark:bg-blue-900/50";
   if (desc.includes("europa league") || desc.includes("sudamericana"))
-    return "bg-green-50";
+    return "bg-green-50 dark:bg-green-900/50";
   if (desc.includes("conference league") || desc.includes("qualification"))
-    return "bg-teal-50";
+    return "bg-teal-50 dark:bg-teal-900/50";
   if (desc.includes("relegation") || desc.includes("rebaixamento"))
-    return "bg-red-50";
+    return "bg-red-50 dark:bg-red-900/50";
 
   return "";
 };
@@ -318,7 +328,6 @@ watch(
   { immediate: true }
 );
 
-// Buscar convites pendentes quando o componente for montado
 onMounted(async () => {
   if (stores.auth.isAuthenticated) {
     await stores.invitations.fetchPendingInvitations();

@@ -1,6 +1,6 @@
 <template>
   <div v-if="isMounted">
-    <div class="bg-gray-100 min-h-screen">
+    <div class="bg-gray-100 dark:bg-gray-900 min-h-screen">
       <Teleport to="body">
         <AppToast :message="toastMessage" :type="toastType" />
       </Teleport>
@@ -10,7 +10,7 @@
         class="p-4 flex items-center justify-center h-screen"
       >
         <div
-          class="bg-white w-full h-[90vh] rounded-2xl shadow-lg p-6 grid grid-cols-[180px_1fr_260px] gap-6"
+          class="bg-white dark:bg-gray-800 w-full h-[90vh] rounded-2xl shadow-lg p-6 grid grid-cols-[180px_1fr_260px] gap-6"
         >
           <div class="grid-column">
             <LeftSidebar />
@@ -26,13 +26,12 @@
 
       <div v-else class="flex flex-col h-screen w-screen overflow-hidden">
         <AppBar
+          class="shrink-0"
           @toggle-left="toggleLeftSidebar"
           @toggle-right="toggleRightSidebar"
-          class="shrink-0"
         />
 
-        <!-- Alteração: Removido p-4. As páginas agora controlam seu próprio padding. -->
-        <main class="flex-1 bg-gray-50 overflow-y-auto">
+        <main class="flex-1 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto">
           <slot />
         </main>
 
@@ -44,7 +43,7 @@
 
         <aside
           :class="[
-            'fixed top-0 left-0 h-full bg-white shadow-xl z-40 transform transition-transform duration-300 ease-in-out w-[250px] p-3',
+            'fixed top-0 left-0 h-full bg-white dark:bg-gray-800 shadow-xl z-40 transform transition-transform duration-300 ease-in-out w-[250px] p-3',
             isLeftSidebarOpen ? 'translate-x-0' : '-translate-x-full',
           ]"
         >
@@ -53,11 +52,11 @@
 
         <aside
           :class="[
-            'fixed top-0 right-0 h-full bg-white shadow-xl z-40 transform transition-transform duration-300 ease-in-out w-[280px] p-3',
+            'fixed top-0 right-0 h-full bg-white dark:bg-gray-800 shadow-xl z-40 transform transition-transform duration-300 ease-in-out w-[280px] p-3',
             isRightSidebarOpen ? 'translate-x-0' : 'translate-x-full',
           ]"
         >
-          <RightSidebar />
+          <RightSidebar @navigate="closeSidebars" />
         </aside>
       </div>
     </div>
@@ -73,6 +72,14 @@ import AppToast from "~/components/AppToast.vue";
 import LeftSidebar from "~/components/LeftSidebar.vue";
 import RightSidebar from "~/components/RightSidebar.vue";
 import AppBar from "~/components/AppBar.vue";
+
+const { theme } = useTheme();
+
+useHead({
+  htmlAttrs: {
+    class: () => theme.value
+  }
+})
 
 const stores = useStores();
 const { toastMessage, toastType } = storeToRefs(stores.ui);

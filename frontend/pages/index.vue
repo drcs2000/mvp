@@ -1,11 +1,11 @@
 <template>
-  <section class="bg-gray-50 min-h-screen">
+  <section class="bg-gray-50 dark:bg-gray-900 max-h-screen">
     <div class="sticky top-0 z-20">
-      <header class="bg-white/95 backdrop-blur-sm">
+      <header class="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
         <nav class="w-full overflow-x-auto no-scrollbar">
           <div
             v-if="!stores.championships.loading"
-            class="flex border-b border-gray-200"
+            class="flex border-b border-gray-200 dark:border-gray-700"
           >
             <button
               v-for="championship in leagueChampionships"
@@ -13,8 +13,8 @@
               :class="[
                 'flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0',
                 selectedChampionship?.id === championship.id
-                  ? 'border-b-2 border-gray-800 text-gray-800 font-semibold'
-                  : 'text-gray-500 hover:text-gray-700 hover:border-b-2 hover:border-gray-300',
+                  ? 'border-b-2 border-gray-800 text-gray-800 font-semibold dark:border-gray-200 dark:text-gray-200'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-b-2 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600',
               ]"
               @click="selectChampionshipWithAnimation(championship)"
             >
@@ -32,17 +32,17 @@
         <div
           v-if="showFeaturedMatch && featuredMatch && !stores.matches.loading"
           :key="`featured-${selectedChampionship?.id}`"
-          class="shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white"
+          class="shrink-0 p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
         >
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-gray-900">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white">
               {{ selectedChampionship?.name }}
             </h2>
-            <p v-if="currentRound" class="text-sm font-semibold text-gray-500">
+            <p v-if="currentRound" class="text-sm font-semibold text-gray-500 dark:text-gray-400">
               Rodada {{ currentRoundNumber }}
             </p>
           </div>
-          <div class="p-4 text-white bg-gray-800 rounded-xl">
+          <div class="p-4 text-white bg-gray-800 dark:bg-gray-700 rounded-xl">
             <div class="flex items-center justify-between">
               <div class="flex flex-col items-center w-1/3 text-center">
                 <img
@@ -51,7 +51,7 @@
                   class="object-contain w-16 h-16"
                 >
                 <span
-                  class="block mt-2 text-sm"
+                  class="block mt-2 text-sm text-white"
                   :class="{ 'font-bold': isHomeWinner(featuredMatch) }"
                   >{{ featuredMatch.homeTeamName }}</span
                 >
@@ -71,7 +71,7 @@
                   </span>
                   <span v-else>{{ formatTime(featuredMatch.date) }}</span>
                 </div>
-                <span class="mt-1 text-xs text-gray-400">{{
+                <span class="mt-1 text-xs text-gray-400 dark:text-gray-400">{{
                   getStatusText(featuredMatch.status)
                 }}</span>
               </div>
@@ -82,7 +82,7 @@
                   class="object-contain w-16 h-16"
                 >
                 <span
-                  class="block mt-2 text-sm"
+                  class="block mt-2 text-sm text-white"
                   :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
                   >{{ featuredMatch.awayTeamName }}</span
                 >
@@ -101,27 +101,27 @@
       >
         <div
           v-if="stores.matches.loading"
-          class="pt-8 text-center text-gray-500"
+          class="pt-8 text-center text-gray-500 dark:text-gray-400"
         >
           A carregar jogos...
         </div>
         <div v-else-if="Object.keys(matchesByDay).length > 0" class="mt-2">
           <div v-for="(matches, day) in matchesByDay" :key="day" class="mb-6">
-            <h3 class="py-2 px-4 sm:px-6 text-sm font-semibold text-gray-500">
+            <h3 class="py-2 px-4 sm:px-6 text-sm font-semibold text-gray-500 dark:text-gray-400">
               {{ formatDate(day) }}
             </h3>
-            <div class="space-y-px bg-white">
+            <div class="space-y-px">
               <NuxtLink
                 v-for="match in matches"
                 :key="match.id"
-                class="grid grid-cols-1 md:grid-cols-[100px,1fr,150px] gap-4 items-center px-4 sm:px-6 py-3 border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+                class="grid grid-cols-1 md:grid-cols-[100px,1fr,150px] gap-4 items-center px-4 sm:px-6 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 last:border-b-0"
               >
-                <div class="hidden md:block text-sm font-medium text-gray-800">
+                <div class="hidden md:block text-sm font-medium text-gray-800 dark:text-gray-300">
                   {{ formatTime(match.date) }}
                 </div>
 
                 <div
-                  class="grid grid-cols-[1fr,auto,auto,auto,1fr] items-center gap-3 text-sm"
+                  class="grid grid-cols-[1fr,auto,auto,auto,1fr] items-center gap-3 text-sm text-gray-800 dark:text-gray-200"
                 >
                   <span
                     class="text-right truncate"
@@ -134,7 +134,7 @@
                   >
                   <div class="flex flex-col items-center">
                     <span
-                      class="w-12 text-center font-bold text-base text-gray-800"
+                      class="w-12 text-center font-bold text-base"
                     >
                       <span
                         v-if="match.status !== 'NS' && match.status !== 'PST'"
@@ -149,7 +149,7 @@
                       </span>
                       <span v-else>vs</span>
                     </span>
-                    <span class="md:hidden text-xs text-gray-500 mt-1">
+                    <span class="md:hidden text-xs text-gray-500 dark:text-gray-400 mt-1">
                       <span
                         v-if="match.status === 'NS' || match.status === 'PST'"
                         >{{ formatTime(match.date) }}</span
@@ -170,7 +170,7 @@
                 </div>
 
                 <div
-                  class="hidden md:block text-sm text-right text-gray-500 truncate"
+                  class="hidden md:block text-sm text-right text-gray-500 dark:text-gray-300 truncate"
                 >
                   <span
                     v-if="match.status === 'NS' || match.status === 'PST'"
@@ -184,7 +184,7 @@
             </div>
           </div>
         </div>
-        <div v-else class="pt-8 text-center text-gray-500">
+        <div v-else class="pt-8 text-center text-gray-500 dark:text-gray-400">
           <p>Nenhum jogo encontrado para a rodada atual neste campeonato.</p>
         </div>
       </div>
@@ -311,7 +311,8 @@ const formatTime = (dateString) =>
 
 const formatDate = (dateString) => {
   const [year, month, day] = dateString.split("-");
-  const date = new Date(Date.UTC(year, month - 1, day));
+
+  const date = new Date(year, month - 1, day, 12, 0, 0);
 
   return new Intl.DateTimeFormat("pt-BR", {
     weekday: "long",

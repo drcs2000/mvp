@@ -1,5 +1,5 @@
 <template>
-  <section class="bg-white pb-28 md:pb-8">
+  <section class="bg-white dark:bg-gray-800 pb-28 md:pb-8">
     <div v-if="currentChampionship" class="sticky top-0 z-20">
       <ChampionshipHeader :championship="currentChampionship">
         <template #right>
@@ -7,7 +7,7 @@
             <button
               v-if="!isParticipant"
               :disabled="stores.pools.loading"
-              class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-sm hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 whitespace-nowrap"
+              class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-sm hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 whitespace-nowrap dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-gray-800"
               @click="joinPool"
             >
               Entrar no Bolão
@@ -18,8 +18,8 @@
               :class="[
                 'text-sm font-semibold whitespace-nowrap transition-colors duration-200',
                 isParticipant
-                  ? 'text-gray-600 hover:text-blue-600'
-                  : 'text-gray-400 cursor-not-allowed',
+                  ? 'text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400'
+                  : 'text-gray-400 cursor-not-allowed dark:text-gray-500',
               ]"
             >
               Ver Todos Palpites
@@ -30,8 +30,8 @@
               :class="[
                 'text-sm font-semibold whitespace-nowrap transition-colors duration-200',
                 isParticipant
-                  ? 'text-gray-600 hover:text-blue-600'
-                  : 'text-gray-400 cursor-not-allowed',
+                  ? 'text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400'
+                  : 'text-gray-400 cursor-not-allowed dark:text-gray-500',
               ]"
             >
               Informações
@@ -53,9 +53,9 @@
     <MatchList :matches-by-day="matchesByDay" :loading="stores.matches.loading">
       <template #match="{ matches }">
         <template v-for="match in matches" :key="match.id">
-          <div class="bg-white border-b border-gray-200">
+          <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
             <div
-              class="px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
+              class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200"
               :class="{ 'cursor-pointer': match.status !== 'FT' }"
               @click="toggleMatchDetails(match, $event)"
             >
@@ -63,7 +63,7 @@
                 class="flex flex-col md:grid md:grid-cols-[100px_1fr_150px] md:items-center md:gap-4 w-full"
               >
                 <!-- Coluna 1: Horário (Desktop) -->
-                <div class="hidden md:block text-sm font-medium text-gray-800">
+                <div class="hidden md:block text-sm font-medium text-gray-800 dark:text-gray-300">
                   {{ formatTime(match.date) }}
                 </div>
 
@@ -71,7 +71,7 @@
                 <div class="w-full">
                   <!-- Horário (Mobile - Sempre acima do palpite) -->
                   <div
-                    class="md:hidden text-center text-sm font-medium text-gray-800 mb-2"
+                    class="md:hidden text-center text-sm font-medium text-gray-800 dark:text-gray-300 mb-2"
                   >
                     {{ formatTime(match.date) }}
                   </div>
@@ -82,7 +82,7 @@
                   >
                     <div class="flex items-center gap-2 justify-end min-w-0">
                       <span
-                        class="text-right truncate"
+                        class="text-right truncate dark:text-gray-200"
                         :class="{ 'font-bold': isHomeWinner(match) }"
                         >{{ match.homeTeamName }}</span
                       >
@@ -99,17 +99,17 @@
                         :disabled="
                           isBettingTimeExpired(match) || !isParticipant
                         "
-                        class="w-6 text-center border rounded-md"
+                        class="w-6 text-center border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
                         @click.stop
                       >
-                      <span>-</span>
+                      <span class="dark:text-gray-400">-</span>
                       <input
                         v-model.number="betForms[match.id].awayScoreBet"
                         type="text"
                         :disabled="
                           isBettingTimeExpired(match) || !isParticipant
                         "
-                        class="w-6 text-center border rounded-md"
+                        class="w-6 text-center border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
                         @click.stop
                       >
                     </div>
@@ -122,7 +122,7 @@
                         class="object-contain w-6 h-6 shrink-0"
                       >
                       <span
-                        class="text-left truncate"
+                        class="text-left truncate dark:text-gray-200"
                         :class="{ 'font-bold': isAwayWinner(match) }"
                         >{{ match.awayTeamName }}</span
                       >
@@ -134,14 +134,14 @@
                     <!-- Para jogos não finalizados, mostrar countdown -->
                     <div
                       v-if="match.status !== 'FT'"
-                      class="flex items-center justify-center gap-1.5 text-xs text-gray-600"
+                      class="flex items-center justify-center gap-1.5 text-xs text-gray-600 dark:text-gray-400"
                     >
                       {{ countdowns[match.id] || "..." }}
                       <InformationCircleIcon class="w-4 h-4 text-gray-400" />
                     </div>
                     <!-- Para jogos finalizados, mostrar placar final -->
                     <div v-else>
-                      <p class="font-semibold text-sm text-gray-800">
+                      <p class="font-semibold text-sm text-gray-800 dark:text-gray-200">
                         {{ match.homeScore }} - {{ match.awayScore }}
                       </p>
                     </div>
@@ -157,7 +157,7 @@
                     class="flex items-center gap-1.5"
                   >
                     <div
-                      class="text-xs font-medium text-gray-600 whitespace-nowrap"
+                      class="text-xs font-medium text-gray-600 whitespace-nowrap dark:text-gray-400"
                     >
                       {{ countdowns[match.id] || "..." }}
                     </div>
@@ -165,7 +165,7 @@
                       <InformationCircleIcon class="w-4 h-4 text-gray-400" />
                     </div>
                   </div>
-                  <div v-else class="font-semibold text-sm text-gray-800">
+                  <div v-else class="font-semibold text-sm text-gray-800 dark:text-gray-200">
                     {{ match.homeScore }} - {{ match.awayScore }}
                   </div>
                 </div>
@@ -175,11 +175,11 @@
             <Transition name="expand">
               <div
                 v-if="expandedMatchId === match.id"
-                class="bg-gray-50/70 p-4 sm:p-6"
+                class="bg-gray-50/70 dark:bg-gray-900/70 p-4 sm:p-6"
               >
                 <div
                   v-if="detailsLoading"
-                  class="text-center text-sm text-gray-500 py-4"
+                  class="text-center text-sm text-gray-500 dark:text-gray-400 py-4"
                 >
                   Analisando dados...
                 </div>
@@ -187,7 +187,7 @@
                 <div v-else-if="lastGamesData[match.id]">
                   <div>
                     <h3
-                      class="text-lg font-bold text-gray-800 text-center mb-4"
+                      class="text-lg font-bold text-gray-800 dark:text-gray-100 text-center mb-4"
                     >
                       Forma Recente
                     </h3>
@@ -198,18 +198,18 @@
                             :src="match.homeTeamLogoUrl"
                             class="w-5 h-5 object-contain"
                           >
-                          <h4 class="font-semibold text-gray-700">
+                          <h4 class="font-semibold text-gray-700 dark:text-gray-300">
                             Últimos 5 de {{ match.homeTeamName }}
                           </h4>
                         </div>
-                        <div class="bg-white rounded-lg border p-2">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2">
                           <div
                             v-for="game in lastGamesData[match.id].homeTeam"
                             :key="game.id"
-                            class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 last:border-b-0"
+                            class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                           >
                             <span
-                              class="text-right font-medium text-gray-600 truncate pr-2"
+                              class="text-right font-medium text-gray-600 dark:text-gray-400 truncate pr-2"
                               >{{ game.homeTeamName }}</span
                             >
                             <span
@@ -222,7 +222,7 @@
                               {{ game.awayScore }}
                             </span>
                             <span
-                              class="text-left font-medium text-gray-600 truncate pl-2"
+                              class="text-left font-medium text-gray-600 dark:text-gray-400 truncate pl-2"
                               >{{ game.awayTeamName }}</span
                             >
                           </div>
@@ -234,18 +234,18 @@
                             :src="match.awayTeamLogoUrl"
                             class="w-5 h-5 object-contain"
                           >
-                          <h4 class="font-semibold text-gray-700">
+                          <h4 class="font-semibold text-gray-700 dark:text-gray-300">
                             Últimos 5 de {{ match.awayTeamName }}
                           </h4>
                         </div>
-                        <div class="bg-white rounded-lg border p-2">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2">
                           <div
                             v-for="game in lastGamesData[match.id].awayTeam"
                             :key="game.id"
-                            class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 last:border-b-0"
+                            class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                           >
                             <span
-                              class="text-right font-medium text-gray-600 truncate pr-2"
+                              class="text-right font-medium text-gray-600 dark:text-gray-400 truncate pr-2"
                               >{{ game.homeTeamName }}</span
                             >
                             <span
@@ -258,7 +258,7 @@
                               {{ game.awayScore }}
                             </span>
                             <span
-                              class="text-left font-medium text-gray-600 truncate pl-2"
+                              class="text-left font-medium text-gray-600 dark:text-gray-400 truncate pl-2"
                               >{{ game.awayTeamName }}</span
                             >
                           </div>
@@ -267,19 +267,19 @@
                     </div>
                   </div>
 
-                  <hr class="my-8 border-gray-200" >
+                  <hr class="my-8 border-gray-200 dark:border-gray-700" >
 
                   <div>
                     <div
                       v-if="isH2HLoading[match.id]"
-                      class="text-center text-sm text-gray-500 py-4"
+                      class="text-center text-sm text-gray-500 dark:text-gray-400 py-4"
                     >
                       Buscando histórico de confrontos...
                     </div>
 
                     <div v-else-if="h2hData[match.id]">
                       <h3
-                        class="text-lg font-bold text-gray-800 text-center mb-4"
+                        class="text-lg font-bold text-gray-800 dark:text-gray-100 text-center mb-4"
                       >
                         Confronto Direto
                       </h3>
@@ -287,30 +287,30 @@
                         class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-center mb-6"
                       >
                         <div
-                          class="border-l-4 border-blue-500 bg-white p-3 rounded-r-md shadow-sm"
+                          class="border-l-4 border-blue-500 bg-white dark:bg-gray-800 dark:border-blue-400 p-3 rounded-r-md shadow-sm"
                         >
-                          <div class="font-bold text-xl text-blue-800">
+                          <div class="font-bold text-xl text-blue-800 dark:text-blue-400">
                             {{ h2hStats[match.id].homeWins }}
                           </div>
-                          <div class="text-gray-600">
+                          <div class="text-gray-600 dark:text-gray-400">
                             Vitórias {{ match.homeTeamName }}
                           </div>
                         </div>
                         <div
-                          class="border-l-4 border-gray-400 bg-white p-3 rounded-r-md shadow-sm"
+                          class="border-l-4 border-gray-400 bg-white dark:bg-gray-800 dark:border-gray-500 p-3 rounded-r-md shadow-sm"
                         >
-                          <div class="font-bold text-xl text-gray-800">
+                          <div class="font-bold text-xl text-gray-800 dark:text-gray-200">
                             {{ h2hStats[match.id].draws }}
                           </div>
-                          <div class="text-gray-600">Empates</div>
+                          <div class="text-gray-600 dark:text-gray-400">Empates</div>
                         </div>
                         <div
-                          class="border-l-4 border-red-500 bg-white p-3 rounded-r-md shadow-sm"
+                          class="border-l-4 border-red-500 bg-white dark:bg-gray-800 dark:border-red-400 p-3 rounded-r-md shadow-sm"
                         >
-                          <div class="font-bold text-xl text-red-800">
+                          <div class="font-bold text-xl text-red-800 dark:text-red-400">
                             {{ h2hStats[match.id].awayWins }}
                           </div>
-                          <div class="text-gray-600">
+                          <div class="text-gray-600 dark:text-gray-400">
                             Vitórias {{ match.awayTeamName }}
                           </div>
                         </div>
@@ -318,18 +318,18 @@
 
                       <div class="mb-6">
                         <h4
-                          class="text-sm font-semibold text-gray-700 mb-3 text-center"
+                          class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-center"
                         >
                           Gols no Confronto (Total)
                         </h4>
-                        <div class="space-y-2 text-xs">
+                        <div class="space-y-2 text-xs dark:text-gray-300">
                           <div class="flex items-center gap-2">
                             <span class="w-28 text-right truncate">{{
                               match.homeTeamName
                             }}</span>
-                            <div class="flex-1 bg-gray-200 rounded-full h-2.5">
+                            <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
                               <div
-                                class="bg-blue-500 h-2.5 rounded-full"
+                                class="bg-blue-500 dark:bg-blue-400 h-2.5 rounded-full"
                                 :style="{
                                   width:
                                     h2hGoals[match.id]?.homePercentage + '%',
@@ -344,9 +344,9 @@
                             <span class="w-28 text-right truncate">{{
                               match.awayTeamName
                             }}</span>
-                            <div class="flex-1 bg-gray-200 rounded-full h-2.5">
+                            <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
                               <div
-                                class="bg-red-500 h-2.5 rounded-full"
+                                class="bg-red-500 dark:bg-red-400 h-2.5 rounded-full"
                                 :style="{
                                   width:
                                     h2hGoals[match.id]?.awayPercentage + '%',
@@ -363,18 +363,18 @@
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <h4
-                            class="text-sm font-semibold text-gray-700 mb-2 text-center"
+                            class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 text-center"
                           >
                             Últimos 5 (Geral)
                           </h4>
-                          <div class="bg-white rounded-lg border p-2">
+                          <div class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2">
                             <div
                               v-for="game in overallH2HGames[match.id]"
                               :key="game.apiFootballFixtureId"
-                              class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 last:border-b-0"
+                              class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                             >
                               <span
-                                class="text-right font-medium text-gray-600 truncate pr-2"
+                                class="text-right font-medium text-gray-600 dark:text-gray-400 truncate pr-2"
                                 >{{ game.homeTeamName }}</span
                               >
                               <span
@@ -386,7 +386,7 @@
                                 {{ game.awayScore }}</span
                               >
                               <span
-                                class="text-left font-medium text-gray-600 truncate pl-2"
+                                class="text-left font-medium text-gray-600 dark:text-gray-400 truncate pl-2"
                                 >{{ game.awayTeamName }}</span
                               >
                             </div>
@@ -395,11 +395,11 @@
 
                         <div>
                           <h4
-                            class="text-sm font-semibold text-gray-700 mb-2 text-center"
+                            class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 text-center"
                           >
                             {{ match.homeTeamName }} (Mandante)
                           </h4>
-                          <div class="bg-white rounded-lg border p-2">
+                          <div class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2">
                             <div
                               v-if="
                                 homeHomeGames[match.id] &&
@@ -409,10 +409,10 @@
                               <div
                                 v-for="game in homeHomeGames[match.id]"
                                 :key="game.apiFootballFixtureId"
-                                class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 last:border-b-0"
+                                class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                               >
                                 <span
-                                  class="text-right font-medium text-gray-600 truncate pr-2"
+                                  class="text-right font-medium text-gray-600 dark:text-gray-400 truncate pr-2"
                                   >{{ game.homeTeamName }}</span
                                 >
                                 <span
@@ -427,14 +427,14 @@
                                   {{ game.awayScore }}</span
                                 >
                                 <span
-                                  class="text-left font-medium text-gray-600 truncate pl-2"
+                                  class="text-left font-medium text-gray-600 dark:text-gray-400 truncate pl-2"
                                   >{{ game.awayTeamName }}</span
                                 >
                               </div>
                             </div>
                             <div
                               v-else
-                              class="text-center text-xs text-gray-500 py-2 h-full flex items-center justify-center"
+                              class="text-center text-xs text-gray-500 dark:text-gray-400 py-2 h-full flex items-center justify-center"
                             >
                               <p>
                                 Nenhum jogo recente encontrado como mandante no
@@ -448,7 +448,7 @@
 
                     <div v-else class="text-center">
                       <button
-                        class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-semibold text-gray-600 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-800"
+                          class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-semibold text-gray-600 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                         @click="loadH2H(match)"
                       >
                         Ver Confronto Direto
@@ -465,11 +465,11 @@
 
     <div
       v-if="hasUnplayedMatches && isParticipant"
-      class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-sm border-t border-gray-200 md:relative md:p-0 md:bg-transparent md:border-none md:mt-6 text-center"
+      class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-sm border-t border-gray-200 md:relative md:p-0 md:bg-transparent md:border-none md:mt-6 text-center dark:bg-gray-800/90 dark:border-gray-700"
     >
       <button
         :disabled="!hasChanges || !allBetsAreFilled || stores.bet.loading"
-        class="w-full px-4 py-3 text-base font-semibold text-white bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 md:w-auto md:px-6 md:py-2 md:text-sm md:shadow-sm"
+        class="w-full px-4 py-3 text-base font-semibold text-white bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 md:w-auto md:px-6 md:py-2 md:text-sm md:shadow-sm dark:bg-blue-500 dark:hover:bg-blue-600 dark:disabled:bg-gray-600 dark:focus:ring-offset-gray-800"
         @click="submitAllBets"
       >
         Salvar Rodada

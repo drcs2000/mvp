@@ -22,6 +22,7 @@ export default defineNuxtConfig({
 
   plugins: [
     '~/plugins/auth-init.client.ts',
+    '~/plugins/theme-init.client.ts',
   ],
 
   routeRules: {
@@ -29,4 +30,10 @@ export default defineNuxtConfig({
       proxy: `${process.env.API_PROXY_URL}/**`,
     }
   },
+
+  tailwindcss: {
+    config: {
+      darkMode: 'class',
+    },
+  }
 })

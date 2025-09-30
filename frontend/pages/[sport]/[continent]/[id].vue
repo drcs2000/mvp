@@ -309,12 +309,17 @@ const formatTime = (dateString) =>
     hour: "2-digit",
     minute: "2-digit",
   });
-const formatDate = (dateString) =>
-  new Date(dateString + "T00:00:00").toLocaleDateString("pt-BR", {
+const formatDate = (dateString) => {
+  const [year, month, day] = dateString.split("-");
+
+  const date = new Date(year, month - 1, day, 12, 0, 0);
+
+  return new Intl.DateTimeFormat("pt-BR", {
     weekday: "long",
     day: "2-digit",
     month: "long",
-  });
+  }).format(date);
+};
 const getStatusText = (status) =>
   ({
     NS: "Agendado",

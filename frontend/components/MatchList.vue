@@ -1,11 +1,16 @@
 <template>
-  <div class="px-4 sm:px-6 pb-6">
-    <div v-if="loading" class="pt-8 text-center text-gray-500">
+  <div class="sm:px-6 pb-6">
+    <div
+      v-if="loading"
+      class="pt-8 text-center text-gray-500 dark:text-gray-400"
+    >
       A carregar jogos...
     </div>
     <div v-else-if="Object.keys(matchesByDay).length > 0" class="mt-2">
       <div v-for="(matches, day) in matchesByDay" :key="day" class="mb-6">
-        <h3 class="py-2 text-sm font-semibold text-gray-500 text-left">
+        <h3
+          class="px-2 py-2 text-sm font-semibold text-gray-500 dark:text-gray-300 text-left"
+        >
           {{ formatDate(day) }}
         </h3>
         <div class="space-y-px">
@@ -13,24 +18,22 @@
             <div
               v-for="match in matches"
               :key="match.id"
-              class="bg-white border-b border-gray-200"
+              class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
             >
-              <!-- INÍCIO DA ALTERAÇÃO -->
               <div
-                class="grid grid-cols-1 md:grid-cols-[100px_1fr_100px] gap-4 items-center px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
+                class="grid grid-cols-1 md:grid-cols-[100px_1fr_100px] gap-4 items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200"
               >
-                <!-- Coluna 1: Horário (Apenas Desktop) -->
                 <div
-                  class="hidden md:block text-sm font-medium text-gray-800 text-left"
+                  class="hidden md:block text-sm font-medium text-gray-800 dark:text-gray-300 text-left"
                 >
                   {{ formatTime(match.date) }}
                 </div>
 
-                <!-- Coluna 2: Detalhes da Partida -->
                 <div class="flex items-center justify-between text-sm gap-2">
-                  <!-- Time da Casa -->
                   <div class="flex items-center gap-2 flex-1 justify-end">
-                    <span class="text-right truncate max-w-[120px]">
+                    <span
+                      class="text-right truncate max-w-[120px] dark:text-gray-200"
+                    >
                       {{ match.homeTeamName }}
                     </span>
                     <img
@@ -39,19 +42,21 @@
                     >
                   </div>
 
-                  <!-- Bloco do Placar/Status -->
                   <div class="flex flex-col items-center">
-                    <div class="flex items-center gap-1 font-bold text-base">
+                    <div
+                      class="flex items-center gap-1 font-bold text-base text-gray-800 dark:text-gray-200"
+                    >
                       <span class="w-8 text-center">{{
                         match.homeScore ?? ""
                       }}</span>
-                      <span>-</span>
+                      <span class="dark:text-gray-200">-</span>
                       <span class="w-8 text-center">{{
                         match.awayScore ?? ""
                       }}</span>
                     </div>
-                    <!-- Horário ou Status (Apenas Mobile) -->
-                    <span class="md:hidden text-xs text-gray-500 mt-1">
+                    <span
+                      class="md:hidden text-xs text-gray-500 dark:text-gray-400 mt-1"
+                    >
                       <span
                         v-if="match.status === 'NS' || match.status === 'PST'"
                         >{{ formatTime(match.date) }}</span
@@ -60,32 +65,31 @@
                     </span>
                   </div>
 
-                  <!-- Time Visitante -->
                   <div class="flex items-center gap-2 flex-1 justify-start">
                     <img
                       :src="match.awayTeamLogoUrl"
                       class="object-contain w-6 h-6 shrink-0"
                     >
-                    <span class="text-left truncate max-w-[120px]">
+                    <span
+                      class="text-left truncate max-w-[120px] dark:text-gray-200"
+                    >
                       {{ match.awayTeamName }}
                     </span>
                   </div>
                 </div>
 
-                <!-- Coluna 3: Status (Apenas Desktop) -->
                 <div
-                  class="hidden md:block text-sm font-medium text-gray-500 text-right"
+                  class="hidden md:block text-sm font-medium text-gray-500 dark:text-gray-300 text-right"
                 >
                   {{ getStatusText(match.status) }}
                 </div>
               </div>
-              <!-- FIM DA ALTERAÇÃO -->
             </div>
           </slot>
         </div>
       </div>
     </div>
-    <div v-else class="pt-8 text-center text-gray-500">
+    <div v-else class="pt-8 text-center text-gray-500 dark:text-gray-400">
       <p>Nenhum jogo encontrado para esta rodada.</p>
     </div>
   </div>
@@ -109,12 +113,17 @@ const formatTime = (dateString) =>
     minute: "2-digit",
   });
 
-const formatDate = (dateString) =>
-  new Date(dateString + "T00:00:00").toLocaleDateString("pt-BR", {
+const formatDate = (dateString) => {
+  const [year, month, day] = dateString.split("-");
+
+  const date = new Date(year, month - 1, day, 12, 0, 0);
+
+  return new Intl.DateTimeFormat("pt-BR", {
     weekday: "long",
     day: "2-digit",
     month: "long",
-  });
+  }).format(date);
+};
 
 const getStatusText = (status) =>
   ({

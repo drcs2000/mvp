@@ -1,6 +1,6 @@
 <template>
   <header
-    class="p-4 sm:p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm"
+    class="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
   >
     <div
       class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
@@ -12,7 +12,7 @@
             :src="championship.leagueLogoUrl"
             class="w-8 h-8 object-contain"
           >
-          <h1 v-if="championship?.name" class="text-xl font-bold text-gray-900">
+          <h1 v-if="championship?.name" class="text-xl font-bold text-gray-900 dark:text-white">
             {{ championship.name }}
           </h1>
         </slot>
