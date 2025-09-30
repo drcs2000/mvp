@@ -19,7 +19,7 @@
             <slot />
           </div>
           <div class="grid-column">
-            <RightSidebar />
+            <RightSidebar @navigate="closeSidebars" />
           </div>
         </div>
       </div>
@@ -64,9 +64,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useWindowSize } from "@vueuse/core";
+import { useRoute } from '#app';
 
 import AppToast from "~/components/AppToast.vue";
 import LeftSidebar from "~/components/LeftSidebar.vue";
@@ -84,6 +85,8 @@ useHead({
 const stores = useStores();
 const { toastMessage, toastType } = storeToRefs(stores.ui);
 
+const { isAuthenticated } = storeToRefs(stores.auth);
+
 const { width } = useWindowSize();
 const isMobile = computed(() => width.value < 1250);
 
@@ -91,14 +94,29 @@ const isLeftSidebarOpen = ref(false);
 const isRightSidebarOpen = ref(false);
 
 const isMounted = ref(false);
-onMounted(() => {
-  if (!stores.auth.user) {
-    stores.auth.logout()
+
+const checkAuthStatus = () => {
+  if (!isAuthenticated.value) {
     stores.ui.showToast("Sua sessão expirou. Por favor, faça login novamente.", "error");
-    return;
+    stores.auth.logout(); 
+    return false;
   }
-  isMounted.value = true;
+  return true;
+};
+
+onMounted(() => {
+  if (checkAuthStatus()) {
+    isMounted.value = true;
+  }
 });
+
+const route = useRoute();
+watch(
+  () => route.path,
+  () => {
+    checkAuthStatus();
+  }
+);
 
 const toggleLeftSidebar = () => {
   isLeftSidebarOpen.value = !isLeftSidebarOpen.value;

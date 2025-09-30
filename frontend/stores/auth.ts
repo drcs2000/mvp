@@ -137,7 +137,6 @@ export const useAuthStore = defineStore('auth', {
      */
     async logout() {
       this._clearState();
-      await navigateTo('/login');
     },
 
     /**

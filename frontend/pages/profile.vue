@@ -567,6 +567,7 @@
               >
                 <button
                   type="submit"
+                  :disabled="!isSaveEnabled"
                   class="w-full inline-flex items-center justify-center rounded-lg bg-gray-800 py-3 px-6 text-sm font-semibold text-white shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300 dark:focus:ring-offset-gray-900 dark:disabled:bg-gray-600"
                 >
                   <svg
@@ -676,6 +677,19 @@ watch(
   },
   { immediate: true }
 );
+
+const isSaveEnabled = computed(() => {
+  if (!myProfile.value) return false;
+
+  const profileChanged = form.value.name !== myProfile.value.name || form.value.email !== myProfile.value.email;
+
+  const passwordChangeValid =
+    form.value.currentPassword &&
+    form.value.newPassword &&
+    form.value.newPassword === form.value.confirmPassword;
+
+  return profileChanged || passwordChangeValid;
+});
 
 const handleUpdateProfile = async () => {
   if (
