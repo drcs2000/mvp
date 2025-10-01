@@ -1,20 +1,20 @@
 <template>
-  <section class="bg-white">
+  <section class="bg-white dark:bg-gray-900">
     <div v-if="championship" class="sticky top-0 z-20">
-      <!-- Cabeçalho Padrão -->
       <header
-        class="flex items-center shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm gap-4"
+        class="flex items-center shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm gap-4 dark:bg-gray-800/80 dark:border-gray-700"
       >
         <img :src="championship.leagueLogoUrl" class="w-8 h-8 object-contain" >
-        <h1 class="text-xl font-bold text-gray-900">{{ championship.name }}</h1>
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+          {{ championship.name }}
+        </h1>
       </header>
-      
-      <!-- Jogo em Destaque -->
+
       <div
         v-if="featuredMatch && !stores.matches.loading"
-        class="shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white"
+        class="shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700"
       >
-        <div class="p-4 text-white bg-gray-800 rounded-xl">
+        <div class="p-4 text-white bg-gray-800 dark:bg-gray-700 rounded-xl">
           <div class="flex items-center justify-between">
             <div class="flex flex-col items-center w-1/3 text-center">
               <img
@@ -30,21 +30,23 @@
             </div>
             <div class="text-center">
               <div class="text-4xl font-bold">
-                <span v-if="featuredMatch.status !== 'NS' && featuredMatch.status !== 'PST'">
+                <span
+                  v-if="
+                    featuredMatch.status !== 'NS' &&
+                    featuredMatch.status !== 'PST'
+                  "
+                >
                   <span :class="{ 'font-bold': isHomeWinner(featuredMatch) }">{{
                     featuredMatch.homeScore ?? ""
                   }}</span>
-                   - 
-                  <span
-                    :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
-                    >{{ featuredMatch.awayScore ?? "" }}</span
-                  >
-                </span>
-                 <span v-else>{{
-                    formatTime(featuredMatch.date)
+                  -
+                  <span :class="{ 'font-bold': isAwayWinner(featuredMatch) }">{{
+                    featuredMatch.awayScore ?? ""
                   }}</span>
+                </span>
+                <span v-else>{{ formatTime(featuredMatch.date) }}</span>
               </div>
-              <span class="mt-1 text-xs text-gray-400">{{
+              <span class="mt-1 text-xs text-gray-400 dark:text-gray-300">{{
                 getStatusText(featuredMatch.status)
               }}</span>
             </div>
@@ -63,54 +65,44 @@
           </div>
         </div>
       </div>
-      
-      <!-- Seletor de Rodada Fixo -->
-       <div v-if="!stores.matches.loading" class="bg-white py-4 border-b border-gray-200">
-        <div class="flex items-center justify-center">
-            <div class="flex items-center gap-2">
-                <button
-                :disabled="isFirstRound"
-                class="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                @click="previousRound"
-                >
-                <ChevronLeftIcon class="w-5 h-5 text-gray-600" />
-                </button>
-                <p class="text-sm font-semibold text-gray-700 w-24 text-center">
-                Rodada {{ currentRoundNumber }}
-                </p>
-                <button
-                :disabled="isLastRound"
-                class="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                @click="nextRound"
-                >
-                <ChevronRightIcon class="w-5 h-5 text-gray-600" />
-                </button>
-            </div>
-        </div>
-      </div>
 
+      <RoundSelector
+        v-if="!stores.matches.loading"
+        :is-first-round="isFirstRound"
+        :is-last-round="isLastRound"
+        :current-round-number="currentRoundNumber"
+        @previous="previousRound"
+        @next="nextRound"
+      />
     </div>
 
     <div class="px-4 sm:px-6 pb-6">
-      <div v-if="stores.matches.loading" class="pt-8 text-center text-gray-500">
+      <div
+        v-if="stores.matches.loading"
+        class="pt-8 text-center text-gray-500 dark:text-gray-400"
+      >
         A carregar jogos...
       </div>
       <div v-else-if="Object.keys(matchesByDay).length > 0" class="mt-2">
         <div v-for="(matches, day) in matchesByDay" :key="day" class="mb-6">
-          <h3 class="py-2 text-sm font-semibold text-gray-500">
+          <h3
+            class="py-2 text-sm font-semibold text-gray-500 dark:text-gray-400"
+          >
             {{ formatDate(day) }}
           </h3>
           <div class="space-y-px">
             <NuxtLink
               v-for="match in matches"
               :key="match.id"
-              class="grid grid-cols-1 md:grid-cols-[100px,1fr,150px] gap-4 items-center px-4 py-3 border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+              class="grid grid-cols-1 md:grid-cols-[100px,1fr,150px] gap-4 items-center px-4 py-3 border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200 dark:border-gray-700 dark:hover:bg-gray-800/50"
             >
-              <div class="hidden md:block text-sm font-medium text-gray-800">
+              <div
+                class="hidden md:block text-sm font-medium text-gray-800 dark:text-gray-300"
+              >
                 {{ formatTime(match.date) }}
               </div>
               <div
-                class="grid grid-cols-[1fr,auto,auto,auto,1fr] items-center gap-3 text-sm"
+                class="grid grid-cols-[1fr,auto,auto,auto,1fr] items-center gap-3 text-sm text-gray-800 dark:text-gray-200"
               >
                 <span
                   class="text-right truncate"
@@ -121,30 +113,30 @@
                   :src="match.homeTeamLogoUrl"
                   class="object-contain w-6 h-6 shrink-0"
                 >
-                 <div class="flex flex-col items-center">
+                <div class="flex flex-col items-center">
+                  <span class="w-12 text-center font-bold text-base">
                     <span
-                        class="w-12 text-center font-bold text-base text-gray-800"
+                      v-if="match.status !== 'NS' && match.status !== 'PST'"
                     >
-                        <span
-                        v-if="match.status !== 'NS' && match.status !== 'PST'"
-                        >
-                        <span :class="{ 'font-bold': isHomeWinner(match) }">{{
-                            match.homeScore
-                        }}</span>
-                        -
-                        <span :class="{ 'font-bold': isAwayWinner(match) }">{{
-                            match.awayScore
-                        }}</span>
-                        </span>
-                        <span v-else>vs</span>
+                      <span :class="{ 'font-bold': isHomeWinner(match) }">{{
+                        match.homeScore
+                      }}</span>
+                      -
+                      <span :class="{ 'font-bold': isAwayWinner(match) }">{{
+                        match.awayScore
+                      }}</span>
                     </span>
-                    <span class="md:hidden text-xs text-gray-500 mt-1">
-                        <span
-                        v-if="match.status === 'NS' || match.status === 'PST'"
-                        >{{ formatTime(match.date) }}</span
-                        >
-                        <span v-else>{{ getStatusText(match.status) }}</span>
-                    </span>
+                    <span v-else>vs</span>
+                  </span>
+                  <span
+                    class="md:hidden text-xs text-gray-500 dark:text-gray-400 mt-1"
+                  >
+                    <span
+                      v-if="match.status === 'NS' || match.status === 'PST'"
+                      >{{ formatTime(match.date) }}</span
+                    >
+                    <span v-else>{{ getStatusText(match.status) }}</span>
+                  </span>
                 </div>
                 <img
                   :src="match.awayTeamLogoUrl"
@@ -156,15 +148,21 @@
                   >{{ match.awayTeamName }}</span
                 >
               </div>
-              <div class="hidden md:block text-sm text-right text-gray-500 truncate">
-                <span v-if="match.status === 'NS' || match.status === 'PST'">{{ match.stadium }}</span>
-                <span v-else class="font-semibold">{{ getStatusText(match.status) }}</span>
+              <div
+                class="hidden md:block text-sm text-right text-gray-500 dark:text-gray-400 truncate"
+              >
+                <span v-if="match.status === 'NS' || match.status === 'PST'">{{
+                  match.stadium
+                }}</span>
+                <span v-else class="font-semibold">{{
+                  getStatusText(match.status)
+                }}</span>
               </div>
             </NuxtLink>
           </div>
         </div>
       </div>
-      <div v-else class="pt-8 text-center text-gray-500">
+      <div v-else class="pt-8 text-center text-gray-500 dark:text-gray-400">
         <p>Nenhum jogo encontrado para esta rodada.</p>
       </div>
     </div>
@@ -173,7 +171,6 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
 const stores = useStores();
@@ -210,23 +207,25 @@ watch(championshipId, async (newId) => {
 });
 
 const findCurrentRound = (allMatches) => {
-    const now = new Date();
-    const todayString = now.toISOString().split('T')[0];
+  const now = new Date();
+  const todayString = now.toISOString().split("T")[0];
 
-    const todayMatches = allMatches.filter(m => m.date.startsWith(todayString));
-    if (todayMatches.length > 0) {
-        return todayMatches[0].round;
-    }
+  const todayMatches = allMatches.filter((m) => m.date.startsWith(todayString));
+  if (todayMatches.length > 0) {
+    return todayMatches[0].round;
+  }
 
-    const upcomingMatch = allMatches
-        .filter(m => new Date(m.date) >= now)
-        .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+  const upcomingMatch = allMatches
+    .filter((m) => new Date(m.date) >= now)
+    .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
 
-    if (upcomingMatch) return upcomingMatch.round;
+  if (upcomingMatch) return upcomingMatch.round;
 
-    const lastMatch = [...allMatches].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+  const lastMatch = [...allMatches].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  )[0];
 
-    return lastMatch ? lastMatch.round : null;
+  return lastMatch ? lastMatch.round : null;
 };
 
 const allRounds = computed(() => {
@@ -309,13 +308,17 @@ const formatDate = (dateString) => {
   }).format(date);
 };
 const getStatusText = (status) =>
-  ({ NS: "Agendado", FT: "Encerrado", "1H": "1º Tempo", "2H": "2º Tempo", PST: "Adiado", HT: "Intervalo" }[
-    status
-  ] || status);
+  ({
+    NS: "Agendado",
+    FT: "Encerrado",
+    "1H": "1º Tempo",
+    "2H": "2º Tempo",
+    PST: "Adiado",
+    HT: "Intervalo",
+  }[status] || status);
 
 const isHomeWinner = (match) =>
   match.status === "FT" && match.homeScore > match.awayScore;
 const isAwayWinner = (match) =>
   match.status === "FT" && match.awayScore > match.homeScore;
 </script>
-
