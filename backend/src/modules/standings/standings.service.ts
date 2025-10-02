@@ -1,175 +1,111 @@
-import { AppDataSource } from '../../database/data-source'
-import { Standings } from '../../entities/standings.entity'
-import { Championship } from '../../entities/championship.entity'
-import { Match, MatchStatus } from '../../entities/match.entity'
-import { Like } from 'typeorm'
+import { AppDataSource } from '../../database/data-source';
+import { Standings } from '../../entities/standings.entity';
+import { Championship } from '../../entities/championship.entity';
+import { Repository } from 'typeorm';
+import ExternalApiService from '../../services/external-api.service';
 
-const normalizeName = (name: string): string => {
-  if (!name) return '' 
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s/g, '')
+export interface IEspnStandingEntry {
+  team: {
+    id: string;
+    displayName: string;
+    logos?: { href: string }[];
+  };
+  stats: { name: string; value: number }[];
+}
+
+export interface IEspnStandingsPayload {
+  name: string;
+  season?: { type: { name: string } };
+  children?: {
+    name: string;
+    standings: { entries: IEspnStandingEntry[] };
+  }[];
+  standings?: {
+    entries: IEspnStandingEntry[];
+  };
 }
 
 class StandingsService {
-  private standingsRepository = AppDataSource.getRepository(Standings)
-  private championshipRepository = AppDataSource.getRepository(Championship)
-  private matchRepository = AppDataSource.getRepository(Match)
+  private standingsRepository: Repository<Standings>;
+  private championshipRepository: Repository<Championship>;
 
-  public async getStandingsByChampionshipId(apiFootballId: number): Promise<Standings[]> {
+  constructor() {
+    this.standingsRepository = AppDataSource.getRepository(Standings);
+    this.championshipRepository = AppDataSource.getRepository(Championship);
+  }
+
+  public async getStandings(championshipId: number): Promise<Standings[]> {
     return this.standingsRepository.find({
       where: {
-        championshipApiFootballId: apiFootballId,
+        championship: { id: championshipId },
       },
       order: {
         rank: 'ASC',
       },
-      relations: {
-        championship: true,
-      }
-    })
+    });
   }
 
-  public async updateStandingsFromApi(championship: Championship, apiStandingsData: any[]): Promise<void> {
-    if (!apiStandingsData || apiStandingsData.length === 0) {
-      return
-    }
-
-    const standingsPayload = apiStandingsData.map(standing => {
-      return {
-        championship: championship,
-        championshipApiFootballId: championship.apiFootballId,
-        teamApiId: standing.team.id,
-        teamName: standing.team.name,
-        teamLogoUrl: standing.team.logo,
-        rank: standing.rank,
-        points: standing.points,
-        goalsDiff: standing.goalsDiff,
-        form: standing.form,
-        description: standing.description,
-        played: standing.all.played,
-        win: standing.all.win,
-        draw: standing.all.draw,
-        lose: standing.all.lose,
-        goalsFor: standing.all.goals.for,
-        goalsAgainst: standing.all.goals.against,
-        lastUpdate: new Date(standing.update),
-      }
-    })
-
-    await this.standingsRepository.upsert(
-      standingsPayload,
-      ['championshipApiFootballId', 'teamApiId']
-    )
-  }
-
-  public async recalculateStandings(championshipId: number, roundFilter: string): Promise<void> {
-    const finishedMatches = await this.matchRepository.find({
-      where: {
-        apiFootballId: championshipId,
-        status: MatchStatus.FINISHED,
-        round: Like(`${roundFilter}%`), 
-      },
-      order: {
-        date: 'ASC',
-      }
-    })
-
-    const teamsStats = new Map<number | string, any>()
-    const teamsInfo = new Map<number | string, any>()
-
-    for (const match of finishedMatches) {
-      const homeTeamKey = match.homeTeamApiId ?? normalizeName(match.homeTeamName)
-      const awayTeamKey = match.awayTeamApiId ?? normalizeName(match.awayTeamName)
-
-      if (!teamsStats.has(homeTeamKey)) {
-        teamsStats.set(homeTeamKey, { played: 0, win: 0, draw: 0, lose: 0, goalsFor: 0, goalsAgainst: 0, points: 0, form: '' })
-        teamsInfo.set(homeTeamKey, { name: match.homeTeamName, logo: match.homeTeamLogoUrl, apiId: match.homeTeamApiId })
-      }
-      if (!teamsStats.has(awayTeamKey)) {
-        teamsStats.set(awayTeamKey, { played: 0, win: 0, draw: 0, lose: 0, goalsFor: 0, goalsAgainst: 0, points: 0, form: '' })
-        teamsInfo.set(awayTeamKey, { name: match.awayTeamName, logo: match.awayTeamLogoUrl, apiId: match.awayTeamApiId })
-      }
-
-      const homeStats = teamsStats.get(homeTeamKey)
-      const awayStats = teamsStats.get(awayTeamKey)
-
-      homeStats.played++
-      awayStats.played++
-      homeStats.goalsFor += match.homeScore ?? 0
-      homeStats.goalsAgainst += match.awayScore ?? 0
-      awayStats.goalsFor += match.awayScore ?? 0
-      awayStats.goalsAgainst += match.homeScore ?? 0
-
-      if ((match.homeScore ?? 0) > (match.awayScore ?? 0)) {
-        homeStats.win++
-        homeStats.points += 3
-        awayStats.lose++
-        homeStats.form += 'W'
-        awayStats.form += 'L'
-      } else if ((match.homeScore ?? 0) < (match.awayScore ?? 0)) {
-        awayStats.win++
-        awayStats.points += 3
-        homeStats.lose++
-        homeStats.form += 'L'
-        awayStats.form += 'W'
-      } else {
-        homeStats.draw++
-        homeStats.points += 1
-        awayStats.draw++
-        awayStats.points += 1
-        homeStats.form += 'D'
-        awayStats.form += 'D'
-      }
-    }
-
-    teamsStats.forEach(stats => {
-      stats.form = stats.form.slice(-5)
-    })
-
-    let standingsList = Array.from(teamsStats.entries()).map(([teamKey, stats]) => {
-      const teamInfo = teamsInfo.get(teamKey)
-      return {
-        championshipApiFootballId: championshipId,
-        teamApiId: teamInfo.apiId || null,
-        teamName: teamInfo.name,
-        teamLogoUrl: teamInfo.logo,
-        ...stats,
-        goalsDiff: stats.goalsFor - stats.goalsAgainst,
-        lastUpdate: new Date(),
-      }
-    })
-
-    standingsList.sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points
-      if (b.goalsDiff !== a.goalsDiff) return b.goalsDiff - a.goalsDiff
-      return b.goalsFor - a.goalsFor
-    })
-
+  /**
+   * Atualiza a classificação de um campeonato, buscando dados da API
+   * e aplicando as regras de descrição da tabela 'championship_rules'.
+   */
+  public async updateStandings(championshipId: number): Promise<void> {
     const championship = await this.championshipRepository.findOne({
-      where: { apiFootballId: championshipId },
-      relations: ['standingRules'],
-    })
+      where: { id: championshipId },
+      relations: ['standingRules'], // Carrega as regras junto com o campeonato
+    });
 
-    for (let i = 0; i < standingsList.length; i++) {
-      const teamStanding = standingsList[i] as any
-      teamStanding.rank = i + 1
-
-      if (championship && championship.standingRules) {
-        const rule = championship.standingRules.find(r => teamStanding.rank >= r.minRank && teamStanding.rank <= r.maxRank)
-        teamStanding.description = rule ? rule.description : null
-      } else {
-        teamStanding.description = null
-      }
+    if (!championship) {
+      throw new Error(`Campeonato com ID ${championshipId} não encontrado.`);
     }
 
-    await this.standingsRepository.upsert(
-      standingsList,
-      ['championshipApiFootballId', 'teamApiId']
-    )
+    const apiStandingsPayload: IEspnStandingsPayload = await ExternalApiService.getStandings(championship.apiEspnSlug);
+    const standingsToSave: Partial<Standings>[] = [];
+    const rules = championship.standingRules || [];
+    
+    // Função auxiliar para processar cada time da classificação
+    const processEntry = (entry: IEspnStandingEntry, groupName: string | null) => {
+      const statsMap = new Map(entry.stats.map(stat => [stat.name, stat.value]));
+      const rank = statsMap.get('rank') ?? 0;
+      
+      // Encontra a regra aplicável com base no rank do time
+      const applicableRule = rules.find(rule => rank >= rule.minRank && rank <= rule.maxRank);
+
+      standingsToSave.push({
+        teamEspnId: parseInt(entry.team.id, 10),
+        teamName: entry.team.displayName,
+        teamLogoUrl: entry.team.logos?.[0]?.href || '',
+        rank,
+        points: statsMap.get('points') ?? 0,
+        played: statsMap.get('gamesPlayed') ?? 0,
+        win: statsMap.get('wins') ?? 0,
+        draw: statsMap.get('ties') ?? 0,
+        lose: statsMap.get('losses') ?? 0,
+        goalsFor: statsMap.get('pointsFor') ?? 0,
+        goalsAgainst: statsMap.get('pointsAgainst') ?? 0,
+        goalsDiff: statsMap.get('pointDifferential') ?? 0,
+        description: applicableRule?.description || null, // Aplica a descrição da regra encontrada
+        round: groupName,
+      });
+    };
+
+    // Lida com o formato de copas (com 'children' para cada grupo)
+    if (apiStandingsPayload.children && apiStandingsPayload.children.length > 0) {
+      for (const group of apiStandingsPayload.children) {
+        group.standings?.entries?.forEach(entry => processEntry(entry, group.name));
+      }
+    } 
+    // Lida com o formato de ligas (sem 'children')
+    else if (apiStandingsPayload.standings?.entries) {
+      const phaseName = apiStandingsPayload.season?.type?.name || apiStandingsPayload.name;
+      apiStandingsPayload.standings.entries.forEach(entry => processEntry(entry, phaseName));
+    }
+
+    if (standingsToSave.length > 0) {
+      const payload = standingsToSave.map(s => ({ ...s, championship }));
+      await this.standingsRepository.upsert(payload, ['championship', 'teamEspnId']);
+    }
   }
 }
 
-export default new StandingsService()
+export default new StandingsService();

@@ -104,7 +104,7 @@ class BetsService {
     const betsToScore = await this.betRepository.find({
       where: {
         pool: { id: poolId },
-        match: { status: MatchStatus.FINISHED },
+        match: { status: MatchStatus.FINAL },
         pointsEarned: IsNull() 
       },
       relations: ['match', 'pool'],
@@ -120,7 +120,7 @@ class BetsService {
     const betsToUpdate: Bet[] = [];
   
     for (const bet of betsToScore) {
-      const newPoints = MatchService.calculatePoints(bet, bet.match);
+      const newPoints = MatchService.calculatePoints(bet, bet.match, bet.pool);
   
       bet.pointsEarned = newPoints;
       betsToUpdate.push(bet);

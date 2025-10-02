@@ -3,7 +3,7 @@ import {
     PrimaryGeneratedColumn,
     Column,
     ManyToOne,
-    JoinColumn
+    JoinColumn,
 } from 'typeorm';
 import { Championship } from './championship.entity';
 
@@ -12,17 +12,16 @@ export class ChampionshipStandingRule {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @ManyToOne(() => Championship, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'championshipApiFootballId', referencedColumnName: 'apiFootballId' })
+    @ManyToOne(() => Championship, (championship) => championship.standingRules, {
+        onDelete: 'CASCADE',
+    })
+    @JoinColumn({ name: 'championship_id' })
     championship!: Championship;
 
-    @Column()
-    championshipApiFootballId!: number;
-
-    @Column()
+    @Column({ name: 'min_rank' })
     minRank!: number;
 
-    @Column()
+    @Column({ name: 'max_rank' })
     maxRank!: number;
 
     @Column({ type: 'varchar', nullable: true })

@@ -4,30 +4,28 @@ import {
     Column,
     ManyToOne,
     Unique,
-    JoinColumn
+    JoinColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 import { Championship } from './championship.entity';
 
 @Entity('standings')
-@Unique(['championshipApiFootballId', 'teamApiId'])
+@Unique(['championship', 'teamEspnId'])
 export class Standings {
     @PrimaryGeneratedColumn()
     id!: number;
 
     @ManyToOne(() => Championship, { eager: true, onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'championshipApiFootballId', referencedColumnName: 'apiFootballId' })
+    @JoinColumn({ name: 'championship_id' })
     championship!: Championship;
 
-    @Column()
-    championshipApiFootballId!: number;
+    @Column({ name: 'team_espn_id' })
+    teamEspnId!: number;
 
-    @Column({ nullable: true })
-    teamApiId!: number;
-
-    @Column()
+    @Column({ name: 'team_name' })
     teamName!: string;
 
-    @Column()
+    @Column({ name: 'team_logo_url' })
     teamLogoUrl!: string;
 
     @Column()
@@ -36,11 +34,14 @@ export class Standings {
     @Column()
     points!: number;
 
-    @Column()
+    @Column({ name: 'goals_diff' })
     goalsDiff!: number;
 
     @Column({ type: 'varchar', length: 10, nullable: true })
     form!: string | null;
+
+    @Column({ type: 'varchar', nullable: true })
+    round!: string | null;
 
     @Column({ type: 'varchar', nullable: true })
     description!: string | null;
@@ -57,12 +58,12 @@ export class Standings {
     @Column()
     lose!: number;
 
-    @Column()
+    @Column({ name: 'goals_for' })
     goalsFor!: number;
 
-    @Column()
+    @Column({ name: 'goals_against' })
     goalsAgainst!: number;
 
-    @Column({ type: 'timestamptz' })
-    lastUpdate!: Date;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updatedAt!: Date;
 }

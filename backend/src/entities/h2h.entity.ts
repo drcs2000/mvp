@@ -1,21 +1,58 @@
-import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
-import { Match } from './match.entity'; // Importa a entidade Match
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  Unique,
+  UpdateDateColumn,
+  BeforeInsert,
+  BeforeUpdate,
+} from 'typeorm';
+
+export interface IH2HMatch {
+  apiEspnId: number;
+  date: string;
+  homeTeamEspnId: number;
+  awayTeamEspnId: number;
+  homeScore: number;
+  awayScore: number;
+  venue?: string | null;
+}
+
+export interface IH2HSummary {
+  team1Wins: number;
+  team2Wins: number;
+  draws: number;
+  totalMatches: number;
+}
 
 @Entity('h2h')
-@Unique(['team1Id', 'team2Id']) 
-export class Head2Head {
+@Unique(['team1EspnId', 'team2EspnId'])
+export class HeadToHead {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
-  team1Id!: number;
+  @Column({ name: 'team_1_espn_id' })
+  team1EspnId!: number;
 
-  @Column()
-  team2Id!: number;
+  @Column({ name: 'team_2_espn_id' })
+  team2EspnId!: number;
 
-  @Column('jsonb') 
-  matches!: Match[]; 
+  @Column({ type: 'jsonb' })
+  matches!: IH2HMatch[];
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  lastUpdated!: Date;
+  @Column({ type: 'jsonb' })
+  summary!: IH2HSummary;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt!: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  orderTeamIds() {
+    if (this.team1EspnId > this.team2EspnId) {
+      const tempId = this.team1EspnId;
+      this.team1EspnId = this.team2EspnId;
+      this.team2EspnId = tempId;
+    }
+  }
 }

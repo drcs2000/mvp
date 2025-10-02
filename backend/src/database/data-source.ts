@@ -11,7 +11,7 @@ import { Championship } from '../entities/championship.entity';
 import { Standings } from '../entities/standings.entity';
 import { Bet } from '../entities/bet.entity';
 import { ChampionshipStandingRule } from '../entities/championship-standing-rule.entity';
-import { Head2Head } from '../entities/h2h.entity';
+import { HeadToHead } from '../entities/h2h.entity';
 import { Invitation } from '../entities/invitation.entity';
 
 export const AppDataSource = new DataSource({
@@ -35,7 +35,7 @@ export const AppDataSource = new DataSource({
     Standings,
     Bet,
     ChampionshipStandingRule,
-    Head2Head,
+    HeadToHead,
     Invitation,
   ],
 

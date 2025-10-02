@@ -1,6 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { PoolParticipant } from './pool-participant.entity';
 import { Invitation } from './invitation.entity';
+import { Championship } from './championship.entity';
 
 interface IPointsSystem {
   full: number;
@@ -23,8 +32,9 @@ export class Pool {
   @Column({ name: 'bet_deadline_hours' })
   betDeadlineHours!: number;
 
-  @Column({ name: 'base_championship_id' })
-  baseChampionshipId!: number;
+  @ManyToOne(() => Championship, { eager: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'base_championship_id' })
+  baseChampionship!: Championship;
 
   @Column({ type: 'boolean', default: false })
   private!: boolean;
@@ -38,7 +48,7 @@ export class Pool {
     type: 'decimal',
     precision: 10,
     scale: 2,
-    name: 'entry_fee'
+    name: 'entry_fee',
   })
   entryFee!: number;
 

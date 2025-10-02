@@ -3,7 +3,7 @@ import StandingsController from './standings.controller';
 
 const standingsRouter = Router();
 
-standingsRouter.get('/:apiFootballId', StandingsController.getStandings);
-standingsRouter.post('/:apiFootballId', StandingsController.updateStandings);
+standingsRouter.get('/:championshipId', StandingsController.getStandings);
+standingsRouter.post('/update/:championshipId', StandingsController.updateStandings);
 
 export default standingsRouter;

@@ -1,374 +1,273 @@
+import { In, Repository } from 'typeorm';
 import { AppDataSource } from '../../database/data-source';
-import { Match, MatchStatus } from '../../entities/match.entity';
 import { Bet } from '../../entities/bet.entity';
-import { Head2Head } from '../../entities/h2h.entity';
-import { Not, In } from 'typeorm';
-import standingsService from '../standings/standings.service';
-import ExternalAPIService from '../../services/external-api.service';
-import { ExternalApiH2HMatch } from '../../types/api-sports.types';
+import { Championship } from '../../entities/championship.entity';
+import { HeadToHead, IH2HMatch, IH2HSummary } from '../../entities/h2h.entity';
+import { Match, MatchStatus } from '../../entities/match.entity';
+import { Pool } from '../../entities/pool.entity';
+import { IEspnEvent } from '../../services/external-api.service';
 
-function normalizeName(name: string | null | undefined): string {
-  if (!name) {
-    return '';
-  }
-  return name
-    .toLowerCase()
-    .normalize("NFD") // Remove acentos
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]/g, '') // Mantém apenas letras e números
-    .trim();
+export interface IPointsSystem {
+  full: number;
+  partial: number;
+  goal: number;
+  result: number;
 }
 
 class MatchService {
-  private matchRepository = AppDataSource.getRepository(Match);
-  private betRepository = AppDataSource.getRepository(Bet);
-  private h2hRepository = AppDataSource.getRepository(Head2Head);
+  private matchRepository: Repository<Match>;
+  private h2hRepository: Repository<HeadToHead>;
 
-  private h2hCache = new Map<string, Head2Head>();
-
-  async saveMatchData(espnId: number, apiFootballId: number, fixtures: any[]): Promise<Match[]> {
-    const savedMatches: Match[] = [];
-    for (const matchData of fixtures) {
-      const { fixture, teams, goals, league } = matchData;
-      const newMatchData = {
-        espnId,
-        apiFootballId,
-        apiFootballFixtureId: fixture.id,
-        date: new Date(fixture.date),
-        stadium: fixture.venue.name,
-        homeTeamName: teams.home.name,
-        homeTeamLogoUrl: teams.home.logo,
-        awayTeamName: teams.away.name,
-        awayTeamLogoUrl: teams.away.logo,
-        homeScore: goals.home,
-        awayScore: goals.away,
-        status: fixture.status.short as MatchStatus,
-        round: league.round,
-      };
-      await this.matchRepository.upsert(newMatchData, ["apiFootballFixtureId"]);
-      const savedMatch = await this.matchRepository.findOneOrFail({ where: { apiFootballFixtureId: fixture.id } });
-      savedMatches.push(savedMatch);
-    }
-    return savedMatches;
+  constructor() {
+    this.matchRepository = AppDataSource.getRepository(Match);
+    this.h2hRepository = AppDataSource.getRepository(HeadToHead);
   }
 
-  async findByChampionship(apiFootballId: number): Promise<Match[]> {
+  public async getMatches(championshipId: number): Promise<Match[]> {
     return this.matchRepository.find({
-      where: { apiFootballId },
-      order: { date: 'ASC' }
+      where: { championship: { id: championshipId } },
+      order: { date: 'ASC' },
     });
   }
 
-  async findByTeam(teamName: string): Promise<Match[]> {
+  public async findByTeam(teamEspnId: number): Promise<Match[]> {
     return this.matchRepository.find({
       where: [
-        { homeTeamName: teamName },
-        { awayTeamName: teamName }
+        { homeTeamEspnId: teamEspnId },
+        { awayTeamEspnId: teamEspnId },
       ],
-      order: { date: 'ASC' }
+      order: { date: 'ASC' },
     });
   }
 
-  private getStatusFromEspnEvent(espnStatus: string, period: number | null = null): MatchStatus {
-    switch (espnStatus) {
-      case 'STATUS_FINAL':
-      case 'STATUS_FULL_TIME':
-        return MatchStatus.FINISHED;
-      case 'STATUS_IN_PROGRESS':
-      case 'STATUS_FIRST_HALF':
-        return MatchStatus.IN_PLAY_1ST_HALF;
-      case 'STATUS_SECOND_HALF':
-        return MatchStatus.IN_PLAY_2ND_HALF;
-      case 'STATUS_HALFTIME':
-        return MatchStatus.HALF_TIME;
-      case 'STATUS_SCHEDULED':
-      case 'STATUS_PREGAME':
-        return MatchStatus.NOT_STARTED;
-      case 'STATUS_CANCELED':
-        return MatchStatus.CANCELLED;
-      case 'STATUS_POSTPONED':
-        return MatchStatus.POSTPONED;
-      default:
-        return MatchStatus.NOT_STARTED;
-    }
-  }
-
-  public calculatePoints(bet: Bet, match: Match): number {
-    if (typeof match.homeScore !== 'number' || typeof match.awayScore !== 'number') {
-      return 0;
-    }
-    const pointsSystem = bet.pool.points || { full: 25, partial: 12, result: 10, goal: 5 };
-    const { homeScore, awayScore } = match;
-    const { homeScoreBet, awayScoreBet } = bet;
-    const matchWinner = homeScore > awayScore ? 'home' : awayScore > homeScore ? 'away' : 'draw';
-    const betWinner = homeScoreBet > awayScoreBet ? 'home' : awayScoreBet > homeScoreBet ? 'away' : 'draw';
-    if (homeScoreBet === homeScore && awayScoreBet === awayScore) {
-      return pointsSystem.full;
-    }
-    if (betWinner === matchWinner && (homeScoreBet === homeScore || awayScoreBet === awayScore)) {
-      return pointsSystem.partial;
-    }
-    if (betWinner === matchWinner) {
-      return pointsSystem.result;
-    }
-    if (homeScoreBet === homeScore || awayScoreBet === awayScore) {
-      return pointsSystem.goal;
-    }
-    return 0;
-  }
-
-  public async updateMatchesFromEspn(
-    championshipApiFootballId: number,
-    espnEvents: any[]
-  ): Promise<{ updated: number; notFound: number }> {
-    const stats = { updated: 0, notFound: 0 };
-    const updatedMatches: Match[] = [];
-    const finishedStatuses = [MatchStatus.FINISHED, MatchStatus.POSTPONED, MatchStatus.CANCELLED];
-
-    let updatableMatches = await this.matchRepository.find({
-      where: {
-        apiFootballId: championshipApiFootballId,
-        status: Not(In(finishedStatuses)),
-      }
-    });
-
-    if (updatableMatches.length === 0) {
-      return { updated: 0, notFound: espnEvents.length };
-    }
-
-    for (const event of espnEvents) {
-      const competition = event.competitions[0];
-      if (!competition) continue;
-
-      const homeCompetitor = competition.competitors.find((c: any) => c.homeAway === 'home');
-      const awayCompetitor = competition.competitors.find((c: any) => c.homeAway === 'away');
-      if (!homeCompetitor || !awayCompetitor) continue;
-
-      const espnHomeName = normalizeName(homeCompetitor.team.displayName);
-      const espnAwayName = normalizeName(awayCompetitor.team.displayName);
-
-      let matchToUpdate = updatableMatches.find(match => {
-        const dbHomeName = normalizeName(match.homeTeamName);
-        const dbAwayName = normalizeName(match.awayTeamName);
-        const homeMatch = dbHomeName.includes(espnHomeName) || espnHomeName.includes(dbHomeName);
-        const awayMatch = dbAwayName.includes(espnAwayName) || espnAwayName.includes(dbAwayName);
-        return homeMatch && awayMatch;
-      });
-
-      if (!matchToUpdate) {
-        const espnStadium = normalizeName(competition?.venue?.fullName);
-        const espnEventDate = new Date(competition.date);
-
-        if (espnStadium) {
-          matchToUpdate = updatableMatches.find(match => {
-            const dbStadium = normalizeName(match.stadium);
-
-            const isSameDay = match.date.getUTCFullYear() === espnEventDate.getUTCFullYear() &&
-              match.date.getUTCMonth() === espnEventDate.getUTCMonth() &&
-              match.date.getUTCDate() === espnEventDate.getUTCDate();
-
-            const stadiumMatch = dbStadium && (dbStadium.includes(espnStadium) || espnStadium.includes(dbStadium));
-
-            return isSameDay && stadiumMatch;
-          });
-        }
-      }
-
-      if (matchToUpdate) {
-        updatableMatches = updatableMatches.filter(match => match.id !== matchToUpdate?.id);
-
-        const newDate = new Date(competition.date);
-        const espnStatusName = competition.status.type.name;
-        const newStatus = this.getStatusFromEspnEvent(espnStatusName, competition.status.period);
-        const homeScore = parseInt(homeCompetitor.score, 10) || 0;
-        const awayScore = parseInt(awayCompetitor.score, 10) || 0;
-        const hasDateChanged = matchToUpdate.date.getTime() !== newDate.getTime();
-
-        if (
-          matchToUpdate.homeScore !== homeScore ||
-          matchToUpdate.awayScore !== awayScore ||
-          matchToUpdate.status !== newStatus ||
-          hasDateChanged
-        ) {
-          matchToUpdate.homeScore = homeScore;
-          matchToUpdate.awayScore = awayScore;
-          matchToUpdate.status = newStatus;
-          if (hasDateChanged) {
-            matchToUpdate.date = newDate;
-          }
-          updatedMatches.push(matchToUpdate);
-        }
-      } else {
-        stats.notFound++;
-      }
-    }
-
-    stats.updated = updatedMatches.length;
-
-    if (updatedMatches.length > 0) {
-      await this.matchRepository.save(updatedMatches);
-      const newlyFinishedMatches = updatedMatches.filter(match => match.status === MatchStatus.FINISHED);
-
-      if (newlyFinishedMatches.length > 0) {
-        const referenceMatch = newlyFinishedMatches[0];
-        const roundBaseName = referenceMatch.round.split(' - ')[0];
-        await standingsService.recalculateStandings(championshipApiFootballId, roundBaseName);
-
-        const allBetsToUpdate: Bet[] = [];
-        for (const finishedMatch of newlyFinishedMatches) {
-          if (finishedMatch.homeTeamApiId && finishedMatch.awayTeamApiId) {
-            console.log(`Atualizando H2H para a partida: ${finishedMatch.homeTeamName} vs ${finishedMatch.awayTeamName}`);
-            const newH2HMatchEntry: Partial<Match> = {
-              apiFootballFixtureId: finishedMatch.apiFootballFixtureId,
-              date: finishedMatch.date,
-              stadium: finishedMatch.stadium,
-              homeTeamApiId: finishedMatch.homeTeamApiId,
-              homeTeamName: finishedMatch.homeTeamName,
-              homeTeamLogoUrl: finishedMatch.homeTeamLogoUrl,
-              awayTeamApiId: finishedMatch.awayTeamApiId,
-              awayTeamName: finishedMatch.awayTeamName,
-              awayTeamLogoUrl: finishedMatch.awayTeamLogoUrl,
-              homeScore: finishedMatch.homeScore,
-              awayScore: finishedMatch.awayScore,
-              status: finishedMatch.status,
-              round: finishedMatch.round
-            };
-            await this.addMatchToH2H(
-              finishedMatch.homeTeamApiId,
-              finishedMatch.awayTeamApiId,
-              newH2HMatchEntry
-            );
-          }
-
-          const betsForMatch = await this.betRepository.find({
-            where: { match: { id: finishedMatch.id } },
-            relations: ['pool'],
-          });
-
-          for (const bet of betsForMatch) {
-            const points = this.calculatePoints(bet, finishedMatch);
-            if (bet.pointsEarned !== points) {
-              bet.pointsEarned = points;
-              allBetsToUpdate.push(bet);
-            }
-          }
-        }
-
-        if (allBetsToUpdate.length > 0) {
-          await this.betRepository.save(allBetsToUpdate);
-        }
-      }
-    }
-    return stats;
-  }
-
-  public async getLastGamesByTeamIds(championshipId: number, teamIds: number[], limit: number = 5): Promise<{ [key: number]: Match[] }> {
+  public async getLastGamesByTeams(teamIds: number[], limit: number = 5): Promise<{ [key: number]: Match[] }> {
     const gamesByTeam: { [key: number]: Match[] } = {};
     for (const teamId of teamIds) {
-      let games: Match[] = [];
-      games = await this.matchRepository.find({
+      const games = await this.matchRepository.find({
         where: [
-          { homeTeamApiId: teamId, apiFootballId: championshipId, status: MatchStatus.FINISHED },
-          { awayTeamApiId: teamId, apiFootballId: championshipId, status: MatchStatus.FINISHED },
+          { homeTeamEspnId: teamId, status: MatchStatus.FINAL },
+          { awayTeamEspnId: teamId, status: MatchStatus.FINAL },
         ],
         order: { date: 'DESC' },
         take: limit,
       });
-      if (games.length < limit) {
-        const remainingLimit = limit - games.length;
-        const generalGames = await this.matchRepository.find({
-          where: [
-            { homeTeamApiId: teamId, status: MatchStatus.FINISHED },
-            { awayTeamApiId: teamId, status: MatchStatus.FINISHED },
-          ],
-          order: { date: 'DESC' },
-          take: remainingLimit,
-        });
-        const existingGameIds = new Set(games.map(g => g.id));
-        const newGames = generalGames.filter(g => !existingGameIds.has(g.id));
-        games = [...games, ...newGames];
-      }
       gamesByTeam[teamId] = games;
     }
     return gamesByTeam;
   }
 
-  public async findH2H(team1Id: number, team2Id: number): Promise<Head2Head | null> {
-    const cacheKey = [team1Id, team2Id].sort((a, b) => a - b).join(':');
+  public async getH2H(team1EspnId: number, team2EspnId: number): Promise<HeadToHead | null> {
+    const ids = [team1EspnId, team2EspnId].sort((a, b) => a - b);
+    const [id1, id2] = ids;
+    return this.h2hRepository.findOneBy({ team1EspnId: id1, team2EspnId: id2 });
+  }
 
-    if (this.h2hCache.has(cacheKey)) {
-      return this.h2hCache.get(cacheKey)!;
+  // ====================================================================
+  // FUNÇÃO DE ATUALIZAÇÃO DE PARTIDAS
+  // ====================================================================
+
+  public async updateMatches(championship: Championship, events: IEspnEvent[]): Promise<{ created: number, updated: number }> {
+    let createdCount = 0;
+    let updatedCount = 0;
+
+    for (const event of events) {
+      try {
+        if (!event.competitions || event.competitions.length === 0) continue;
+        const competition = event.competitions[0];
+        const homeTeam = competition.competitors.find((c: any) => c.homeAway === 'home');
+        const awayTeam = competition.competitors.find((c: any) => c.homeAway === 'away');
+        if (!homeTeam?.team?.id || !awayTeam?.team?.id) continue;
+
+        let match = await this.matchRepository.findOneBy({ apiEspnId: parseInt(event.id, 10) });
+        if (!match) {
+          match = this.matchRepository.create();
+          createdCount++;
+        } else {
+          updatedCount++;
+        }
+
+        match.championship = championship;
+        match.apiEspnId = parseInt(event.id, 10);
+        match.date = new Date(event.date);
+        match.venueName = competition.venue?.fullName || null;
+        match.venueCity = competition.venue?.address?.city || null;
+        match.round = event.week?.text || null;
+        match.homeTeamEspnId = parseInt(homeTeam.team.id, 10);
+        match.homeTeamName = homeTeam.team.displayName;
+        match.awayTeamEspnId = parseInt(awayTeam.team.id, 10);
+        match.awayTeamName = awayTeam.team.displayName;
+        match.homeTeamLogoUrl = `https://a.espncdn.com/i/teamlogos/soccer/500/${homeTeam.team.id}.png`;
+        match.awayTeamLogoUrl = `https://a.espncdn.com/i/teamlogos/soccer/500/${awayTeam.team.id}.png`;
+
+        const homeScoreValue = homeTeam.score?.value ?? homeTeam.score;
+        const awayScoreValue = awayTeam.score?.value ?? awayTeam.score;
+        match.homeScore = homeScoreValue != null ? parseInt(String(homeScoreValue), 10) : null;
+        match.awayScore = awayScoreValue != null ? parseInt(String(awayScoreValue), 10) : null;
+
+        match.status = this.mapEspnStatus(competition.status.type);
+        match.apiEspnStatusDetail = competition.status.type.detail;
+
+        await this.matchRepository.save(match);
+      } catch (error) {
+        console.error(`Falha ao processar evento ${event.id}:`, error);
+      }
+    }
+    return { created: createdCount, updated: updatedCount };
+  }
+
+  // ====================================================================
+  // FUNÇÕES DE LÓGICA DE NEGÓCIO (POINTS & H2H)
+  // ====================================================================
+
+  public calculatePoints(bet: Bet, match: Match, pool: Pool): number {
+    if (typeof match.homeScore !== 'number' || typeof match.awayScore !== 'number') {
+      return 0;
+    }
+    const pointsSystem = pool.points;
+    const { homeScore, awayScore } = match;
+    const { homeScoreBet, awayScoreBet } = bet;
+
+    if (homeScoreBet === homeScore && awayScoreBet === awayScore) {
+      return pointsSystem.full;
     }
 
-    let h2hData = await this.h2hRepository.findOne({
-      where: [
-        { team1Id, team2Id },
-        { team1Id: team2Id, team2Id: team1Id },
-      ],
+    const matchWinner = homeScore > awayScore ? 'home' : awayScore > homeScore ? 'away' : 'draw';
+    const betWinner = homeScoreBet > awayScoreBet ? 'home' : awayScoreBet > homeScoreBet ? 'away' : 'draw';
+
+    if (betWinner === matchWinner) {
+      if (homeScoreBet === homeScore || awayScoreBet === awayScore) {
+        return pointsSystem.partial;
+      }
+      return pointsSystem.result;
+    }
+
+    if (homeScoreBet === homeScore || awayScoreBet === awayScore) {
+      return pointsSystem.goal;
+    }
+
+    return 0;
+  }
+
+  public async updateMatchesFromCron(events: IEspnEvent[]): Promise<{ updated: number; finishedChampionships: Set<number> }> {
+    let updatedCount = 0;
+    const finishedChampionships = new Set<number>();
+
+    if (events.length === 0) {
+      return { updated: 0, finishedChampionships };
+    }
+
+    const eventIds = events.map(event => parseInt(event.id, 10));
+    const existingMatches = await this.matchRepository.find({
+      where: { apiEspnId: In(eventIds) },
+      relations: ['championship'], // Carrega a relação com o campeonato
     });
 
-    if (!h2hData) {
-      try {
-        const externalApiMatches = await ExternalAPIService.getH2H(team1Id, team2Id);
+    const matchesToSave: Match[] = [];
 
-        const formattedMatches = (externalApiMatches as ExternalApiH2HMatch[]).map((match) => {
-          const newMatch = new Match();
-          newMatch.apiFootballFixtureId = match.fixture.id;
-          newMatch.date = new Date(match.fixture.date);
-          newMatch.stadium = match.fixture.venue.name;
-          newMatch.homeTeamApiId = match.teams.home.id;
-          newMatch.homeTeamName = match.teams.home.name;
-          newMatch.homeTeamLogoUrl = match.teams.home.logo;
-          newMatch.awayTeamApiId = match.teams.away.id;
-          newMatch.awayTeamName = match.teams.away.name;
-          newMatch.awayTeamLogoUrl = match.teams.away.logo;
-          newMatch.homeScore = match.goals.home;
-          newMatch.awayScore = match.goals.away;
-          newMatch.status = match.fixture.status.short as MatchStatus;
-          newMatch.round = match.league.round;
-          return newMatch;
-        });
+    for (const event of events) {
+      const match = existingMatches.find(m => m.apiEspnId === parseInt(event.id, 10));
+      if (!match) continue;
 
-        h2hData = this.h2hRepository.create({
-          team1Id: team1Id,
-          team2Id: team2Id,
-          matches: formattedMatches,
-          lastUpdated: new Date(),
-        });
+      const competition = event.competitions?.[0];
+      if (!competition) continue;
 
-        await this.h2hRepository.save(h2hData);
-        this.h2hCache.set(cacheKey, h2hData);
+      const homeTeam = competition.competitors.find(c => c.homeAway === 'home');
+      const awayTeam = competition.competitors.find(c => c.homeAway === 'away');
+      if (!homeTeam || !awayTeam) continue;
 
-      } catch (error) {
-        console.error("Falha ao buscar H2H da API externa:", error);
-        return null;
+      const newStatus = this.mapEspnStatus(competition.status.type);
+      const homeScoreValue = homeTeam.score?.value ?? homeTeam.score;
+      const awayScoreValue = awayTeam.score?.value ?? awayTeam.score;
+      const newHomeScore = homeScoreValue != null ? parseInt(String(homeScoreValue), 10) : null;
+      const newAwayScore = awayScoreValue != null ? parseInt(String(awayScoreValue), 10) : null;
+
+      const wasFinished = match.status === MatchStatus.FINAL;
+      const hasChanged = match.status !== newStatus || match.homeScore !== newHomeScore || match.awayScore !== newAwayScore;
+
+      if (hasChanged) {
+        match.status = newStatus;
+        match.homeScore = newHomeScore;
+        match.awayScore = newAwayScore;
+        match.apiEspnStatusDetail = competition.status.type.detail;
+        matchesToSave.push(match);
+        updatedCount++;
+
+        if (newStatus === MatchStatus.FINAL && !wasFinished) {
+          finishedChampionships.add(match.championship.id);
+          console.log(`  -> Jogo ${match.apiEspnId} [${match.championship.name}] finalizado. Acionando atualização de H2H e Standings.`);
+          await this.updateH2HForMatch(match);
+        }
       }
     }
 
-    return h2hData;
-  }
-
-  public async addMatchToH2H(team1Id: number, team2Id: number, newMatchData: Partial<Match>): Promise<Head2Head | null> {
-    const h2hRecord = await this.h2hRepository.findOne({
-      where: [
-        { team1Id, team2Id },
-        { team1Id: team2Id, team2Id: team1Id },
-      ],
-    });
-
-    if (!h2hRecord) {
-      return null;
+    if (matchesToSave.length > 0) {
+      await this.matchRepository.save(matchesToSave);
     }
 
-    h2hRecord.matches.unshift(newMatchData as Match);
-    h2hRecord.lastUpdated = new Date();
+    return { updated: updatedCount, finishedChampionships };
+  }
 
-    const updatedRecord = await this.h2hRepository.save(h2hRecord);
+  public async updateH2HForMatch(match: Match): Promise<void> {
+    // Verificação para garantir que os placares não são nulos/undefined
+    if (typeof match.homeScore !== 'number' || typeof match.awayScore !== 'number') {
+      console.log(`  -> H2H para jogo ${match.apiEspnId} pulado: placar não finalizado.`);
+      return;
+    }
 
-    const cacheKey = [team1Id, team2Id].sort((a, b) => a - b).join(':');
-    this.h2hCache.delete(cacheKey);
+    const ids = [match.homeTeamEspnId, match.awayTeamEspnId].sort((a, b) => a - b);
+    const [id1, id2] = ids;
 
-    return updatedRecord;
+    let h2h = await this.getH2H(id1, id2);
+    if (!h2h) {
+      h2h = this.h2hRepository.create({ team1EspnId: id1, team2EspnId: id2, matches: [], summary: { team1Wins: 0, team2Wins: 0, draws: 0, totalMatches: 0 } });
+    }
+
+    const newMatchEntry: IH2HMatch = {
+      apiEspnId: match.apiEspnId,
+      date: match.date.toISOString(),
+      homeTeamEspnId: match.homeTeamEspnId,
+      awayTeamEspnId: match.awayTeamEspnId,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
+      venue: match.venueName,
+    };
+
+    const existingMatchIds = new Set(h2h.matches.map(m => m.apiEspnId));
+    if (!existingMatchIds.has(newMatchEntry.apiEspnId)) {
+      h2h.matches.push(newMatchEntry);
+
+      h2h.summary.totalMatches++;
+      if (newMatchEntry.homeScore > newMatchEntry.awayScore) {
+        newMatchEntry.homeTeamEspnId === id1 ? h2h.summary.team1Wins++ : h2h.summary.team2Wins++;
+      } else if (newMatchEntry.awayScore > newMatchEntry.homeScore) {
+        newMatchEntry.homeTeamEspnId === id1 ? h2h.summary.team2Wins++ : h2h.summary.team1Wins++;
+      } else {
+        h2h.summary.draws++;
+      }
+    }
+
+    await this.h2hRepository.save(h2h);
+  }
+
+  private mapEspnStatus(status: { name: string; detail: string }): MatchStatus {
+    switch (status.name) {
+      case 'STATUS_FINAL':
+      case 'STATUS_FULL_TIME':
+        return MatchStatus.FINAL;
+      case 'STATUS_IN_PROGRESS':
+        if (status.detail.toLowerCase().includes('half')) {
+          return MatchStatus.HALFTIME;
+        }
+        return MatchStatus.IN_PROGRESS;
+      case 'STATUS_SCHEDULED':
+        return MatchStatus.SCHEDULED;
+      case 'STATUS_POSTPONED':
+        return MatchStatus.POSTPONED;
+      case 'STATUS_CANCELED':
+        return MatchStatus.CANCELED;
+      default:
+        return MatchStatus.SCHEDULED;
+    }
   }
 }
 

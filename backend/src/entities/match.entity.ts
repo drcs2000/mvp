@@ -1,80 +1,84 @@
 import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    UpdateDateColumn,
-    Index,
-} from 'typeorm'
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Championship } from './championship.entity';
 
 export enum MatchStatus {
-    SCHEDULED = 'TBD',
-    NOT_STARTED = 'NS',
-    IN_PLAY_1ST_HALF = '1H',
-    IN_PLAY_2ND_HALF = '2H',
-    HALF_TIME = 'HT',
-    FINISHED = 'FT',
-    POSTPONED = 'PST',
-    CANCELLED = 'CANC',
-    ABANDONED = 'ABD',
-    PENALTY_SHOOTOUT = 'PEN',
-    AFTER_EXTRA_TIME = 'AET',
+  SCHEDULED = 'SCHEDULED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  HALFTIME = 'HALFTIME',
+  FULL_TIME = 'FULL_TIME',
+  FINAL = 'FINAL',
+  POSTPONED = 'POSTPONED',
+  CANCELED = 'CANCELED',
 }
 
 @Entity('matches')
 export class Match {
-    @PrimaryGeneratedColumn()
-    id!: number
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-    @Column({ name: 'espn_id', nullable: true })
-    espnId!: number
+  @ManyToOne(() => Championship, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'championship_id' })
+  championship!: Championship;
 
-    @Column({ name: 'api_football_id', nullable: true })
-    apiFootballId!: number
+  @Index({ unique: true })
+  @Column({ name: 'api_espn_id' })
+  apiEspnId!: number;
 
-    @Column({ name: 'api_football_fixture_id', unique: true })
-    apiFootballFixtureId!: number
+  @Index()
+  @Column()
+  date!: Date;
 
-    @Index()
-    @Column()
-    date!: Date
+  @Column({ name: 'venue_name', type: 'varchar', nullable: true })
+  venueName!: string | null;
 
-    @Column({ nullable: true, default: 'Não declarado' })
-    stadium!: string
+  @Column({ name: 'venue_city', type: 'varchar', nullable: true })
+  venueCity!: string | null;
 
-    @Column({ name: 'home_team_api_id', type: 'int', nullable: true })
-    homeTeamApiId!: number | null
+  @Column({ name: 'home_team_espn_id' })
+  homeTeamEspnId!: number;
 
-    @Column({ name: 'home_team_name' })
-    homeTeamName!: string
+  @Column({ name: 'home_team_name', type: 'varchar' })
+  homeTeamName!: string;
 
-    @Column({ name: 'home_team_logo_url' })
-    homeTeamLogoUrl!: string
+  @Column({ name: 'home_team_logo_url', type: 'varchar' })
+  homeTeamLogoUrl!: string;
 
-    @Column({ name: 'away_team_api_id', type: 'int', nullable: true })
-    awayTeamApiId!: number | null
+  @Column({ name: 'away_team_espn_id' })
+  awayTeamEspnId!: number;
 
-    @Column({ name: 'away_team_name' })
-    awayTeamName!: string
+  @Column({ name: 'away_team_name', type: 'varchar' })
+  awayTeamName!: string;
 
-    @Column({ name: 'away_team_logo_url' })
-    awayTeamLogoUrl!: string
+  @Column({ name: 'away_team_logo_url', type: 'varchar' })
+  awayTeamLogoUrl!: string;
 
-    @Column({ name: 'home_score', type: 'int', nullable: true })
-    homeScore?: number | null
+  @Column({ name: 'home_score', type: 'int', nullable: true })
+  homeScore?: number | null;
 
-    @Column({ name: 'away_score', type: 'int', nullable: true })
-    awayScore?: number | null
+  @Column({ name: 'away_score', type: 'int', nullable: true })
+  awayScore?: number | null;
 
-    @Column({ type: 'enum', enum: MatchStatus, default: MatchStatus.SCHEDULED })
-    status!: MatchStatus
+  @Column({ type: 'enum', enum: MatchStatus, default: MatchStatus.SCHEDULED })
+  status!: MatchStatus;
 
-    @Column({ nullable: true })
-    round!: string
+  @Column({ name: 'api_espn_status_detail', type: 'varchar', nullable: true })
+  apiEspnStatusDetail!: string | null;
 
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt!: Date
+  @Column({ type: 'varchar', nullable: true })
+  round!: string | null;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt!: Date
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt!: Date;
 }

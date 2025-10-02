@@ -1,49 +1,83 @@
 import { AppDataSource } from '../../database/data-source';
-import { Championship, ChampionshipType } from '../../entities/championship.entity';
+import {
+  Championship,
+  ChampionshipType,
+} from '../../entities/championship.entity';
+import {
+  FindOptionsWhere
+} from 'typeorm';
+
+interface IEspnLeague {
+  id: string;
+  slug: string;
+  name: string;
+  abbreviation: string;
+  isTournament: boolean;
+  logos: { href: string; rel: string[] }[];
+}
 
 class ChampionshipService {
   private championshipRepository = AppDataSource.getRepository(Championship);
 
-  public async seed(championshipsData: any[]): Promise<{ created: number, skipped: number }> {
+  public async sync(
+    championshipsData: IEspnLeague[],
+  ): Promise<{ created: number; updated: number; skipped: number }> {
     let createdCount = 0;
-    let skippedCount = 0;
+    let updatedCount = 0;
 
     for (const data of championshipsData) {
-      const { league, country, apiEspnId, apiEspnSlug } = data;
-
-      const existingChampionship = await this.championshipRepository.findOneBy({
-        apiFootballId: league.id,
+      let championship = await this.championshipRepository.findOneBy({
+        apiEspnSlug: data.slug,
       });
 
-      if (existingChampionship) {
-        skippedCount++;
-        continue;
+      if (!championship) {
+        championship = this.championshipRepository.create();
+        createdCount++;
+      } else {
+        updatedCount++;
       }
 
-      const newChampionship = this.championshipRepository.create({
-        apiFootballId: league.id,
-        apiEspnId: apiEspnId || null,
-        apiEspnSlug: apiEspnSlug || null,
-        name: league.name,
-        type: league.type as ChampionshipType,
-        leagueLogoUrl: league.logo,
-        countryName: country.name,
-        countryFlagUrl: country.flag,
-      });
+      championship.apiEspnId = parseInt(data.id, 10);
+      championship.apiEspnSlug = data.slug;
+      championship.name = data.name;
+      championship.abbreviation = data.abbreviation;
+      championship.type = data.isTournament
+        ? ChampionshipType.CUP
+        : ChampionshipType.LEAGUE;
 
-      await this.championshipRepository.save(newChampionship);
-      createdCount++;
+      const defaultLogo = data.logos.find((logo) =>
+        logo.rel.includes('default'),
+      );
+      championship.logoUrl = defaultLogo ? defaultLogo.href : '';
+
+      await this.championshipRepository.save(championship);
     }
 
-    return { created: createdCount, skipped: skippedCount };
+    return { created: createdCount, updated: updatedCount, skipped: 0 };
   }
 
-  public async getAll(): Promise<Championship[]> {
+  /**
+   * Retorna todos os campeonatos, com a opção de filtrar por tipo.
+   */
+  public async getAll(filters?: {
+    type?: ChampionshipType;
+  }): Promise<Championship[]> {
+    const whereClause: FindOptionsWhere<Championship> = {};
+
+    if (filters?.type) {
+      whereClause.type = filters.type;
+    }
+
     return this.championshipRepository.find({
-      where: {
-        type: ChampionshipType.LEAGUE,
+      where: whereClause,
+      order: {
+        name: 'ASC',
       },
     });
+  }
+
+  public async getById(id: number): Promise<Championship | null> {
+    return this.championshipRepository.findOneBy({ id });
   }
 }
 

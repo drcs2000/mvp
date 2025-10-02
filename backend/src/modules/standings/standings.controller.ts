@@ -1,48 +1,39 @@
 import { Request, Response } from 'express';
 import StandingsService from './standings.service';
-import { AppDataSource } from '../../database/data-source';
-import { Championship } from '../../entities/championship.entity';
 
 class StandingsController {
   public getStandings = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { apiFootballId } = req.params;
-      if (!apiFootballId) {
-        return res.status(400).json({ message: "O ID do campeonato (apiFootballId) é obrigatório." });
+      const { championshipId } = req.params;
+      const parsedId = parseInt(championshipId, 10);
+
+      if (isNaN(parsedId)) {
+        return res.status(400).json({ message: "O ID do campeonato é obrigatório e deve ser um número." });
       }
 
-      const standings = await StandingsService.getStandingsByChampionshipId(Number(apiFootballId));
+      const standings = await StandingsService.getStandings(parsedId);
       return res.status(200).json(standings);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      return res.status(500).json({ message: "Falha ao buscar a tabela de classificação." });
+      return res.status(500).json({ message: "Falha ao buscar a tabela de classificação.", details: error.message });
     }
   }
 
   public updateStandings = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { apiFootballId } = req.params;
-      const apiStandingsData = req.body.standings;
+      const { championshipId } = req.params;
+      const parsedId = parseInt(championshipId, 10);
 
-      if (!apiFootballId || !apiStandingsData || !Array.isArray(apiStandingsData)) {
-        return res.status(400).json({ message: "O ID do campeonato (apiFootballId) e um array 'standings' são obrigatórios." });
+      if (isNaN(parsedId)) {
+        return res.status(400).json({ message: "O ID do campeonato é obrigatório e deve ser um número." });
       }
 
-      const championshipRepository = AppDataSource.getRepository(Championship);
-      const championship = await championshipRepository.findOneBy({
-        apiFootballId: Number(apiFootballId),
-      });
-      
-      if (!championship) {
-        return res.status(404).json({ message: "Campeonato não encontrado." });
-      }
+      await StandingsService.updateStandings(parsedId);
 
-      await StandingsService.updateStandingsFromApi(championship, apiStandingsData);
-      
-      return res.status(200).json({ message: "Tabela de classificação atualizada com sucesso." });
-    } catch (error) {
+      return res.status(200).json({ message: "Tabela de classificação sincronizada com sucesso." });
+    } catch (error: any) {
       console.error(error);
-      return res.status(500).json({ message: "Falha ao atualizar a tabela de classificação." });
+      return res.status(500).json({ message: "Falha ao sincronizar a tabela de classificação.", details: error.message });
     }
   }
 }
