@@ -50,19 +50,19 @@
           </template>
         </ChampionshipHeader>
 
-        <RoundSelector
-          v-if="!stores.matches.loading"
-          :is-first-round="isFirstRound"
-          :is-last-round="isLastRound"
-          :current-round-number="currentRoundNumber"
-          @previous="previousRound"
-          @next="nextRound"
+        <DateSelector
+          v-if="!stores.matches.isLoading && allGameDays.length > 0"
+          :is-first="isFirstDay"
+          :is-last="isLastDay"
+          :label="formatDate(selectedDate)"
+          @previous="previousDay"
+          @next="nextDay"
         />
       </div>
 
       <MatchList
         :matches-by-day="matchesByDay"
-        :loading="stores.matches.loading"
+        :loading="stores.matches.isLoading"
       >
         <template #match="{ matches }">
           <div
@@ -89,7 +89,7 @@
                   <img
                     :src="match.homeTeamLogoUrl"
                     class="object-contain w-6 h-6 shrink-0"
-                  />
+                  >
                 </div>
 
                 <div class="flex flex-col items-center">
@@ -117,7 +117,7 @@
                   <img
                     :src="match.awayTeamLogoUrl"
                     class="object-contain w-6 h-6 shrink-0"
-                  />
+                  >
                   <span
                     class="text-left truncate dark:text-gray-200"
                     :class="{ 'font-bold': isAwayWinner(match) }"
@@ -127,9 +127,17 @@
               </div>
 
               <div
-                class="hidden md:block text-sm font-medium text-gray-500 dark:text-gray-400 text-right"
+                class="hidden md:block text-sm font-medium text-gray-500 dark:text-gray-400 text-right truncate"
               >
-                {{ getStatusText(match.status) }}
+                <span
+                  v-if="
+                    match.status === 'SCHEDULED' || match.status === 'POSTPONED'
+                  "
+                  :title="match.venueName"
+                >
+                  {{ match.venueName }}
+                </span>
+                <span v-else>{{ getStatusText(match.status) }}</span>
               </div>
             </div>
 
@@ -226,55 +234,61 @@ const error = ref(null);
 const loading = ref(true);
 const currentChampionship = ref(null);
 const allBets = ref([]);
-const selectedRound = ref(null);
+
+const selectedDate = ref(null);
+
+const getLocalDateString = (utcDateString) => {
+  if (!utcDateString) return null;
+  const date = new Date(utcDateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 onMounted(async () => {
   try {
-    const poolResult = await stores.pools.fetchPoolById(poolId.value);
-    if (!poolResult.success || !poolResult.data) {
-      throw new Error(poolResult.error || "Bolão não encontrado.");
-    }
-    const championshipId = poolResult.data.baseChampionshipId;
-    if (stores.championships.championships.length === 0) {
+    const pool = await stores.pools.fetchPoolById(poolId.value);
+    const championshipId = pool.baseChampionship.id;
+
+    if (stores.championships.allChampionships.length === 0) {
       await stores.championships.fetchAllChampionships();
-    }
-    currentChampionship.value = stores.championships.championships.find(
+    } // 3. Encontra o campeonato atual.
+
+    currentChampionship.value = stores.championships.allChampionships.find(
       (c) => c.id === championshipId
     );
+
     if (currentChampionship.value) {
-      await stores.matches.fetchByChampionship(
-        currentChampionship.value.apiFootballId
-      );
-      selectedRound.value = findCurrentRound(stores.matches.matches);
-      const betsResult = await stores.bet.fetchAllBetsByPool(poolId.value);
-      if (betsResult.success && betsResult.data) {
-        allBets.value = betsResult.data;
-      } else {
-        throw new Error(
-          betsResult.error || "Falha ao buscar palpites do bolão."
-        );
-      }
+      await stores.matches.fetchByChampionship(currentChampionship.value.id);
+      selectedDate.value = findInitialDate(stores.matches.matches);
+
+      const bets = await stores.bet.fetchAllBetsByPool(poolId.value);
+      allBets.value = bets.data;
     } else {
       throw new Error("Campeonato não encontrado para este bolão.");
     }
   } catch (e) {
-    error.value = e.message;
+    if (e.status === 404) {
+      error.value = "Bolão não encontrado.";
+    } else {
+      error.value =
+        e.data?.message || e.message || "Falha ao carregar dados do bolão.";
+    }
   } finally {
     loading.value = false;
   }
 });
 
 const handleSync = async () => {
-  const result = await stores.bet.syncPool(poolId.value);
-  if (result.success) {
+  try {
+    await stores.bet.syncPool(poolId.value);
     stores.ui.showToast("Bolão sincronizado com sucesso!", "success");
-    const betsResult = await stores.bet.fetchAllBetsByPool(poolId.value, true);
-    if (betsResult.success && betsResult.data) {
-      allBets.value = betsResult.data;
-    }
-  } else {
+    const bets = await stores.bet.fetchAllBetsByPool(poolId.value, true);
+    allBets.value = bets;
+  } catch (e) {
     stores.ui.showToast(
-      result.error || "Ocorreu um erro ao sincronizar.",
+      e.data?.message || e.message || "Ocorreu um erro ao sincronizar.",
       "error"
     );
   }
@@ -306,120 +320,123 @@ const getHitType = (bet, match) => {
     return "partial";
   if (betWinner === matchWinner) return "result";
   if (homeScoreBet === homeScore || awayScoreBet === awayScore) return "goal";
-
   return "none";
 };
 
 const getRowClass = (bet, match) => {
   if (bet.pointsEarned == null) {
-    return "bg-gray-50 md:bg-transparent";
+    return "bg-gray-50 dark:bg-gray-700/20 md:bg-transparent";
   }
   const hitType = getHitType(bet, match);
   switch (hitType) {
     case "full":
-      return "bg-yellow-100/70 md:bg-yellow-100";
+      return "bg-yellow-100 dark:bg-yellow-800/20";
     case "partial":
-      return "bg-sky-100/70 md:bg-sky-100";
+      return "bg-sky-100 dark:bg-sky-800/20";
     case "result":
-      return "bg-green-100/70 md:bg-green-100";
+      return "bg-green-100 dark:bg-green-800/20";
     case "goal":
-      return "bg-indigo-100/70 md:bg-indigo-100";
+      return "bg-indigo-100 dark:bg-indigo-800/20";
     default:
       return bet.pointsEarned > 0
-        ? "bg-red-100/70 md:bg-red-100"
-        : "bg-gray-50 md:bg-transparent";
+        ? "bg-red-100 dark:bg-red-800/20"
+        : "bg-gray-50 dark:bg-gray-700/20 md:bg-transparent";
   }
 };
 
 const getTextColor = (bet, match, context) => {
   if (bet.pointsEarned == null) {
-    return context === "bet" ? "text-gray-800" : "text-gray-700";
+    return context === "bet"
+      ? "text-gray-800 dark:text-gray-200"
+      : "text-gray-700 dark:text-gray-300";
   }
   const hitType = getHitType(bet, match);
   switch (hitType) {
     case "full":
-      return context === "points" ? "text-yellow-900" : "text-yellow-800";
+      return context === "points"
+        ? "text-yellow-900 dark:text-yellow-300"
+        : "text-yellow-800 dark:text-yellow-200";
     case "partial":
-      return context === "points" ? "text-sky-900" : "text-sky-800";
+      return context === "points"
+        ? "text-sky-900 dark:text-sky-300"
+        : "text-sky-800 dark:text-sky-200";
     case "result":
-      return context === "points" ? "text-green-900" : "text-green-800";
+      return context === "points"
+        ? "text-green-900 dark:text-green-300"
+        : "text-green-800 dark:text-green-200";
     case "goal":
-      return context === "points" ? "text-indigo-900" : "text-indigo-800";
+      return context === "points"
+        ? "text-indigo-900 dark:text-indigo-300"
+        : "text-indigo-800 dark:text-indigo-200";
     default:
-      return bet.pointsEarned > 0 ? "text-red-800" : "text-gray-700";
+      return bet.pointsEarned > 0
+        ? "text-red-800 dark:text-red-200"
+        : "text-gray-700 dark:text-gray-300";
   }
 };
 
-const findCurrentRound = (allMatches) => {
+const findInitialDate = (allMatches) => {
   if (!allMatches || allMatches.length === 0) return null;
   const now = new Date();
+  const upcomingMatches = allMatches
+    .filter(
+      (m) =>
+        new Date(m.date) >= now &&
+        (m.status === "SCHEDULED" || m.status === "POSTPONED")
+    )
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-  const upcomingMatch = allMatches
-    .filter((m) => new Date(m.date) >= now)
-    .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+  if (upcomingMatches.length > 0) {
+    return getLocalDateString(upcomingMatches[0].date);
+  }
 
-  if (upcomingMatch) return upcomingMatch.round;
-
-  const lastMatch = [...allMatches].sort(
+  const lastMatch = allMatches.sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   )[0];
-
-  return lastMatch ? lastMatch.round : null;
+  return lastMatch ? getLocalDateString(lastMatch.date) : null;
 };
 
-const allRounds = computed(() => {
-  if (!stores.matches.matches) return [];
-  const rounds = [...new Set(stores.matches.matches.map((m) => m.round))];
-  return rounds.sort((a, b) => {
-    const numA = parseInt(a.match(/\d+/)?.[0] || 0);
-    const numB = parseInt(b.match(/\d+/)?.[0] || 0);
-    return numA - numB;
-  });
+const allGameDays = computed(() => {
+  if (!stores.matches.matches || stores.matches.matches.length === 0) return [];
+  const dates = stores.matches.matches.map((match) =>
+    getLocalDateString(match.date)
+  );
+  return [...new Set(dates)].sort();
 });
 
-const currentRoundNumber = computed(() => {
-  if (!selectedRound.value) return "";
-  return selectedRound.value.match(/\d+/)?.[0] || "";
-});
+const isFirstDay = computed(
+  () =>
+    !selectedDate.value || allGameDays.value.indexOf(selectedDate.value) <= 0
+);
+const isLastDay = computed(
+  () =>
+    !selectedDate.value ||
+    allGameDays.value.indexOf(selectedDate.value) >=
+      allGameDays.value.length - 1
+);
 
-const isFirstRound = computed(() => {
-  const currentIndex = allRounds.value.indexOf(selectedRound.value);
-  return currentIndex <= 0;
-});
-
-const isLastRound = computed(() => {
-  const currentIndex = allRounds.value.indexOf(selectedRound.value);
-  return currentIndex >= allRounds.value.length - 1;
-});
-
-const previousRound = () => {
-  const currentIndex = allRounds.value.indexOf(selectedRound.value);
-  if (currentIndex > 0) {
-    selectedRound.value = allRounds.value[currentIndex - 1];
-  }
+const previousDay = () => {
+  const currentIndex = allGameDays.value.indexOf(selectedDate.value);
+  if (currentIndex > 0)
+    selectedDate.value = allGameDays.value[currentIndex - 1];
 };
 
-const nextRound = () => {
-  const currentIndex = allRounds.value.indexOf(selectedRound.value);
-  if (currentIndex < allRounds.value.length - 1) {
-    selectedRound.value = allRounds.value[currentIndex + 1];
-  }
+const nextDay = () => {
+  const currentIndex = allGameDays.value.indexOf(selectedDate.value);
+  if (currentIndex < allGameDays.value.length - 1)
+    selectedDate.value = allGameDays.value[currentIndex + 1];
 };
 
-const matchesOfSelectedRound = computed(() => {
-  if (!selectedRound.value) return [];
-  return stores.matches.matches
-    .filter((m) => m.round === selectedRound.value)
-    .sort((a, b) => new Date(a.date) - new Date(b.date));
+const matchesOfSelectedDay = computed(() => {
+  if (!selectedDate.value) return [];
+  return stores.matches.matches.filter(
+    (m) => getLocalDateString(m.date) === selectedDate.value
+  );
 });
 
 const matchesByDay = computed(() => {
-  return matchesOfSelectedRound.value.reduce((acc, match) => {
-    const localDate = new Date(match.date);
-    const year = localDate.getFullYear();
-    const month = String(localDate.getMonth() + 1).padStart(2, "0");
-    const day = String(localDate.getDate()).padStart(2, "0");
-    const dateKey = `${year}-${month}-${day}`;
+  return matchesOfSelectedDay.value.reduce((acc, match) => {
+    const dateKey = getLocalDateString(match.date);
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(match);
     return acc;
@@ -441,18 +458,42 @@ const formatTime = (dateString) =>
     minute: "2-digit",
   });
 
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString + "T00:00:00");
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  if (date.getTime() === today.getTime()) return "Hoje";
+  if (date.getTime() === tomorrow.getTime()) return "Amanhã";
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "long",
+  }).format(date);
+};
+
 const getStatusText = (status) =>
   ({
-    NS: "Agendado",
-    FT: "Encerrado",
-    HT: "Intervalo",
-    "1H": "1º Tempo",
-    "2H": "2º Tempo",
+    SCHEDULED: "Agendado",
+    IN_PROGRESS: "Ao Vivo",
+    HALFTIME: "Intervalo",
+    FULL_TIME: "Encerrado",
+    FINAL: "Encerrado",
+    POSTPONED: "Adiado",
+    CANCELED: "Cancelado",
   }[status] || status);
 
 const isHomeWinner = (match) =>
-  match.status === "FT" && match.homeScore > match.awayScore;
-
+  match &&
+  (match.status === "FINAL" || match.status === "FULL_TIME") &&
+  match.homeScore > match.awayScore;
 const isAwayWinner = (match) =>
-  match.status === "FT" && match.awayScore > match.homeScore;
+  match &&
+  (match.status === "FINAL" || match.status === "FULL_TIME") &&
+  match.homeScore < match.awayScore;
 </script>

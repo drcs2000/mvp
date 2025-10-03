@@ -140,10 +140,14 @@ const formatCurrency = (value) => {
 };
 
 onMounted(async () => {
-  const result = await stores.pools.fetchMyPools();
-  if (!result.success) {
-    error.value = result.error;
+  loading.value = true;
+  error.value = null;
+  try {
+    await stores.pools.fetchMyPools();
+  } catch (err) {
+    error.value = err.data?.error || 'Falha ao carregar seus bolões.';
+  } finally {
+    loading.value = false;
   }
-  loading.value = false;
 });
 </script>

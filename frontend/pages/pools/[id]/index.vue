@@ -40,20 +40,22 @@
         </template>
       </ChampionshipHeader>
 
-      <RoundSelector
-        v-if="!stores.matches.loading"
-        :is-first-round="isFirstRound"
-        :is-last-round="isLastRound"
-        :current-round-number="currentRoundNumber"
-        @previous="previousRound"
-        @next="nextRound"
+      <DateSelector
+        v-if="!stores.matches.loading && allGameDays.length > 0"
+        :is-first="isFirstDay"
+        :is-last="isLastDay"
+        :label="formatDate(selectedDate)"
+        @previous="previousDay"
+        @next="nextDay"
       />
     </div>
 
     <MatchList :matches-by-day="matchesByDay" :loading="stores.matches.loading">
       <template #match="{ matches }">
         <template v-for="match in matches" :key="match.id">
-          <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div
+            class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
+          >
             <div
               class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200"
               :class="{ 'cursor-pointer': match.status !== 'FT' }"
@@ -62,21 +64,18 @@
               <div
                 class="flex flex-col md:grid md:grid-cols-[100px_1fr_150px] md:items-center md:gap-4 w-full"
               >
-                <!-- Coluna 1: Horário (Desktop) -->
-                <div class="hidden md:block text-sm font-medium text-gray-800 dark:text-gray-300">
+                <div
+                  class="hidden md:block text-sm font-medium text-gray-800 dark:text-gray-300"
+                >
                   {{ formatTime(match.date) }}
                 </div>
 
-                <!-- Coluna 2: Conteúdo Principal (Times, Inputs, e Info mobile) -->
                 <div class="w-full">
-                  <!-- Horário (Mobile - Sempre acima do palpite) -->
                   <div
                     class="md:hidden text-center text-sm font-medium text-gray-800 dark:text-gray-300 mb-2"
                   >
                     {{ formatTime(match.date) }}
                   </div>
-
-                  <!-- Linha Superior: Times e Inputs -->
                   <div
                     class="grid grid-cols-[1fr_auto_1fr] gap-x-2 items-center w-full max-w-sm mx-auto"
                   >
@@ -114,9 +113,7 @@
                       >
                     </div>
 
-                    <div
-                      class="flex items-center gap-2 justify-start min-w-0"
-                    >
+                    <div class="flex items-center gap-2 justify-start min-w-0">
                       <img
                         :src="match.awayTeamLogoUrl"
                         class="object-contain w-6 h-6 shrink-0"
@@ -129,9 +126,7 @@
                     </div>
                   </div>
 
-                  <!-- Linha Inferior (Mobile): Countdown OU Placar Final -->
                   <div class="md:hidden text-center mt-2">
-                    <!-- Para jogos não finalizados, mostrar countdown -->
                     <div
                       v-if="match.status !== 'FT'"
                       class="flex items-center justify-center gap-1.5 text-xs text-gray-600 dark:text-gray-400"
@@ -139,16 +134,16 @@
                       {{ countdowns[match.id] || "..." }}
                       <InformationCircleIcon class="w-4 h-4 text-gray-400" />
                     </div>
-                    <!-- Para jogos finalizados, mostrar placar final -->
                     <div v-else>
-                      <p class="font-semibold text-sm text-gray-800 dark:text-gray-200">
+                      <p
+                        class="font-semibold text-sm text-gray-800 dark:text-gray-200"
+                      >
                         {{ match.homeScore }} - {{ match.awayScore }}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <!-- Coluna 3: Info Direita (Desktop) -->
                 <div
                   class="hidden md:flex flex-col items-end justify-center text-right"
                 >
@@ -165,7 +160,10 @@
                       <InformationCircleIcon class="w-4 h-4 text-gray-400" />
                     </div>
                   </div>
-                  <div v-else class="font-semibold text-sm text-gray-800 dark:text-gray-200">
+                  <div
+                    v-else
+                    class="font-semibold text-sm text-gray-800 dark:text-gray-200"
+                  >
                     {{ match.homeScore }} - {{ match.awayScore }}
                   </div>
                 </div>
@@ -198,11 +196,15 @@
                             :src="match.homeTeamLogoUrl"
                             class="w-5 h-5 object-contain"
                           >
-                          <h4 class="font-semibold text-gray-700 dark:text-gray-300">
+                          <h4
+                            class="font-semibold text-gray-700 dark:text-gray-300"
+                          >
                             Últimos 5 de {{ match.homeTeamName }}
                           </h4>
                         </div>
-                        <div class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2">
+                        <div
+                          class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2"
+                        >
                           <div
                             v-for="game in lastGamesData[match.id].homeTeam"
                             :key="game.id"
@@ -215,7 +217,7 @@
                             <span
                               class="font-bold text-xs px-1.5 py-0.5 rounded"
                               :class="
-                                getGameResultClass(game, match.homeTeamApiId)
+                                getGameResultClass(game, match.homeTeamEspnId)
                               "
                             >
                               {{ game.homeScore }} &times;
@@ -234,11 +236,15 @@
                             :src="match.awayTeamLogoUrl"
                             class="w-5 h-5 object-contain"
                           >
-                          <h4 class="font-semibold text-gray-700 dark:text-gray-300">
+                          <h4
+                            class="font-semibold text-gray-700 dark:text-gray-300"
+                          >
                             Últimos 5 de {{ match.awayTeamName }}
                           </h4>
                         </div>
-                        <div class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2">
+                        <div
+                          class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2"
+                        >
                           <div
                             v-for="game in lastGamesData[match.id].awayTeam"
                             :key="game.id"
@@ -251,7 +257,7 @@
                             <span
                               class="font-bold text-xs px-1.5 py-0.5 rounded"
                               :class="
-                                getGameResultClass(game, match.awayTeamApiId)
+                                getGameResultClass(game, match.awayTeamEspnId)
                               "
                             >
                               {{ game.homeScore }} &times;
@@ -283,14 +289,17 @@
                       >
                         Confronto Direto
                       </h3>
+
                       <div
                         class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-center mb-6"
                       >
                         <div
                           class="border-l-4 border-blue-500 bg-white dark:bg-gray-800 dark:border-blue-400 p-3 rounded-r-md shadow-sm"
                         >
-                          <div class="font-bold text-xl text-blue-800 dark:text-blue-400">
-                            {{ h2hStats[match.id].homeWins }}
+                          <div
+                            class="font-bold text-xl text-blue-800 dark:text-blue-400"
+                          >
+                            {{ h2hStats[match.id].homeWins || 0 }}
                           </div>
                           <div class="text-gray-600 dark:text-gray-400">
                             Vitórias {{ match.homeTeamName }}
@@ -299,16 +308,22 @@
                         <div
                           class="border-l-4 border-gray-400 bg-white dark:bg-gray-800 dark:border-gray-500 p-3 rounded-r-md shadow-sm"
                         >
-                          <div class="font-bold text-xl text-gray-800 dark:text-gray-200">
-                            {{ h2hStats[match.id].draws }}
+                          <div
+                            class="font-bold text-xl text-gray-800 dark:text-gray-200"
+                          >
+                            {{ h2hStats[match.id].draws || 0 }}
                           </div>
-                          <div class="text-gray-600 dark:text-gray-400">Empates</div>
+                          <div class="text-gray-600 dark:text-gray-400">
+                            Empates
+                          </div>
                         </div>
                         <div
                           class="border-l-4 border-red-500 bg-white dark:bg-gray-800 dark:border-red-400 p-3 rounded-r-md shadow-sm"
                         >
-                          <div class="font-bold text-xl text-red-800 dark:text-red-400">
-                            {{ h2hStats[match.id].awayWins }}
+                          <div
+                            class="font-bold text-xl text-red-800 dark:text-red-400"
+                          >
+                            {{ h2hStats[match.id].awayWins || 0 }}
                           </div>
                           <div class="text-gray-600 dark:text-gray-400">
                             Vitórias {{ match.awayTeamName }}
@@ -316,98 +331,67 @@
                         </div>
                       </div>
 
-                      <div class="mb-6">
-                        <h4
-                          class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-center"
-                        >
-                          Gols no Confronto (Total)
-                        </h4>
-                        <div class="space-y-2 text-xs dark:text-gray-300">
-                          <div class="flex items-center gap-2">
-                            <span class="w-28 text-right truncate">{{
-                              match.homeTeamName
-                            }}</span>
-                            <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                              <div
-                                class="bg-blue-500 dark:bg-blue-400 h-2.5 rounded-full"
-                                :style="{
-                                  width:
-                                    h2hGoals[match.id]?.homePercentage + '%',
-                                }"
-                              />
-                            </div>
-                            <span class="font-bold w-8 text-left">{{
-                              h2hGoals[match.id]?.homeGoals
-                            }}</span>
-                          </div>
-                          <div class="flex items-center gap-2">
-                            <span class="w-28 text-right truncate">{{
-                              match.awayTeamName
-                            }}</span>
-                            <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                              <div
-                                class="bg-red-500 dark:bg-red-400 h-2.5 rounded-full"
-                                :style="{
-                                  width:
-                                    h2hGoals[match.id]?.awayPercentage + '%',
-                                }"
-                              />
-                            </div>
-                            <span class="font-bold w-8 text-left">{{
-                              h2hGoals[match.id]?.awayGoals
-                            }}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
+                      <div v-if="h2hData[match.id].length > 0">
+                        <div class="mb-6">
                           <h4
-                            class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 text-center"
+                            class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-center"
                           >
-                            Últimos 5 (Geral)
+                            Gols no Confronto (Total)
                           </h4>
-                          <div class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2">
-                            <div
-                              v-for="game in overallH2HGames[match.id]"
-                              :key="game.apiFootballFixtureId"
-                              class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
-                            >
-                              <span
-                                class="text-right font-medium text-gray-600 dark:text-gray-400 truncate pr-2"
-                                >{{ game.homeTeamName }}</span
+                          <div class="space-y-2 text-xs dark:text-gray-300">
+                            <div class="flex items-center gap-2">
+                              <span class="w-28 text-right truncate">{{
+                                match.homeTeamName
+                              }}</span>
+                              <div
+                                class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2.5"
                               >
-                              <span
-                                class="font-bold text-xs px-1.5 py-0.5 rounded"
-                                :class="
-                                  getGameResultClass(game, match.homeTeamApiId)
-                                "
-                                >{{ game.homeScore }} &times;
-                                {{ game.awayScore }}</span
+                                <div
+                                  class="bg-blue-500 dark:bg-blue-400 h-2.5 rounded-full"
+                                  :style="{
+                                    width:
+                                      h2hGoals[match.id]?.homePercentage + '%',
+                                  }"
+                                />
+                              </div>
+                              <span class="font-bold w-8 text-left">{{
+                                h2hGoals[match.id]?.homeGoals
+                              }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                              <span class="w-28 text-right truncate">{{
+                                match.awayTeamName
+                              }}</span>
+                              <div
+                                class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2.5"
                               >
-                              <span
-                                class="text-left font-medium text-gray-600 dark:text-gray-400 truncate pl-2"
-                                >{{ game.awayTeamName }}</span
-                              >
+                                <div
+                                  class="bg-red-500 dark:bg-red-400 h-2.5 rounded-full"
+                                  :style="{
+                                    width:
+                                      h2hGoals[match.id]?.awayPercentage + '%',
+                                  }"
+                                />
+                              </div>
+                              <span class="font-bold w-8 text-left">{{
+                                h2hGoals[match.id]?.awayGoals
+                              }}</span>
                             </div>
                           </div>
                         </div>
 
-                        <div>
-                          <h4
-                            class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 text-center"
-                          >
-                            {{ match.homeTeamName }} (Mandante)
-                          </h4>
-                          <div class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <h4
+                              class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 text-center"
+                            >
+                              Últimos 5 (Geral)
+                            </h4>
                             <div
-                              v-if="
-                                homeHomeGames[match.id] &&
-                                homeHomeGames[match.id].length > 0
-                              "
+                              class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2"
                             >
                               <div
-                                v-for="game in homeHomeGames[match.id]"
+                                v-for="game in overallH2HGames[match.id]"
                                 :key="game.apiFootballFixtureId"
                                 class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                               >
@@ -415,17 +399,19 @@
                                   class="text-right font-medium text-gray-600 dark:text-gray-400 truncate pr-2"
                                   >{{ game.homeTeamName }}</span
                                 >
+
                                 <span
                                   class="font-bold text-xs px-1.5 py-0.5 rounded"
                                   :class="
                                     getGameResultClass(
                                       game,
-                                      match.homeTeamApiId
+                                      match.homeTeamEspnId
                                     )
                                   "
                                   >{{ game.homeScore }} &times;
                                   {{ game.awayScore }}</span
                                 >
+
                                 <span
                                   class="text-left font-medium text-gray-600 dark:text-gray-400 truncate pl-2"
                                   >{{ game.awayTeamName }}</span
@@ -433,22 +419,83 @@
                               </div>
                             </div>
                             <div
-                              v-else
-                              class="text-center text-xs text-gray-500 dark:text-gray-400 py-2 h-full flex items-center justify-center"
+                              class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2"
+                            />
+                          </div>
+                          <div>
+                            <h4
+                              class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 text-center"
                             >
-                              <p>
-                                Nenhum jogo recente encontrado como mandante no
-                                confronto.
-                              </p>
+                              {{ match.homeTeamName }} (Mandante)
+                            </h4>
+                            <div
+                              class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2"
+                            >
+                              <div
+                                v-if="
+                                  homeHomeGames[match.id] &&
+                                  homeHomeGames[match.id].length > 0
+                                "
+                              >
+                                <div
+                                  v-for="game in homeHomeGames[match.id]"
+                                  :key="game.apiFootballFixtureId"
+                                  class="grid grid-cols-[1fr_auto_1fr] items-center text-xs py-1.5 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                                >
+                                  <span
+                                    class="text-right font-medium text-gray-600 dark:text-gray-400 truncate pr-2"
+                                    >{{ game.homeTeamName }}</span
+                                  >
+
+                                  <span
+                                    class="font-bold text-xs px-1.5 py-0.5 rounded"
+                                    :class="
+                                      getGameResultClass(
+                                        game,
+                                        match.homeTeamEspnId
+                                      )
+                                    "
+                                    >{{ game.homeScore }} &times;
+                                    {{ game.awayScore }}</span
+                                  >
+
+                                  <span
+                                    class="text-left font-medium text-gray-600 dark:text-gray-400 truncate pl-2"
+                                    >{{ game.awayTeamName }}</span
+                                  >
+                                </div>
+                              </div>
+
+                              <div
+                                v-else
+                                class="text-center text-xs text-gray-500 dark:text-gray-400 py-2 h-full flex items-center justify-center"
+                              >
+                                <p>
+                                  Nenhum jogo recente encontrado como mandante
+                                  no confronto.
+                                </p>
+                              </div>
                             </div>
+                            <div
+                              class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2"
+                            />
                           </div>
                         </div>
+                      </div>
+
+                      <div v-else>
+                        <p
+                          class="text-center text-sm text-gray-500 dark:text-gray-400 mt-6 border-t border-gray-200 dark:border-gray-700 pt-6"
+                        >
+                          Não achamos confronto direto entre as equipes no nosso
+                          database.
+                        </p>
                       </div>
                     </div>
 
                     <div v-else class="text-center">
                       <button
-                          class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-semibold text-gray-600 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                        class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-semibold text-gray-600 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                         @click="loadH2H(match)"
                       >
                         Ver Confronto Direto
@@ -475,31 +522,32 @@
         Salvar Rodada
       </button>
     </div>
+    {{ pools }}
   </section>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, watch, ref, nextTick } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { InformationCircleIcon } from "@heroicons/vue/24/outline";
 
 const stores = useStores();
 const route = useRoute();
+const router = useRouter();
 
 const poolId = computed(() => route.params.id);
-
+const error = ref(null);
+const loading = ref(true);
 const currentPool = ref(null);
 const currentChampionship = ref(null);
+const allBets = ref([]);
+const selectedDate = ref(null);
 
 const betForms = ref({});
 const initialBetForms = ref({});
 const countdowns = reactive({});
 let countdownIntervals = {};
-
-const selectedRound = ref(null);
-
 const expandedMatchId = ref(null);
-
 const lastGamesData = reactive({});
 const h2hData = reactive({});
 const h2hStats = reactive({});
@@ -509,142 +557,68 @@ const homeHomeGames = reactive({});
 const detailsLoading = ref(false);
 const isH2HLoading = reactive({});
 
-const isParticipant = computed(() => {
-  const currentPoolData = stores.pools.currentPool;
-  const currentUser = stores.auth.user;
-
-  if (!currentPoolData || !currentUser || !currentUser.id) {
-    return false;
-  }
-
-  return currentPoolData.participants.some((p) => p.userId === currentUser.id);
-});
-
-const joinPool = async () => {
-  const result = await stores.pools.joinPool(poolId.value);
-  if (result.success) {
-    stores.ui.showToast("Você entrou no bolão com sucesso!", "success");
-    stores.pools.currentPool = result.data;
-    await stores.bet.fetchBets({ poolId: poolId.value });
-  } else {
-    stores.ui.showToast(
-      result.error || "Ocorreu um erro ao entrar no bolão.",
-      "error"
-    );
-  }
+const getLocalDateString = (utcDateString) => {
+  if (!utcDateString) return null;
+  const date = new Date(utcDateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
-const populateBetForms = () => {
-  const newBetForms = {};
-  matchesOfSelectedRound.value.forEach((match) => {
-    const existingBet = findBetForMatch(match.id);
-    newBetForms[match.id] = {
-      homeScoreBet: existingBet?.homeScoreBet ?? null,
-      awayScoreBet: existingBet?.awayScoreBet ?? null,
-    };
-  });
-  betForms.value = newBetForms;
-  initialBetForms.value = JSON.parse(JSON.stringify(newBetForms));
-};
-
-const findBetForMatch = (matchId) => {
-  return stores.bet.bets.find((bet) => {
-    return bet.match.id === matchId;
-  });
-};
-
-const hasChanges = computed(() => {
-  const current = betForms.value;
-  const initial = initialBetForms.value;
-  const currentKeys = Object.keys(current);
-  const initialKeys = Object.keys(initial);
-
-  if (currentKeys.length !== initialKeys.length) return true;
-
-  for (const matchId of currentKeys) {
-    if (
-      current[matchId]?.homeScoreBet !== initial[matchId]?.homeScoreBet ||
-      current[matchId]?.awayScoreBet !== initial[matchId]?.awayScoreBet
-    ) {
-      return true;
-    }
-  }
-
-  return false;
-});
-
-const findCurrentRound = (allMatches) => {
+const findInitialDate = (allMatches) => {
   if (!allMatches || allMatches.length === 0) return null;
   const now = new Date();
-
-  const upcomingMatch = allMatches
-    .filter((m) => new Date(m.date) >= now)
-    .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
-
-  if (upcomingMatch) {
-    return upcomingMatch.round;
-  }
-
-  const lastMatch = [...allMatches].sort(
+  const notPlayedStatuses = ["SCHEDULED", "POSTPONED"];
+  const upcomingMatches = allMatches
+    .filter(
+      (m) => new Date(m.date) >= now && notPlayedStatuses.includes(m.status)
+    )
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (upcomingMatches.length > 0)
+    return getLocalDateString(upcomingMatches[0].date);
+  const lastMatch = allMatches.sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   )[0];
-
-  return lastMatch ? lastMatch.round : null;
+  return lastMatch ? getLocalDateString(lastMatch.date) : null;
 };
 
-const allRounds = computed(() => {
-  if (!stores.matches.matches) return [];
-  const rounds = [...new Set(stores.matches.matches.map((m) => m.round))];
-  return rounds.sort((a, b) => {
-    const numA = parseInt(a.match(/\d+/)?.[0] || 0);
-    const numB = parseInt(b.match(/\d+/)?.[0] || 0);
-    return numA - numB;
-  });
+const isParticipant = computed(() => {
+  if (!currentPool.value || !stores.auth.user) return false;
+  return currentPool.value.participants.some(
+    (p) => p.userId === stores.auth.user.id
+  );
 });
 
-const currentRoundNumber = computed(() => {
-  if (!selectedRound.value) return "";
-  return selectedRound.value.match(/\d+/)?.[0] || "";
+const allGameDays = computed(() => {
+  if (!stores.matches.matches || stores.matches.matches.length === 0) return [];
+  const dates = stores.matches.matches.map((match) =>
+    getLocalDateString(match.date)
+  );
+  return [...new Set(dates)].sort();
 });
 
-const isFirstRound = computed(() => {
-  const currentIndex = allRounds.value.indexOf(selectedRound.value);
-  return currentIndex <= 0;
-});
+const isFirstDay = computed(
+  () =>
+    !selectedDate.value || allGameDays.value.indexOf(selectedDate.value) <= 0
+);
+const isLastDay = computed(
+  () =>
+    !selectedDate.value ||
+    allGameDays.value.indexOf(selectedDate.value) >=
+      allGameDays.value.length - 1
+);
 
-const isLastRound = computed(() => {
-  const currentIndex = allRounds.value.indexOf(selectedRound.value);
-  return currentIndex >= allRounds.value.length - 1;
-});
-
-const previousRound = () => {
-  const currentIndex = allRounds.value.indexOf(selectedRound.value);
-  if (currentIndex > 0) {
-    selectedRound.value = allRounds.value[currentIndex - 1];
-  }
-};
-
-const nextRound = () => {
-  const currentIndex = allRounds.value.indexOf(selectedRound.value);
-  if (currentIndex < allRounds.value.length - 1) {
-    selectedRound.value = allRounds.value[currentIndex + 1];
-  }
-};
-
-const matchesOfSelectedRound = computed(() => {
-  if (!selectedRound.value) return [];
-  return stores.matches.matches
-    .filter((m) => m.round === selectedRound.value)
-    .sort((a, b) => new Date(a.date) - new Date(b.date));
+const matchesOfSelectedDay = computed(() => {
+  if (!selectedDate.value) return [];
+  return stores.matches.matches.filter(
+    (m) => getLocalDateString(m.date) === selectedDate.value
+  );
 });
 
 const matchesByDay = computed(() => {
-  return matchesOfSelectedRound.value.reduce((acc, match) => {
-    const localDate = new Date(match.date);
-    const year = localDate.getFullYear();
-    const month = String(localDate.getMonth() + 1).padStart(2, "0");
-    const day = String(localDate.getDate()).padStart(2, "0");
-    const dateKey = `${year}-${month}-${day}`;
+  return matchesOfSelectedDay.value.reduce((acc, match) => {
+    const dateKey = getLocalDateString(match.date);
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(match);
     return acc;
@@ -652,7 +626,7 @@ const matchesByDay = computed(() => {
 });
 
 const isBettingTimeExpired = (match) => {
-  if (match.status === 'FT') return true; // Always expired for finished games
+  if (match.status === "FINAL" || match.status === "FULL_TIME") return true;
   if (!currentPool.value || !match.date) return true;
   const matchDate = new Date(match.date);
   const deadlineDate = new Date(
@@ -661,14 +635,13 @@ const isBettingTimeExpired = (match) => {
   return new Date() > deadlineDate;
 };
 
-
 const allBetsAreFilled = computed(() => {
-  const openMatches = matchesOfSelectedRound.value.filter(
-    (m) => m.status === "NS" && !isBettingTimeExpired(m)
+  const openMatches = matchesOfSelectedDay.value.filter(
+    (m) =>
+      (m.status === "SCHEDULED" || m.status === "POSTPONED") &&
+      !isBettingTimeExpired(m)
   );
-
   if (openMatches.length === 0) return true;
-
   return openMatches.every((match) => {
     const form = betForms.value[match.id];
     return (
@@ -680,36 +653,38 @@ const allBetsAreFilled = computed(() => {
 });
 
 const hasUnplayedMatches = computed(() => {
-  return matchesOfSelectedRound.value.some((m) => m.status !== "FT");
+  return matchesOfSelectedDay.value.some(
+    (m) => m.status !== "FINAL" && m.status !== "FULL_TIME"
+  );
 });
 
-const updateCountdown = (match) => {
-  const matchDate = new Date(match.date);
-  const deadlineDate = new Date(
-    matchDate.getTime() - currentPool.value.betDeadlineHours * 60 * 60 * 1000
-  );
-  const now = new Date();
-  const diff = deadlineDate.getTime() - now.getTime();
-
-  if (diff <= 0) {
-    countdowns[match.id] = "Tempo esgotado!";
-    clearInterval(countdownIntervals[match.id]);
-    return;
+const hasChanges = computed(() => {
+  const current = betForms.value;
+  const initial = initialBetForms.value;
+  const currentKeys = Object.keys(current);
+  if (currentKeys.length !== Object.keys(initial).length) return true;
+  for (const matchId of currentKeys) {
+    if (
+      current[matchId]?.homeScoreBet !== initial[matchId]?.homeScoreBet ||
+      current[matchId]?.awayScoreBet !== initial[matchId]?.awayScoreBet
+    ) {
+      return true;
+    }
   }
+  return false;
+});
 
-  const secondsTotal = Math.floor(diff / 1000);
-  const days = Math.floor(secondsTotal / (60 * 60 * 24));
-  const hours = Math.floor((secondsTotal % (60 * 60 * 24)) / (60 * 60));
-  const minutes = Math.floor((secondsTotal % (60 * 60)) / 60);
-
-  const parts = [];
-  if (days > 0) parts.push(`${days}d`);
-  if (hours > 0) parts.push(`${hours}h`);
-  if (minutes > 0) parts.push(`${minutes}m`);
-
-  if (parts.length === 0) parts.push("0m");
-
-  countdowns[match.id] = parts.join(" ");
+const populateBetForms = () => {
+  const newBetForms = {};
+  matchesOfSelectedDay.value.forEach((match) => {
+    const existingBet = findBetForMatch(match.id);
+    newBetForms[match.id] = {
+      homeScoreBet: existingBet?.homeScoreBet ?? null,
+      awayScoreBet: existingBet?.awayScoreBet ?? null,
+    };
+  });
+  betForms.value = newBetForms;
+  initialBetForms.value = JSON.parse(JSON.stringify(newBetForms));
 };
 
 const clearAllCountdowns = () => {
@@ -719,137 +694,52 @@ const clearAllCountdowns = () => {
   countdownIntervals = {};
 };
 
-const calculateH2HStats = (matches, homeTeamId) => {
-  let homeWins = 0;
-  let awayWins = 0;
-  let draws = 0;
-
-  matches.forEach((match) => {
-    if (match.homeScore === match.awayScore) {
-      draws++;
-    } else if (
-      (match.homeTeamApiId === homeTeamId &&
-        match.homeScore > match.awayScore) ||
-      (match.awayTeamApiId === homeTeamId && match.awayScore > match.homeScore)
-    ) {
-      homeWins++;
-    } else {
-      awayWins++;
-    }
-  });
-
-  return { homeWins, awayWins, draws };
-};
-
-const filterHomeHomeGames = (matches, homeTeamId) => {
-  return matches
-    .filter((match) => match.homeTeamApiId === homeTeamId)
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 5);
-};
-
-const calculateH2HGoals = (matches, homeTeamId, awayTeamId) => {
-  let homeGoals = 0;
-  let awayGoals = 0;
-  matches.forEach((m) => {
-    if (m.homeTeamApiId === homeTeamId) homeGoals += m.homeScore;
-    if (m.awayTeamApiId === homeTeamId) homeGoals += m.awayScore;
-    if (m.homeTeamApiId === awayTeamId) awayGoals += m.homeScore;
-    if (m.awayTeamApiId === awayTeamId) awayGoals += m.awayScore;
-  });
-  const totalGoals = homeGoals + awayGoals;
-  return {
-    homeGoals,
-    awayGoals,
-    homePercentage: totalGoals > 0 ? (homeGoals / totalGoals) * 100 : 0,
-    awayPercentage: totalGoals > 0 ? (awayGoals / totalGoals) * 100 : 0,
-  };
-};
-
-const fetchH2HData = async (match) => {
-  const result = await stores.matches.fetchH2H(
-    match.homeTeamApiId,
-    match.awayTeamApiId
-  );
-
-  if (result.success && Array.isArray(result.data)) {
-    const finishedGames = result.data.filter((g) => g.status === "FT");
-    h2hData[match.id] = finishedGames;
-
-    h2hStats[match.id] = calculateH2HStats(finishedGames, match.homeTeamApiId);
-    h2hGoals[match.id] = calculateH2HGoals(
-      finishedGames,
-      match.homeTeamApiId,
-      match.awayTeamApiId
-    );
-    overallH2HGames[match.id] = [...finishedGames]
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .slice(0, 5);
-    homeHomeGames[match.id] = filterHomeHomeGames(
-      finishedGames,
-      match.homeTeamApiId
-    );
-  } else {
-    stores.ui.showToast("Erro ao carregar confrontos diretos.", "error");
-    h2hData[match.id] = [];
-  }
-};
-
-const fetchLast5Games = async (match) => {
-  const result = await stores.matches.fetchLastGames(
-    currentChampionship.value.apiFootballId,
-    match.homeTeamApiId,
-    match.awayTeamApiId
-  );
-  if (result.success && result.data) {
-    lastGamesData[match.id] = {
-      homeTeam: result.data[match.homeTeamApiId] || [],
-      awayTeam: result.data[match.awayTeamApiId] || [],
-    };
-  } else {
-    stores.ui.showToast("Erro ao carregar últimos jogos.", "error");
-    lastGamesData[match.id] = { homeTeam: [], awayTeam: [] };
-  }
-};
-
 onMounted(async () => {
-  const poolResult = await stores.pools.fetchPoolById(poolId.value);
-
-  if (poolResult.success && poolResult.data) {
-    currentPool.value = poolResult.data;
-    const championshipId = currentPool.value.baseChampionshipId;
-
-    if (stores.championships.championships.length === 0) {
+  loading.value = true;
+  try {
+    const poolData = await stores.pools.fetchPoolById(poolId.value);
+    currentPool.value = poolData;
+    if (!currentPool.value) {
+      throw new Error("Bolão não encontrado.");
+    }
+    const championshipId = currentPool.value.baseChampionship.id;
+    if (stores.championships.allChampionships.length === 0) {
       await stores.championships.fetchAllChampionships();
     }
-    currentChampionship.value = stores.championships.championships.find(
+    currentChampionship.value = stores.championships.allChampionships.find(
       (c) => c.id === championshipId
     );
-
     if (currentChampionship.value) {
-      await stores.matches.fetchByChampionship(
-        currentChampionship.value.apiFootballId
-      );
-      selectedRound.value = findCurrentRound(stores.matches.matches);
-      await stores.bet.fetchBets({ poolId: poolId.value });
-      stores.championships.selectChampionship(currentChampionship.value);
+      await stores.matches.fetchByChampionship(currentChampionship.value.id);
+      selectedDate.value = findInitialDate(stores.matches.matches);
+      const betsResult = await stores.bet.fetchBets({ poolId: poolId.value });
+      if (betsResult.success) {
+        allBets.value = betsResult.data;
+      }
     } else {
-      stores.ui.showToast("Campeonato não encontrado para este bolão.", "error");
-      navigateTo("/");
+      throw new Error("Campeonato não encontrado para este bolão.");
     }
-  } else {
-    stores.ui.showToast("Bolão não encontrado ou ocorreu um erro.", "error");
-    navigateTo("/");
+  } catch (e) {
+    error.value =
+      e.data?.error || e.message || "Falha ao carregar os dados do bolão.";
+    stores.ui.showToast(error.value, "error");
+    router.push("/");
+  } finally {
+    loading.value = false;
   }
 });
 
 watch(
-  [() => matchesOfSelectedRound.value, () => stores.bet.bets],
+  [() => matchesOfSelectedDay.value, () => allBets.value],
   () => {
     populateBetForms();
     clearAllCountdowns();
-    matchesOfSelectedRound.value.forEach((match) => {
-      if (match.status !== "FT" && currentPool.value) {
+    matchesOfSelectedDay.value.forEach((match) => {
+      if (
+        match.status !== "FINAL" &&
+        match.status !== "FULL_TIME" &&
+        currentPool.value
+      ) {
         if (!countdownIntervals[match.id]) {
           updateCountdown(match);
           countdownIntervals[match.id] = setInterval(() => {
@@ -862,11 +752,71 @@ watch(
   { immediate: true, deep: true }
 );
 
-const submitAllBets = async () => {
-  const unplayedMatches = matchesOfSelectedRound.value.filter(
-    (m) => m.status !== "FT"
+const previousDay = () => {
+  const currentIndex = allGameDays.value.indexOf(selectedDate.value);
+  if (currentIndex > 0)
+    selectedDate.value = allGameDays.value[currentIndex - 1];
+};
+const nextDay = () => {
+  const currentIndex = allGameDays.value.indexOf(selectedDate.value);
+  if (currentIndex < allGameDays.value.length - 1)
+    selectedDate.value = allGameDays.value[currentIndex + 1];
+};
+const findBetForMatch = (matchId) => {
+  return allBets.value.find((bet) => bet.match.id === matchId);
+};
+const isHomeWinner = (match) =>
+  match &&
+  (match.status === "FINAL" || match.status === "FULL_TIME") &&
+  match.homeScore > match.awayScore;
+const isAwayWinner = (match) =>
+  match &&
+  (match.status === "FINAL" || match.status === "FULL_TIME") &&
+  match.homeScore < match.awayScore;
+const joinPool = async () => {
+  try {
+    const joinedPool = await stores.pools.joinPool(poolId.value);
+    stores.ui.showToast("Você entrou no bolão com sucesso!", "success");
+    currentPool.value = joinedPool;
+    const betsResult = await stores.bet.fetchBets({ poolId: poolId.value });
+    if (betsResult.success) {
+      allBets.value = betsResult.data;
+    }
+  } catch (error) {
+    stores.ui.showToast(
+      error.data?.error || "Ocorreu um erro ao entrar no bolão.",
+      "error"
+    );
+  }
+};
+const updateCountdown = (match) => {
+  if (!currentPool.value) return;
+  const matchDate = new Date(match.date);
+  const deadlineDate = new Date(
+    matchDate.getTime() - currentPool.value.betDeadlineHours * 60 * 60 * 1000
   );
-
+  const now = new Date();
+  const diff = deadlineDate.getTime() - now.getTime();
+  if (diff <= 0) {
+    countdowns[match.id] = "Tempo esgotado!";
+    clearInterval(countdownIntervals[match.id]);
+    return;
+  }
+  const secondsTotal = Math.floor(diff / 1000);
+  const days = Math.floor(secondsTotal / (60 * 60 * 24));
+  const hours = Math.floor((secondsTotal % (60 * 60 * 24)) / (60 * 60));
+  const minutes = Math.floor((secondsTotal % (60 * 60)) / 60);
+  const parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (parts.length === 0) parts.push("0m");
+  countdowns[match.id] = parts.join(" ");
+};
+const submitAllBets = async () => {
+  const unplayedMatches = matchesOfSelectedDay.value.filter(
+    (m) => m.status !== "FINAL" && m.status !== "FULL_TIME"
+  );
   if (!allBetsAreFilled.value) {
     stores.ui.showToast(
       "Por favor, preencha todos os jogos da rodada com palpites válidos antes de salvar.",
@@ -874,7 +824,6 @@ const submitAllBets = async () => {
     );
     return;
   }
-
   const betsToSubmit = unplayedMatches.filter((match) => {
     const form = betForms.value[match.id];
     const initialForm = initialBetForms.value[match.id];
@@ -887,15 +836,13 @@ const submitAllBets = async () => {
       !isNaN(form.awayScoreBet)
     );
   });
-
   if (betsToSubmit.length === 0) {
     stores.ui.showToast(
-      "Nenhum palpite válido para salvar. Por favor, preencha os campos.",
-      "error"
+      "Nenhum palpite para salvar. Faça suas alterações primeiro.",
+      "info"
     );
     return;
   }
-
   const results = await Promise.all(
     betsToSubmit.map(async (match) => {
       const form = betForms.value[match.id];
@@ -907,79 +854,67 @@ const submitAllBets = async () => {
       );
     })
   );
-
   const errors = results.filter((r) => !r.success);
   if (errors.length > 0) {
-    stores.ui.showToast(
-      "Ocorreu um erro ao salvar alguns palpites. Verifique o console para mais detalhes.",
-      "error"
-    );
-    console.error("Erros ao salvar palpites:", errors);
+    stores.ui.showToast("Ocorreu um erro ao salvar alguns palpites.", "error");
   } else {
-    stores.ui.showToast("Todos os palpites foram salvos com sucesso!", "success");
+    stores.ui.showToast("Palpites salvos com sucesso!", "success");
     initialBetForms.value = JSON.parse(JSON.stringify(betForms.value));
+
+    const updatedBetsResult = await stores.bet.fetchAllBetsByPool(
+      poolId.value,
+      true
+    );
+    if (updatedBetsResult.success) {
+      allBets.value = updatedBetsResult.data;
+    }
   }
 };
-
 const toggleMatchDetails = async (match, event) => {
-  if (match.status === "FT") return;
-
+  if (match.status === "FINAL" || match.status === "FULL_TIME") return;
   const isClosing = expandedMatchId.value === match.id;
   if (isClosing) {
     expandedMatchId.value = null;
     return;
   }
-
   expandedMatchId.value = match.id;
-
-  if (event && event.currentTarget) {
-    nextTick(() => {
-      const detailsPanel = event.currentTarget.nextElementSibling;
-      if (detailsPanel) {
-        setTimeout(() => {
-          detailsPanel.scrollIntoView({
-            behavior: "smooth",
-            block: "end",
-          });
-        }, 50);
-      }
-    });
-  }
-
+  nextTick(() => {
+    const detailsPanel = event.currentTarget.nextElementSibling;
+    if (detailsPanel) {
+      setTimeout(
+        () =>
+          detailsPanel.scrollIntoView({ behavior: "smooth", block: "nearest" }),
+        50
+      );
+    }
+  });
   if (!lastGamesData[match.id]) {
     detailsLoading.value = true;
     try {
-      await fetchLast5Games(match);
+      await Promise.all([fetchLast5Games(match)]);
     } catch (error) {
-      console.error("Falha ao carregar últimos jogos:", error);
-      stores.ui.showToast("Não foi possível carregar os últimos jogos.", "error");
+      console.error("Falha ao carregar detalhes do jogo:", error);
     } finally {
       detailsLoading.value = false;
     }
   }
 };
-
 const loadH2H = async (match) => {
   isH2HLoading[match.id] = true;
   try {
     await fetchH2HData(match);
   } catch (error) {
     console.error("Falha ao carregar dados de H2H:", error);
-    stores.ui.showToast("Não foi possível carregar o confronto direto.", "error");
   } finally {
     isH2HLoading[match.id] = false;
   }
 };
-
 const getGameResultLetter = (game, teamId) => {
   if (game.homeScore === game.awayScore) return "E";
-
-  const isTeamHome = game.homeTeamApiId === teamId;
-  const isTeamAway = game.awayTeamApiId === teamId;
-
+  const isTeamHome = game.homeTeamEspnId === teamId;
+  const isTeamAway = game.awayTeamEspnId === teamId;
   if (isTeamHome && game.homeScore > game.awayScore) return "V";
   if (isTeamAway && game.awayScore > game.homeScore) return "V";
-
   return "D";
 };
 
@@ -987,13 +922,123 @@ const getGameResultClass = (game, teamId) => {
   const result = getGameResultLetter(game, teamId);
   switch (result) {
     case "V":
-      return "bg-green-100 text-green-800";
+      return "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300";
     case "D":
-      return "bg-red-100 text-red-800";
+      return "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300";
     case "E":
-      return "bg-gray-200 text-gray-700";
+      return "bg-gray-200 text-gray-700 dark:bg-gray-600/30 dark:text-gray-300";
     default:
-      return "bg-gray-100 text-gray-600";
+      return "bg-gray-100 text-gray-600 dark:bg-gray-700/30 dark:text-gray-400";
+  }
+};
+
+const calculateH2HStats = (matches, homeTeamId) => {
+  let homeWins = 0,
+    awayWins = 0,
+    draws = 0;
+  matches.forEach((match) => {
+    if (match.homeScore === match.awayScore) draws++;
+    else if (
+      (match.homeTeamEspnId === homeTeamId &&
+        match.homeScore > match.awayScore) ||
+      (match.awayTeamEspnId === homeTeamId && match.awayScore > match.homeScore)
+    )
+      homeWins++;
+    else awayWins++;
+  });
+  return { homeWins, awayWins, draws };
+};
+
+const filterHomeHomeGames = (matches, homeTeamId) => {
+  return matches
+    .filter((match) => match.homeTeamEspnId === homeTeamId)
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 5);
+};
+
+const calculateH2HGoals = (matches, homeTeamId, awayTeamId) => {
+  let homeGoals = 0,
+    awayGoals = 0;
+  matches.forEach((m) => {
+    if (m.homeTeamEspnId === homeTeamId) homeGoals += m.homeScore;
+    if (m.awayTeamEspnId === homeTeamId) homeGoals += m.awayScore;
+    if (m.homeTeamEspnId === awayTeamId) awayGoals += m.homeScore;
+    if (m.awayTeamEspnId === awayTeamId) awayGoals += m.awayScore;
+  });
+  const totalGoals = homeGoals + awayGoals;
+  return {
+    homeGoals,
+    awayGoals,
+    homePercentage: totalGoals > 0 ? (homeGoals / totalGoals) * 100 : 0,
+    awayPercentage: totalGoals > 0 ? (awayGoals / totalGoals) * 100 : 0,
+  };
+};
+
+const fetchH2HData = async (match) => {
+  const result = await stores.matches.fetchH2H(
+    match.homeTeamEspnId,
+    match.awayTeamEspnId
+  );
+
+  if (result && Array.isArray(result.matches)) {
+    const teamNameMap = {
+      [match.homeTeamEspnId]: match.homeTeamName,
+      [match.awayTeamEspnId]: match.awayTeamName,
+    };
+
+    const enrichedH2hMatches = result.matches.map((h2hGame) => {
+      const homeName =
+        teamNameMap[h2hGame.homeTeamEspnId] || "Time Desconhecido";
+      const awayName =
+        teamNameMap[h2hGame.awayTeamEspnId] || "Time Desconhecido";
+
+      return {
+        ...h2hGame,
+        homeTeamName: homeName,
+        awayTeamName: awayName,
+      };
+    });
+
+    h2hData[match.id] = enrichedH2hMatches;
+    h2hStats[match.id] = calculateH2HStats(
+      enrichedH2hMatches,
+      match.homeTeamEspnId
+    );
+    h2hGoals[match.id] = calculateH2HGoals(
+      enrichedH2hMatches,
+      match.homeTeamEspnId,
+      match.awayTeamEspnId
+    );
+    overallH2HGames[match.id] = [...enrichedH2hMatches]
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 5);
+    homeHomeGames[match.id] = filterHomeHomeGames(
+      enrichedH2hMatches,
+      match.homeTeamEspnId
+    );
+  } else {
+    stores.ui.showToast("Erro ao carregar confrontos diretos.", "error");
+    h2hData[match.id] = [];
+    h2hStats[match.id] = {};
+    h2hGoals[match.id] = {};
+    overallH2HGames[match.id] = [];
+    homeHomeGames[match.id] = [];
+  }
+};
+
+const fetchLast5Games = async (match) => {
+  const result = await stores.matches.fetchLastGames([
+    match.homeTeamEspnId,
+    match.awayTeamEspnId,
+  ]);
+  if (result) {
+    lastGamesData[match.id] = {
+      homeTeam: result[match.homeTeamEspnId] || [],
+      awayTeam: result[match.awayTeamEspnId] || [],
+    };
+  } else {
+    stores.ui.showToast("Erro ao carregar últimos jogos.", "error");
+    lastGamesData[match.id] = { homeTeam: [], awayTeam: [] };
   }
 };
 
@@ -1002,11 +1047,21 @@ const formatTime = (dateString) =>
     hour: "2-digit",
     minute: "2-digit",
   });
-
-const isHomeWinner = (match) =>
-  match.status === "FT" && match.homeScore > match.awayScore;
-const isAwayWinner = (match) =>
-  match.status === "FT" && match.awayScore > match.homeScore;
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString.replace(/-/g, "/"));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (date.getTime() === today.getTime()) return "Hoje";
+  if (date.getTime() === tomorrow.getTime()) return "Amanhã";
+  return new Intl.DateTimeFormat("pt-BR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "long",
+  }).format(date);
+};
 </script>
 
 <style>
@@ -1023,4 +1078,3 @@ const isAwayWinner = (match) =>
   max-height: 0;
 }
 </style>
-

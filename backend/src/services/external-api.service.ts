@@ -81,7 +81,7 @@ class ExternalAPIService {
     const day = today.getDate().toString().padStart(2, '0');
     const dateString = `${year}${month}${day}`;
   
-    const endpoint = `/all/scoreboard?dates=${dateString}&limit=500`;
+    const endpoint = `/all/scoreboard?dates=${dateString}`;
     
     const response = await this.apiClient.get(endpoint);
     return response.data?.events || [];

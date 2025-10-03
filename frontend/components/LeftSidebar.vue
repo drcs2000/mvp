@@ -1,6 +1,12 @@
 <template>
-  <aside class="flex flex-col h-full px-3 dark:bg-gray-800" @click="handleNavigation">
-    <NuxtLink to="/" class="px-3 mb-6 text-2xl font-bold shrink-0 dark:text-white">
+  <aside
+    class="flex flex-col h-full px-3 dark:bg-gray-800"
+    @click="handleNavigation"
+  >
+    <NuxtLink
+      to="/"
+      class="px-3 mb-6 text-2xl font-bold shrink-0 dark:text-white"
+    >
       MVP
     </NuxtLink>
 
@@ -51,7 +57,8 @@
           <div
             class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md cursor-pointer transition-colors duration-200"
             :class="{
-              'bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400': isFootballActive,
+              'bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400':
+                isFootballActive,
               'text-gray-800 hover:bg-green-50 hover:text-green-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-200':
                 !isFootballActive,
             }"
@@ -74,103 +81,47 @@
             class="submenu-container border-l border-gray-200 dark:border-gray-700"
             :style="{ maxHeight: isFootballMenuOpen ? '700px' : '0px' }"
           >
-            <div v-for="continent in menuData" :key="continent.title">
+            <div v-for="group in menuData" :key="group.title">
               <div
                 class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md cursor-pointer transition-colors duration-200"
                 :class="{
                   'bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400':
-                    isParentActive(continent),
+                    isParentActive(group),
                   'hover:bg-green-50 hover:text-green-600 text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-200':
-                    !isParentActive(continent),
+                    !isParentActive(group),
                 }"
-                @click="toggleMenu(continent)"
+                @click="toggleMenu(group)"
               >
                 <span
                   class="text-[13px] font-medium truncate"
-                  :title="continent.title"
-                  >{{ continent.title }}</span
+                  :title="group.title"
+                  >{{ group.title }}</span
                 >
                 <ChevronRightIcon
                   class="w-4 h-4 ml-auto transition-transform duration-300 flex-shrink-0"
-                  :class="{ 'rotate-90': continent.isOpen }"
+                  :class="{ 'rotate-90': group.isOpen }"
                 />
               </div>
               <div
                 class="submenu-container border-l border-gray-200 dark:border-gray-700"
-                :style="{ maxHeight: continent.isOpen ? '500px' : '0px' }"
+                :style="{ maxHeight: group.isOpen ? '500px' : '0px' }"
               >
-                <div v-if="continent.title === 'Internacional'">
-                  <NuxtLink
-                    v-for="league in continent.children"
-                    :key="league.id"
-                    :to="league.path"
-                    class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-500 hover:bg-green-50 hover:text-green-600 relative group dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
-                    active-class="!bg-green-50 !text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
-                  >
-                    <img
-                      :src="league.logo"
-                      alt="League Logo"
-                      class="w-4 h-4 mr-2 flex-shrink-0"
-                    >
-                    <span class="text-[13px] truncate">{{ league.title }}</span>
-                    <div class="tooltip">{{ league.title }}</div>
-                  </NuxtLink>
-                </div>
-                <div
-                  v-for="country in continent.children"
-                  v-else
-                  :key="country.title"
+                <NuxtLink
+                  v-for="league in group.children"
+                  :key="league.id"
+                  :to="league.path"
+                  class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-500 hover:bg-green-50 hover:text-green-600 relative group dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                  active-class="!bg-green-50 !text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
                 >
-                  <div
-                    v-if="country.children"
-                    class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md cursor-pointer transition-colors duration-200"
-                    :class="{
-                      'bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400':
-                        isParentActive(country),
-                      'hover:bg-green-50 hover:text-green-600 text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-200':
-                        !isParentActive(country),
-                    }"
-                    @click="toggleMenu(country)"
+                  <img
+                    v-if="league.logo"
+                    :src="league.logo"
+                    alt="League Logo"
+                    class="w-4 h-4 mr-2 flex-shrink-0"
                   >
-                    <img
-                      v-if="country.flagUrl"
-                      :src="country.flagUrl"
-                      alt="Country Flag"
-                      class="w-4 h-4 mr-2 flex-shrink-0"
-                    >
-                    <span
-                      class="text-[13px] font-medium truncate"
-                      :title="country.title"
-                      >{{ country.title }}</span
-                    >
-                    <ChevronRightIcon
-                      class="w-4 h-4 ml-auto transition-transform duration-300 flex-shrink-0"
-                      :class="{ 'rotate-90': country.isOpen }"
-                    />
-                  </div>
-                  <div
-                    class="submenu-container border-l border-gray-200 dark:border-gray-700"
-                    :style="{ maxHeight: country.isOpen ? '200px' : '0px' }"
-                  >
-                    <NuxtLink
-                      v-for="league in country.children"
-                      :key="league.id"
-                      :to="league.path"
-                      class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-500 hover:bg-green-50 hover:text-green-600 relative group dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
-                      active-class="!bg-green-50 !text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
-                    >
-                      <img
-                        :src="league.logo"
-                        alt="League Logo"
-                        class="w-4 h-4 mr-2 flex-shrink-0"
-                      >
-                      <span class="text-[13px] truncate">{{
-                        league.title
-                      }}</span>
-                      <div class="tooltip">{{ league.title }}</div>
-                    </NuxtLink>
-                  </div>
-                </div>
+                  <span class="text-[13px] truncate">{{ league.title }}</span>
+                  <div class="tooltip">{{ league.title }}</div>
+                </NuxtLink>
               </div>
             </div>
           </div>
@@ -206,172 +157,106 @@ import { mdiSoccer } from "@mdi/js";
 
 const route = useRoute();
 const stores = useStores();
-const isFootballMenuOpen = ref(false);
 
+const isFootballMenuOpen = ref(false);
 const menuData = ref([]);
 
-onMounted(() => {
-  const savedState = localStorage.getItem("footballMenuOpen");
-  if (savedState !== null) {
-    isFootballMenuOpen.value = JSON.parse(savedState);
-  }
-
-  stores.championships.fetchAllChampionships().then(() => {
-    buildMenuData();
-    expandActiveMenuItems();
-  });
+onMounted(async () => {
+  await stores.championships.fetchAllChampionships();
+  buildMenuData();
+  updateMenuStateFromRoute(route.path);
 });
 
-watch(isFootballMenuOpen, (newValue) => {
-  localStorage.setItem("footballMenuOpen", JSON.stringify(newValue));
+watch(
+  () => route.path,
+  (newPath) => {
+    updateMenuStateFromRoute(newPath);
+  }
+);
+
+const updateMenuStateFromRoute = (currentPath) => {
+  if (!currentPath.startsWith("/championship/")) {
+    isFootballMenuOpen.value = false;
+    menuData.value.forEach((group) => (group.isOpen = false));
+    return;
+  }
+
+  isFootballMenuOpen.value = true;
+
+  menuData.value.forEach((group) => {
+    const isChildActive = group.children.some(
+      (child) => child.path === currentPath
+    );
+    group.isOpen = isChildActive;
+  });
+};
+
+const toggleMenu = (clickedItem) => {
+  const wasOpen = clickedItem.isOpen;
+
+  menuData.value.forEach((item) => {
+    if (item !== clickedItem) {
+      item.isOpen = false;
+    }
+  });
+
+  clickedItem.isOpen = !wasOpen;
+};
+
+const isParentActive = (parentItem) => {
+  return parentItem.children.some((child) => child.path === route.path);
+};
+
+const isFootballActive = computed(() => {
+  return route.path.startsWith("/championship/");
 });
 
 const emit = defineEmits(["navigate"]);
-
 const handleNavigation = (event) => {
   if (event.target.closest("a")) {
     emit("navigate");
   }
 };
 
-const getContinent = (country) => {
-  const continents = {
-    Brazil: "america",
-    Spain: "europa",
-    Germany: "europa",
-    England: "europa",
-    Italy: "europa",
-    France: "europa",
-    World: "internacional",
-  };
-  return continents[country] || "outros";
-};
-
-const slugify = (text) => {
-  if (!text) return "";
-  return text.toString().toLowerCase().replace(/\s+/g, "-");
-};
-
 const buildMenuData = () => {
   const data = {};
-  const sport = "football";
+  const getContinent = (slug) => {
+    if (slug.startsWith("conmebol.")) return "América do Sul";
+    if (slug.startsWith("uefa.")) return "Internacional";
+    if (slug.startsWith("bra.")) return "Brasil";
+    if (slug.startsWith("eng.")) return "Inglaterra";
+    if (slug.startsWith("esp.")) return "Espanha";
+    if (slug.startsWith("ita.")) return "Itália";
+    if (slug.startsWith("ger.")) return "Alemanha";
+    if (slug.startsWith("fra.")) return "França";
+    return "Outros";
+  };
 
-  const sortedChampionships = [...stores.championships.championships].sort(
-    (a, b) => {
-      return (
-        a.countryName.localeCompare(b.countryName) ||
-        a.name.localeCompare(b.name)
-      );
-    }
+  const sortedChampionships = [...stores.championships.allChampionships].sort(
+    (a, b) => a.name.localeCompare(b.name)
   );
 
   sortedChampionships.forEach((champ) => {
-    const continentName = getContinent(champ.countryName);
-    const countryName = champ.countryName;
-
-    const continentTitle =
-      continentName.charAt(0).toUpperCase() + continentName.slice(1);
-    const basePath = `/${sport}/${continentName}`;
-    const countryPath = `${basePath}/${slugify(countryName)}`;
-
-    const path = `${countryPath}/${champ.apiFootballId}`;
-
-    if (!data[continentTitle]) {
-      data[continentTitle] = {
-        title: continentTitle,
-        basePath: basePath,
-        isOpen: false,
-        children: {},
-      };
-    }
-
-    if (!data[continentTitle].children[countryName]) {
-      data[continentTitle].children[countryName] = {
-        title: countryName,
-        basePath: countryPath,
-        flagUrl: champ.countryFlagUrl,
+    const continentName = getContinent(champ.apiEspnSlug);
+    if (!data[continentName]) {
+      data[continentName] = {
+        title: continentName,
         isOpen: false,
         children: [],
       };
     }
-
-    data[continentTitle].children[countryName].children.push({
-      id: champ.apiFootballId,
+    data[continentName].children.push({
+      id: champ.id,
       title: champ.name,
-      path: path,
-      logo: champ.leagueLogoUrl,
+      path: `/championship/${champ.id}`,
+      logo: champ.logoUrl,
     });
   });
 
-  menuData.value = Object.values(data).map((continent) => {
-    if (continent.title === "Internacional") {
-      const internationalLeagues = Object.values(continent.children).flatMap(
-        (country) => country.children
-      );
-
-      internationalLeagues.forEach((league) => {
-        league.path = `/${sport}/internacional/${league.id}`;
-      });
-
-      return {
-        ...continent,
-        children: internationalLeagues,
-      };
-    }
-    return {
-      ...continent,
-      children: Object.values(continent.children),
-    };
-  });
+  menuData.value = Object.values(data).sort((a, b) =>
+    a.title.localeCompare(b.title)
+  );
 };
-
-const expandActiveMenuItems = () => {
-  const currentPath = route.path;
-
-  menuData.value.forEach((continent) => {
-    if (currentPath.startsWith(continent.basePath)) {
-      continent.isOpen = true;
-      isFootballMenuOpen.value = true;
-
-      if (continent.children && continent.children.length) {
-        continent.children.forEach((country) => {
-          if (country.basePath && currentPath.startsWith(country.basePath)) {
-            country.isOpen = true;
-
-            if (country.children && country.children.length) {
-              country.children.forEach((league) => {
-                if (league.path === currentPath) {
-                  country.isOpen = true;
-                  continent.isOpen = true;
-                  isFootballMenuOpen.value = true;
-                }
-              });
-            }
-          }
-        });
-      }
-    }
-  });
-};
-
-watch(
-  () => route.path,
-  () => {
-    expandActiveMenuItems();
-  }
-);
-
-const toggleMenu = (item) => {
-  item.isOpen = !item.isOpen;
-};
-
-const isParentActive = (parentItem) => {
-  return route.path.startsWith(parentItem.basePath);
-};
-
-const isFootballActive = computed(() => {
-  return route.path.startsWith("/football");
-});
 </script>
 
 <style scoped>

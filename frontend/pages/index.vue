@@ -1,10 +1,10 @@
 <template>
-  <section class="bg-gray-50 dark:bg-gray-900 max-h-screen">
+  <section>
     <div class="sticky top-0 z-20">
       <header class="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
         <nav class="w-full overflow-x-auto no-scrollbar">
           <div
-            v-if="!stores.championships.loading"
+            v-if="!stores.championships.isLoading"
             class="flex border-b border-gray-200 dark:border-gray-700"
           >
             <button
@@ -19,7 +19,7 @@
               @click="selectChampionshipWithAnimation(championship)"
             >
               <img
-                :src="championship.leagueLogoUrl"
+                :src="championship.logoUrl"
                 class="w-5 h-5 object-contain shrink-0"
               >
               <span>{{ championship.name }}</span>
@@ -38,8 +38,11 @@
             <h2 class="text-lg font-bold text-gray-900 dark:text-white">
               {{ selectedChampionship?.name }}
             </h2>
-            <p v-if="currentRound" class="text-sm font-semibold text-gray-500 dark:text-gray-400">
-              Rodada {{ currentRoundNumber }}
+            <p
+              v-if="selectedDate"
+              class="text-sm font-semibold text-gray-500 dark:text-gray-400"
+            >
+              {{ formatDate(selectedDate) }}
             </p>
           </div>
           <div class="p-4 text-white bg-gray-800 dark:bg-gray-700 rounded-xl">
@@ -100,23 +103,27 @@
         class="pb-6"
       >
         <div
-          v-if="stores.matches.loading"
+          v-if="stores.matches.isLoading"
           class="pt-8 text-center text-gray-500 dark:text-gray-400"
         >
           A carregar jogos...
         </div>
-        <div v-else-if="Object.keys(matchesByDay).length > 0" class="mt-2">
-          <div v-for="(matches, day) in matchesByDay" :key="day" class="mb-6">
-            <h3 class="py-2 px-4 sm:px-6 text-sm font-semibold text-gray-500 dark:text-gray-400">
-              {{ formatDate(day) }}
+        <div v-else-if="matchesOfSelectedDay.length > 0" class="mt-2">
+          <div :key="selectedDate" class="mb-6">
+            <h3
+              class="py-2 px-4 sm:px-6 text-sm font-semibold text-gray-500 dark:text-gray-400"
+            >
+              {{ formatDate(selectedDate) }}
             </h3>
             <div class="space-y-px">
               <NuxtLink
-                v-for="match in matches"
+                v-for="match in matchesOfSelectedDay"
                 :key="match.id"
                 class="grid grid-cols-1 md:grid-cols-[100px,1fr,150px] gap-4 items-center px-4 sm:px-6 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 last:border-b-0"
               >
-                <div class="hidden md:block text-sm font-medium text-gray-800 dark:text-gray-300">
+                <div
+                  class="hidden md:block text-sm font-medium text-gray-800 dark:text-gray-300"
+                >
                   {{ formatTime(match.date) }}
                 </div>
 
@@ -133,11 +140,12 @@
                     class="object-contain w-6 h-6 shrink-0"
                   >
                   <div class="flex flex-col items-center">
-                    <span
-                      class="w-12 text-center font-bold text-base"
-                    >
+                    <span class="w-12 text-center font-bold text-base">
                       <span
-                        v-if="match.status !== 'NS' && match.status !== 'PST'"
+                        v-if="
+                          match.status !== 'SCHEDULED' &&
+                          match.status !== 'POSTPONED'
+                        "
                       >
                         <span :class="{ 'font-bold': isHomeWinner(match) }">{{
                           match.homeScore
@@ -149,9 +157,14 @@
                       </span>
                       <span v-else>vs</span>
                     </span>
-                    <span class="md:hidden text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <span
+                      class="md:hidden text-xs text-gray-500 dark:text-gray-400 mt-1"
+                    >
                       <span
-                        v-if="match.status === 'NS' || match.status === 'PST'"
+                        v-if="
+                          match.status === 'SCHEDULED' ||
+                          match.status === 'POSTPONED'
+                        "
                         >{{ formatTime(match.date) }}</span
                       >
                       <span v-else>{{ getStatusText(match.status) }}</span>
@@ -173,9 +186,13 @@
                   class="hidden md:block text-sm text-right text-gray-500 dark:text-gray-300 truncate"
                 >
                   <span
-                    v-if="match.status === 'NS' || match.status === 'PST'"
-                    >{{ match.stadium }}</span
+                    v-if="
+                      match.status === 'SCHEDULED' ||
+                      match.status === 'POSTPONED'
+                    "
                   >
+                    {{ match.venueName }}
+                  </span>
                   <span v-else class="font-semibold">{{
                     getStatusText(match.status)
                   }}</span>
@@ -185,7 +202,7 @@
           </div>
         </div>
         <div v-else class="pt-8 text-center text-gray-500 dark:text-gray-400">
-          <p>Nenhum jogo encontrado para a rodada atual neste campeonato.</p>
+          <p>Nenhum jogo encontrado para este dia.</p>
         </div>
       </div>
     </Transition>
@@ -199,7 +216,9 @@ const stores = useStores();
 
 const selectedChampionship = computed({
   get: () => stores.championships.selectedChampionship,
-  set: (value) => stores.championships.selectChampionship(value),
+  set: (championshipObject) => {
+    stores.championships.selectChampionship(championshipObject?.id ?? null);
+  },
 });
 
 const showFeaturedMatch = ref(false);
@@ -207,7 +226,7 @@ const showMatchesContent = ref(false);
 
 onMounted(async () => {
   await stores.championships.fetchAllChampionships();
-  if (leagueChampionships.value.length > 0) {
+  if (leagueChampionships.value.length > 0 && !selectedChampionship.value) {
     selectedChampionship.value = leagueChampionships.value[0];
   }
 
@@ -216,6 +235,17 @@ onMounted(async () => {
     showMatchesContent.value = true;
   }, 100);
 });
+
+const getLocalDateString = (utcDateString) => {
+  if (!utcDateString) return null;
+  const date = new Date(utcDateString); 
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
 
 const selectChampionshipWithAnimation = async (championship) => {
   showFeaturedMatch.value = false;
@@ -231,75 +261,60 @@ const selectChampionshipWithAnimation = async (championship) => {
   showMatchesContent.value = true;
 };
 
-watch(selectedChampionship, async (newChampionship) => {
-  if (newChampionship) {
-    showFeaturedMatch.value = false;
-    showMatchesContent.value = false;
+// Novo watch
+watch(
+  selectedChampionship,
+  async (newChampionship) => {
+    if (newChampionship && newChampionship.id) {
+      // 1. Usa o ID interno do campeonato para buscar os jogos
+      await stores.matches.fetchByChampionship(newChampionship.id);
 
-    await stores.matches.fetchByChampionship(newChampionship.apiFootballId);
-
-    showFeaturedMatch.value = true;
-    showMatchesContent.value = true;
-  }
-});
+      // 2. Define a data inicial
+      if (allGameDays.value.length > 0) {
+        const today = new Date().toISOString().split("T")[0];
+        // Encontra o primeiro dia de jogo de hoje em diante, ou o último dia disponível
+        selectedDate.value =
+          allGameDays.value.find((day) => day >= today) ||
+          allGameDays.value[allGameDays.value.length - 1];
+      } else {
+        selectedDate.value = null;
+      }
+    }
+  },
+  { immediate: true }
+);
 
 const leagueChampionships = computed(() => {
-  return stores.championships.championships.filter((c) => c.type === "League");
+  return stores.championships.allChampionships.filter(
+    (c) => c.type === "League"
+  );
 });
 
-const currentRound = computed(() => {
-  const allMatches = stores.matches.matches;
-  if (!allMatches || allMatches.length === 0) return null;
+const selectedDate = ref(null);
 
-  const now = new Date();
-
-  // Encontra a partida mais próxima que ainda não aconteceu
-  const upcomingMatch = allMatches
-    .filter((m) => new Date(m.date) >= now)
-    .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
-
-  if (upcomingMatch) return upcomingMatch.round;
-
-  // Se não houver jogos futuros, pega a rodada do último jogo que aconteceu
-  const lastMatch = [...allMatches].sort(
-    (a, b) => new Date(b.date) - new Date(a.date)
-  )[0];
-
-  return lastMatch ? lastMatch.round : null;
+const allGameDays = computed(() => {
+  if (!stores.matches.matches || stores.matches.matches.length === 0) return [];
+  const dates = stores.matches.matches.map((match) =>
+    getLocalDateString(match.date)
+  );
+  return [...new Set(dates)].sort();
 });
 
-const currentRoundNumber = computed(() => {
-  if (!currentRound.value) return "";
-  return currentRound.value.match(/\d+/)?.[0] || "";
-});
-
-const matchesOfCurrentRound = computed(() => {
-  if (!currentRound.value) return [];
+const matchesOfSelectedDay = computed(() => {
+  if (!selectedDate.value) return [];
   return stores.matches.matches
-    .filter((m) => m.round === currentRound.value)
+    .filter((m) => {
+      // Comparamos o dia local do jogo com o dia selecionado
+      return getLocalDateString(m.date) === selectedDate.value;
+    })
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 });
 
-const matchesByDay = computed(() => {
-  return matchesOfCurrentRound.value.reduce((acc, match) => {
-    const localDate = new Date(match.date);
-
-    const year = localDate.getFullYear();
-    const month = String(localDate.getMonth() + 1).padStart(2, "0");
-    const day = String(localDate.getDate()).padStart(2, "0");
-    const dateKey = `${year}-${month}-${day}`;
-
-    if (!acc[dateKey]) acc[dateKey] = [];
-    acc[dateKey].push(match);
-    return acc;
-  }, {});
-});
-
 const featuredMatch = computed(() => {
-  if (matchesOfCurrentRound.value.length === 0) return null;
+  if (matchesOfSelectedDay.value.length === 0) return null;
   return (
-    matchesOfCurrentRound.value.find((m) => m.status !== "FT") ||
-    matchesOfCurrentRound.value[0]
+    matchesOfSelectedDay.value.find((m) => m.status !== "FT") ||
+    matchesOfSelectedDay.value[0]
   );
 });
 
@@ -310,12 +325,21 @@ const formatTime = (dateString) =>
   });
 
 const formatDate = (dateString) => {
-  const [year, month, day] = dateString.split("-");
+  if (!dateString) return "";
+  // Usar replace para maior compatibilidade com o construtor da Data
+  const date = new Date(dateString.replace(/-/g, '/'));
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const date = new Date(year, month - 1, day, 12, 0, 0);
+  if (date.getTime() === today.getTime()) return "Hoje";
+  if (date.getTime() === tomorrow.getTime()) return "Amanhã";
 
+  // ADICIONADO: 'month: "long"' para incluir o nome do mês
   return new Intl.DateTimeFormat("pt-BR", {
-    weekday: "long",
+    weekday: "short", // 'short' (sex.) é melhor para caber no seletor
     day: "2-digit",
     month: "long",
   }).format(date);
@@ -323,12 +347,13 @@ const formatDate = (dateString) => {
 
 const getStatusText = (status) =>
   ({
-    NS: "Agendado",
-    PST: "Adiado",
-    FT: "Encerrado",
-    "1H": "1º Tempo",
-    "2H": "2º Tempo",
-    HT: "Intervalo",
+    SCHEDULED: "Agendado",
+    IN_PROGRESS: "Em Andamento",
+    HALFTIME: "Intervalo",
+    FULL_TIME: "Tempo Regulamentar",
+    FINAL: "Encerrado",
+    POSTPONED: "Adiado",
+    CANCELED: "Cancelado",
   }[status] || status);
 
 const isHomeWinner = (match) =>

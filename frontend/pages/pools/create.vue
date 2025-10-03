@@ -420,6 +420,7 @@
         </div>
       </form>
     </main>
+    {{ form }}
   </div>
 </template>
 
@@ -444,14 +445,13 @@ import {
 } from "@heroicons/vue/20/solid";
 
 useHead({
-  title: "Criar Torneio",
+  title: "Criar Bolão",
 });
 
 const stores = useStores();
 const router = useRouter();
-const loading = ref(false);
 
-const championships = computed(() => stores.championships.championships);
+const championships = computed(() => stores.championships.allChampionships);
 const deadlineOptions = ref(Array.from({ length: 12 }, (_, i) => i + 1));
 
 const form = reactive({
@@ -484,6 +484,13 @@ onMounted(async () => {
   }
 });
 
+const getErrorMessage = (error, defaultMessage) => {
+  if (error?.data?.error) {
+    return error.data.error;
+  }
+  return defaultMessage;
+};
+
 const handleSubmit = async () => {
   if (!stores.auth.user) {
     stores.ui.showToast("Sua sessão expirou. Por favor, faça login novamente.", "error");
@@ -491,11 +498,8 @@ const handleSubmit = async () => {
     return;
   }
   
-  loading.value = true;
-
   if (!form.baseChampionship) {
     stores.ui.showToast("Por favor, selecione um campeonato base.", "error");
-    loading.value = false;
     return;
   }
 
@@ -507,18 +511,15 @@ const handleSubmit = async () => {
     private: form.isPrivate,
     points: form.points,
     entryFee: form.entryFee,
-    userId: stores.auth.user.id,
   };
 
-  const result = await stores.pools.createPool(payload);
-
-  if (!result.success) {
-    stores.ui.showToast(result.error || "Erro ao criar o bolão.", "error");
-  } else {
-    stores.ui.showToast("Torneio criado com sucesso!", "success");
-    router.push(`/pool/${result.poolId}`);
+  try {
+    const newPool = await stores.pools.createPool(payload);
+    stores.ui.showToast("Bolão criado com sucesso!", "success");
+    router.push(`/pools/${newPool.id}`);
+  } catch (error) {
+    const message = getErrorMessage(error, "Erro desconhecido ao criar o bolão.");
+    stores.ui.showToast(message, "error");
   }
-
-  loading.value = false;
 };
 </script>

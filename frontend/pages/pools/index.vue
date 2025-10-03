@@ -28,9 +28,9 @@
           <p class="mt-1 text-sm text-red-600 dark:text-red-300">{{ error }}</p>
         </div>
 
-        <div v-else-if="stores.pools.pools.length > 0" class="space-y-4">
+        <div v-else-if="stores.pools.publicPools.length > 0" class="space-y-4">
           <NuxtLink
-            v-for="pool in stores.pools.pools"
+            v-for="pool in stores.pools.publicPools"
             :key="pool.id"
             :to="`/pools/${pool.id}`"
             class="block p-4 transition-all duration-200 bg-white border border-gray-200 rounded-lg shadow-sm group hover:border-gray-400 hover:shadow-md dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-500"
@@ -110,6 +110,7 @@
           </p>
         </div>
       </div>
+      {{ stores.pools.pools }}
     </main>
   </div>
 </template>
@@ -141,10 +142,18 @@ const formatCurrency = (value) => {
 };
 
 onMounted(async () => {
-  const result = await stores.pools.fetchAllPublicPools();
-  if (!result.success) {
-    error.value = result.error;
+  loading.value = true;
+  error.value = null;
+  try {
+    // Agora, a função simplesmente é chamada.
+    // Se ela falhar, o 'catch' será acionado.
+    await stores.pools.fetchAllPublicPools();
+  } catch (err) {
+    // A store já logou o erro, aqui apenas definimos a mensagem para a UI.
+    error.value = err.data?.error || 'Falha ao carregar os bolões.';
+  } finally {
+    // O 'finally' garante que o loading sempre terminará.
+    loading.value = false;
   }
-  loading.value = false;
 });
 </script>

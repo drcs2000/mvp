@@ -20,7 +20,13 @@ class PoolService {
 
   public async create(poolData: ICreatePoolDTO, adminUserId: number): Promise<Pool> {
     return AppDataSource.manager.transaction(async (transactionalEntityManager) => {
-      const newPool = transactionalEntityManager.create(Pool, poolData);
+      const { baseChampionshipId, ...restOfPoolData } = poolData;
+
+      const newPool = transactionalEntityManager.create(Pool, {
+        ...restOfPoolData,
+        baseChampionship: { id: baseChampionshipId },
+      });
+
       await transactionalEntityManager.save(newPool);
 
       const adminParticipant = transactionalEntityManager.create(PoolParticipant, {
@@ -33,7 +39,7 @@ class PoolService {
 
       return await transactionalEntityManager.findOneOrFail(Pool, {
         where: { id: newPool.id },
-        relations: ['participants', 'participants.user'],
+        relations: ['participants', 'participants.user', 'baseChampionship'],
       });
     });
   }
@@ -41,7 +47,7 @@ class PoolService {
   public async findAllPublic(): Promise<Pool[]> {
     return this.poolRepository.find({
       where: { private: false },
-      relations: ['participants', 'participants.user'],
+      relations: ['participants', 'participants.user', 'baseChampionship'],
     });
   }
 
@@ -52,6 +58,7 @@ class PoolService {
       .where("participants.userId = :userId", { userId })
       .leftJoinAndSelect("pool.participants", "allParticipants")
       .leftJoinAndSelect("allParticipants.user", "user")
+      .leftJoinAndSelect("pool.baseChampionship", "baseChampionship")
       .getMany();
     return pools;
   }
@@ -59,7 +66,7 @@ class PoolService {
   public async findOne(poolId: number): Promise<Pool | null> {
     return this.poolRepository.findOne({
       where: { id: poolId },
-      relations: ['participants', 'participants.user'],
+      relations: ['participants', 'participants.user', 'baseChampionship'],
     });
   }
 
@@ -92,7 +99,7 @@ class PoolService {
 
       return await transactionalEntityManager.findOneOrFail(Pool, {
         where: { id: poolId },
-        relations: ['participants', 'participants.user'],
+        relations: ['participants', 'participants.user', 'baseChampionship'],
       });
     });
   }
@@ -169,7 +176,7 @@ class PoolService {
       }
     });
   }
-  
+
   public async confirmParticipantPayment(poolId: number, userId: number): Promise<PoolParticipant> {
     const participant = await this.participantRepository.findOne({
       where: {

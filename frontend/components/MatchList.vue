@@ -8,11 +8,6 @@
     </div>
     <div v-else-if="Object.keys(matchesByDay).length > 0" class="mt-2">
       <div v-for="(matches, day) in matchesByDay" :key="day" class="mb-6">
-        <h3
-          class="px-2 py-2 text-sm font-semibold text-gray-500 dark:text-gray-300 text-left"
-        >
-          {{ formatDate(day) }}
-        </h3>
         <div class="space-y-px">
           <slot name="match" v-bind="{ matches }">
             <div
@@ -105,6 +100,10 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  label: {
+    type: String,
+    default: ''
+  }
 });
 
 const formatTime = (dateString) =>
@@ -112,18 +111,6 @@ const formatTime = (dateString) =>
     hour: "2-digit",
     minute: "2-digit",
   });
-
-const formatDate = (dateString) => {
-  const [year, month, day] = dateString.split("-");
-
-  const date = new Date(year, month - 1, day, 12, 0, 0);
-
-  return new Intl.DateTimeFormat("pt-BR", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-  }).format(date);
-};
 
 const getStatusText = (status) =>
   ({

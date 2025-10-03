@@ -1,144 +1,124 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
-export interface Match {
+export enum MatchStatus {
+  SCHEDULED = 'SCHEDULED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  HALFTIME = 'HALFTIME',
+  FULL_TIME = 'FULL_TIME',
+  FINAL = 'FINAL',
+  POSTPONED = 'POSTPONED',
+  CANCELED = 'CANCELED',
+}
+
+type ChampionshipReference = {
   id: number;
-  espnId: number;
-  apiFootballId: number;
-  apiFootballFixtureId: number;
+};
+
+export type Match = {
+  id: number;
+  championship: ChampionshipReference;
+  apiEspnId: number;
   date: string;
-  stadium: string;
+  venueName: string | null;
+  venueCity: string | null;
+  homeTeamEspnId: number;
   homeTeamName: string;
   homeTeamLogoUrl: string;
+  awayTeamEspnId: number;
   awayTeamName: string;
   awayTeamLogoUrl: string;
-  homeScore?: number;
-  awayScore?: number;
-  status: string;
-  homeTeamApiId?: number | null;
-  awayTeamApiId?: number | null;
-}
+  homeScore?: number | null;
+  awayScore?: number | null;
+  status: MatchStatus;
+  apiEspnStatusDetail: string | null;
+  round: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
 
-export interface H2HData {
-  team1Id: number;
-  team2Id: number;
+export type H2HData = {
+  stats: {
+    team1Wins: number;
+    team2Wins: number;
+    draws: number;
+  };
   matches: Match[];
-  lastUpdated: string;
-}
-
-function getErrorMessage(error: unknown, defaultMessage: string): string {
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'data' in error &&
-    typeof (error as { data: unknown }).data === 'object' &&
-    (error as { data: unknown }).data !== null
-  ) {
-    const errorData = (error as { data: { message?: unknown } }).data;
-    if (typeof errorData.message === 'string') {
-      return errorData.message;
-    }
-  }
-  return defaultMessage;
-}
+};
 
 export const useMatchesStore = defineStore('matches', () => {
   const matches = ref<Match[]>([]);
   const matchesCache = ref<{ [key: number]: Match[] }>({});
-  const loading = ref(false);
+  const isLoading = ref(false);
+  const error = ref<unknown | null>(null);
 
-  /**
-   * Busca as partidas de um campeonato específico pela API.
-   * @param apiFootballId O ID do campeonato na API Football.
-   * @returns Um objeto indicando sucesso ou falha, com os dados das partidas ou uma mensagem de erro.
-   */
-  async function fetchByChampionship(apiFootballId: number) {
-    if (matchesCache.value[apiFootballId] && matches.value.length !== 0) {
-      matches.value = matchesCache.value[apiFootballId];
-      return { success: true, data: matches.value };
+  async function fetchByChampionship(championshipId: number) {
+    if (matchesCache.value[championshipId]) {
+      matches.value = matchesCache.value[championshipId];
+      return;
     }
 
-    loading.value = true;
+    isLoading.value = true;
+    error.value = null;
     try {
-      const championshipMatches = await $fetch<Match[]>(`/api/matches/championship/${apiFootballId}`);
+      const championshipMatches = await $fetch<Match[]>(`/api/matches/championship/${championshipId}`);
       matches.value = championshipMatches;
-      matchesCache.value[apiFootballId] = championshipMatches;
-      return { success: true, data: championshipMatches };
-    } catch (error: unknown) {
-      console.error('Erro ao buscar jogos do campeonato:', error);
+      matchesCache.value[championshipId] = championshipMatches;
+    } catch (err: unknown) {
+      console.error('Erro ao buscar jogos do campeonato:', err);
       matches.value = [];
-      const message = getErrorMessage(error, 'Falha ao buscar jogos');
-      return { success: false, error: message };
+      error.value = err;
     } finally {
-      loading.value = false;
+      isLoading.value = false;
     }
   }
 
-  /**
-   * Busca as partidas de um time específico pelo nome.
-   * @param teamName O nome do time.
-   * @returns Um objeto indicando sucesso ou falha, com os dados das partidas ou uma mensagem de erro.
-   */
-  async function fetchByTeam(teamName: string) {
-    loading.value = true;
+  async function fetchByTeam(teamId: number) {
+    isLoading.value = true;
+    error.value = null;
     try {
-      const teamMatches = await $fetch<Match[]>('/api/matches/team', {
-        params: { name: teamName }
-      });
+      const teamMatches = await $fetch<Match[]>(`/api/matches/team/${teamId}`);
       matches.value = teamMatches;
-      return { success: true, data: teamMatches };
-    } catch (error: unknown) {
-      console.error(`Erro ao buscar jogos do time ${teamName}:`, error);
+    } catch (err: unknown) {
+      console.error(`Erro ao buscar jogos do time ${teamId}:`, err);
       matches.value = [];
-      const message = getErrorMessage(error, 'Falha ao buscar jogos');
-      return { success: false, error: message };
+      error.value = err;
     } finally {
-      loading.value = false;
+      isLoading.value = false;
     }
   }
 
-  /**
-   * Busca os últimos jogos de dois times em um determinado campeonato.
-   * @param championshipId O ID do campeonato.
-   * @param team1Id O ID do primeiro time.
-   * @param team2Id O ID do segundo time.
-   * @returns Um objeto indicando sucesso ou falha, com os dados dos últimos jogos ou uma mensagem de erro.
-   */
-  async function fetchLastGames(championshipId: number, team1Id: number, team2Id: number) {
+  async function fetchLastGames(teamIds: number[]): Promise<{ [key: number]: Match[] } | null> {
     try {
-      const response = await $fetch<{ [key: number]: Match[] }>(`/api/matches/last-games/${championshipId}/${team1Id}/${team2Id}`);
-      return { success: true, data: response };
-    } catch (error: unknown) {
-      console.error('Erro ao buscar os últimos jogos dos times:', error);
-      const message = getErrorMessage(error, 'Falha ao buscar últimos jogos');
-      return { success: false, error: message };
+      const response = await $fetch<{ [key: number]: Match[] }>(`/api/matches/last-games`, {
+        params: { teamIds: teamIds.join(',') }
+      });
+      return response;
+    } catch (err: unknown) {
+      console.error('Erro ao buscar os últimos jogos dos times:', err);
+      error.value = err; 
+      return null;
     }
   }
 
-  /**
-     * Busca o histórico de confrontos diretos (Head-to-Head) entre dois times.
-     * @param team1Id O ID do primeiro time na API Football.
-     * @param team2Id O ID do segundo time na API Football.
-     * @returns Um objeto indicando sucesso ou falha, com os dados do H2H ou uma mensagem de erro.
-     */
-  async function fetchH2H(team1Id: number, team2Id: number) {
+  async function fetchH2H(team1Id: number, team2Id: number): Promise<H2HData | null> {
     try {
       const h2hData = await $fetch<H2HData>(`/api/matches/h2h/${team1Id}/${team2Id}`);
-      return { success: true, data: h2hData };
-    } catch (error: unknown) {
-      console.error('Erro ao buscar H2H dos times:', error);
-      const message = getErrorMessage(error, 'Falha ao buscar H2H');
-      return { success: false, error: message };
+      return h2hData;
+    } catch (err: unknown) {
+      console.error('Erro ao buscar H2H dos times:', err);
+      error.value = err;
+      return null;
     }
   }
 
   return {
     matches,
-    loading,
+    isLoading,
+    error,
     fetchByChampionship,
     fetchByTeam,
     fetchLastGames,
     fetchH2H,
   };
 });
-

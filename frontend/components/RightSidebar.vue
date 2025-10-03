@@ -135,7 +135,7 @@
               <tbody class="text-gray-800 dark:text-gray-200">
                 <tr
                   v-for="team in stores.standings.standings"
-                  :key="team.teamApiId"
+                  :key="team.teamEspnId"
                   class="grid grid-cols-12 gap-2 items-center border-b border-gray-100 last:border-b-0 text-[9px] dark:border-gray-700"
                   :class="getRowStyle(team.description)"
                 >
@@ -224,8 +224,6 @@ const selectedChampionship = computed(
   () => stores.championships.selectedChampionship
 );
 
-
-
 const emit = defineEmits(["navigate"]);
 
 const handleNavigation = (event) => {
@@ -247,11 +245,9 @@ const invitationCount = computed(() => stores.invitations.invitationCount);
 
 const isAdmin = computed(() => {
   const currentUserId = stores.auth.user?.id;
-
   if (!currentUserId || !stores.pools.myPools) {
     return false;
   }
-
   return stores.pools.myPools.some((pool) =>
     pool.participants.some(
       (participant) =>
@@ -274,7 +270,6 @@ const openInvitationsModal = async () => {
 const getRowStyle = (description) => {
   if (!description) return "";
   const desc = description.toLowerCase();
-
   if (desc.includes("champions league") || desc.includes("libertadores"))
     return "bg-blue-50 dark:bg-blue-900/50";
   if (desc.includes("europa league") || desc.includes("sudamericana"))
@@ -283,14 +278,12 @@ const getRowStyle = (description) => {
     return "bg-teal-50 dark:bg-teal-900/50";
   if (desc.includes("relegation") || desc.includes("rebaixamento"))
     return "bg-red-50 dark:bg-red-900/50";
-
   return "";
 };
 
 const getLegendIndicatorClass = (description) => {
   if (!description) return "bg-gray-400";
   const desc = description.toLowerCase();
-
   if (desc.includes("champions league") || desc.includes("libertadores"))
     return "bg-blue-500";
   if (desc.includes("europa league") || desc.includes("sudamericana"))
@@ -299,7 +292,6 @@ const getLegendIndicatorClass = (description) => {
     return "bg-teal-500";
   if (desc.includes("relegation") || desc.includes("rebaixamento"))
     return "bg-red-500";
-
   return "bg-gray-400";
 };
 
@@ -319,9 +311,9 @@ const rankLegends = computed(() => {
 watch(
   selectedChampionship,
   (newChampionship) => {
-    if (newChampionship && newChampionship.apiFootballId) {
+    if (newChampionship && newChampionship.id) {
       stores.standings.fetchStandingsByChampionshipId(
-        newChampionship.apiFootballId
+        newChampionship.id
       );
     }
   },
@@ -329,6 +321,8 @@ watch(
 );
 
 onMounted(async () => {
+  await stores.championships.fetchAllChampionships();
+
   if (stores.auth.isAuthenticated) {
     await stores.invitations.fetchPendingInvitations();
   }

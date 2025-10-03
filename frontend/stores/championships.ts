@@ -1,39 +1,43 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+
+export type ChampionshipType = 'League' | 'Cup';
+export type CalendarType = 'brasileiro' | 'europeu';
 
 interface Championship {
   id: number;
-  apiFootballId: number;
-  apiEspnId: string | null;
-  apiEspnSlug: string | null;
+  apiEspnId: number;
+  apiEspnSlug: string;
   name: string;
-  type: string;
-  leagueLogoUrl: string;
-  countryName: string;
-  countryFlagUrl: string | null;
+  abbreviation: string;
+  type: ChampionshipType;
+  calendar: CalendarType;
+  logoUrl: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export const useChampionshipsStore = defineStore('championships', () => {
-  const championships = ref<Championship[]>([]);
+  const allChampionships = ref<Championship[]>([]);
   const isLoading = ref(false);
-  const selectedChampionship = ref<Championship | null>(null);
+  const selectedChampionshipId = ref<number | null>(null);
 
-  /**
-   * Busca todos os campeonatos disponíveis na API.
-   */
-  async function fetchAllChampionships() {
-    if (championships.value.length > 0) {
+  const selectedChampionship = computed(() => {
+    if (!selectedChampionshipId.value) return null;
+    return allChampionships.value.find(c => c.id === selectedChampionshipId.value) || null;
+  });
+
+  async function fetchAllChampionships(force = false) {
+    if (allChampionships.value.length > 0 && !force) {
       return;
     }
 
     isLoading.value = true;
     try {
-      const allChampionships = await $fetch<Championship[]>('/api/championships', {
+      const data = await $fetch<Championship[]>('/api/championships', {
         method: 'GET',
       });
-      
-      championships.value = allChampionships;
+      allChampionships.value = data;
     } catch (error: unknown) {
       console.error('Erro ao buscar campeonatos:', error);
     } finally {
@@ -41,17 +45,14 @@ export const useChampionshipsStore = defineStore('championships', () => {
     }
   }
 
-  /**
-   * Define o campeonato atualmente selecionado na store.
-   * @param championship O objeto do campeonato a ser selecionado, ou nulo para limpar a seleção.
-   */
-  function selectChampionship(championship: Championship | null) {
-    selectedChampionship.value = championship;
+  function selectChampionship(championshipId: number | null) {
+    selectedChampionshipId.value = championshipId;
   }
 
   return {
-    championships,
+    allChampionships,
     isLoading,
+    selectedChampionshipId,
     selectedChampionship,
     fetchAllChampionships,
     selectChampionship,

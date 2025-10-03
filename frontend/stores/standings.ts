@@ -1,16 +1,21 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
-interface Standing {
+type ChampionshipReference = {
   id: number;
-  championshipApiFootballId: number;
-  teamApiId: number;
+};
+
+export type Standing = {
+  id: number;
+  championship: ChampionshipReference;
+  teamEspnId: number;
   teamName: string;
   teamLogoUrl: string;
   rank: number;
   points: number;
   goalsDiff: number;
-  form: string;
+  form: string | null;
+  round: string | null;
   description: string | null;
   played: number;
   win: number;
@@ -18,8 +23,8 @@ interface Standing {
   lose: number;
   goalsFor: number;
   goalsAgainst: number;
-  lastUpdate: string;
-}
+  updatedAt: Date;
+};
 
 export const useStandingsStore = defineStore('standings', () => {
   const standings = ref<Standing[]>([]);
@@ -27,13 +32,9 @@ export const useStandingsStore = defineStore('standings', () => {
   const isLoading = ref(false);
   const error = ref<unknown | null>(null);
 
-  /**
-   * Busca a tabela de classificação de um campeonato específico.
-   * @param apiFootballId O ID do campeonato na API Football.
-   */
-  async function fetchStandingsByChampionshipId(apiFootballId: number) {
-    if (standingsCache.value[apiFootballId]) {
-      standings.value = standingsCache.value[apiFootballId];
+  async function fetchStandingsByChampionshipId(championshipId: number) {
+    if (standingsCache.value[championshipId]) {
+      standings.value = standingsCache.value[championshipId];
       return;
     }
 
@@ -41,9 +42,9 @@ export const useStandingsStore = defineStore('standings', () => {
     error.value = null;
 
     try {
-      const data = await $fetch<Standing[]>(`/api/standings/${apiFootballId}`);
+      const data = await $fetch<Standing[]>(`/api/standings/${championshipId}`);
       standings.value = data;
-      standingsCache.value[apiFootballId] = data;
+      standingsCache.value[championshipId] = data;
     } catch (err: unknown) {
       error.value = err;
       standings.value = [];
@@ -60,4 +61,3 @@ export const useStandingsStore = defineStore('standings', () => {
     fetchStandingsByChampionshipId,
   };
 });
-

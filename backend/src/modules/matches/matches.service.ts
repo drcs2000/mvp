@@ -59,12 +59,9 @@ class MatchService {
   public async getH2H(team1EspnId: number, team2EspnId: number): Promise<HeadToHead | null> {
     const ids = [team1EspnId, team2EspnId].sort((a, b) => a - b);
     const [id1, id2] = ids;
+
     return this.h2hRepository.findOneBy({ team1EspnId: id1, team2EspnId: id2 });
   }
-
-  // ====================================================================
-  // FUNÇÃO DE ATUALIZAÇÃO DE PARTIDAS
-  // ====================================================================
 
   public async updateMatches(championship: Championship, events: IEspnEvent[]): Promise<{ created: number, updated: number }> {
     let createdCount = 0;
@@ -115,10 +112,6 @@ class MatchService {
     return { created: createdCount, updated: updatedCount };
   }
 
-  // ====================================================================
-  // FUNÇÕES DE LÓGICA DE NEGÓCIO (POINTS & H2H)
-  // ====================================================================
-
   public calculatePoints(bet: Bet, match: Match, pool: Pool): number {
     if (typeof match.homeScore !== 'number' || typeof match.awayScore !== 'number') {
       return 0;
@@ -159,7 +152,7 @@ class MatchService {
     const eventIds = events.map(event => parseInt(event.id, 10));
     const existingMatches = await this.matchRepository.find({
       where: { apiEspnId: In(eventIds) },
-      relations: ['championship'], // Carrega a relação com o campeonato
+      relations: ['championship'],
     });
 
     const matchesToSave: Match[] = [];
@@ -208,9 +201,8 @@ class MatchService {
   }
 
   public async updateH2HForMatch(match: Match): Promise<void> {
-    // Verificação para garantir que os placares não são nulos/undefined
     if (typeof match.homeScore !== 'number' || typeof match.awayScore !== 'number') {
-      console.log(`  -> H2H para jogo ${match.apiEspnId} pulado: placar não finalizado.`);
+      console.log(`  -> H2H para jogo ${match.apiEspnId} pulado: placar não finalizado.`);
       return;
     }
 
@@ -218,35 +210,45 @@ class MatchService {
     const [id1, id2] = ids;
 
     let h2h = await this.getH2H(id1, id2);
+
     if (!h2h) {
-      h2h = this.h2hRepository.create({ team1EspnId: id1, team2EspnId: id2, matches: [], summary: { team1Wins: 0, team2Wins: 0, draws: 0, totalMatches: 0 } });
+      h2h = this.h2hRepository.create({
+        team1EspnId: id1,
+        team2EspnId: id2,
+        matches: [],
+        summary: { team1Wins: 0, team2Wins: 0, draws: 0, totalMatches: 0 }
+      });
     }
 
-    const newMatchEntry: IH2HMatch = {
-      apiEspnId: match.apiEspnId,
-      date: match.date.toISOString(),
-      homeTeamEspnId: match.homeTeamEspnId,
-      awayTeamEspnId: match.awayTeamEspnId,
-      homeScore: match.homeScore,
-      awayScore: match.awayScore,
-      venue: match.venueName,
-    };
+    const matchAlreadyExists = h2h.matches.some(m => m.apiEspnId === match.apiEspnId);
 
-    const existingMatchIds = new Set(h2h.matches.map(m => m.apiEspnId));
-    if (!existingMatchIds.has(newMatchEntry.apiEspnId)) {
-      h2h.matches.push(newMatchEntry);
+    if (!matchAlreadyExists) {
+      h2h.matches.push({
+        apiEspnId: match.apiEspnId,
+        date: match.date.toISOString(),
+        homeTeamEspnId: match.homeTeamEspnId,
+        awayTeamEspnId: match.awayTeamEspnId,
+        homeScore: match.homeScore,
+        awayScore: match.awayScore,
+        venue: match.venueName,
+      });
 
       h2h.summary.totalMatches++;
-      if (newMatchEntry.homeScore > newMatchEntry.awayScore) {
-        newMatchEntry.homeTeamEspnId === id1 ? h2h.summary.team1Wins++ : h2h.summary.team2Wins++;
-      } else if (newMatchEntry.awayScore > newMatchEntry.homeScore) {
-        newMatchEntry.homeTeamEspnId === id1 ? h2h.summary.team2Wins++ : h2h.summary.team1Wins++;
+      const homeId = match.homeTeamEspnId;
+      const awayId = match.awayTeamEspnId;
+
+      if (match.homeScore > match.awayScore) {
+        if (homeId === id1) h2h.summary.team1Wins++;
+        else h2h.summary.team2Wins++;
+      } else if (match.awayScore > match.homeScore) {
+        if (awayId === id1) h2h.summary.team1Wins++;
+        else h2h.summary.team2Wins++;
       } else {
         h2h.summary.draws++;
       }
-    }
 
-    await this.h2hRepository.save(h2h);
+      await this.h2hRepository.save(h2h);
+    }
   }
 
   private mapEspnStatus(status: { name: string; detail: string }): MatchStatus {
@@ -254,10 +256,9 @@ class MatchService {
       case 'STATUS_FINAL':
       case 'STATUS_FULL_TIME':
         return MatchStatus.FINAL;
+      case 'STATUS_FIRST_HALF':
+      case 'STATUS_SECOND_HALF':
       case 'STATUS_IN_PROGRESS':
-        if (status.detail.toLowerCase().includes('half')) {
-          return MatchStatus.HALFTIME;
-        }
         return MatchStatus.IN_PROGRESS;
       case 'STATUS_SCHEDULED':
         return MatchStatus.SCHEDULED;

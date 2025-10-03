@@ -761,15 +761,25 @@ const previousPage = (poolId) => {
   }
 };
 
-const formatDate = (dateString, withTime = false) => {
-  const options = {
-    year: "numeric",
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  // Usar replace para maior compatibilidade com o construtor da Data
+  const date = new Date(dateString.replace(/-/g, '/'));
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  if (date.getTime() === today.getTime()) return "Hoje";
+  if (date.getTime() === tomorrow.getTime()) return "Amanhã";
+
+  // ADICIONADO: 'month: "long"' para incluir o nome do mês
+  return new Intl.DateTimeFormat("pt-BR", {
+    weekday: "short", // 'short' (sex.) é melhor para caber no seletor
+    day: "2-digit",
     month: "long",
-    day: "numeric",
-    hour: withTime ? "2-digit" : undefined,
-    minute: withTime ? "2-digit" : undefined,
-  };
-  return new Date(dateString).toLocaleDateString("pt-BR", options);
+  }).format(date);
 };
 
 const getInvitationStatusClass = (status) => {
