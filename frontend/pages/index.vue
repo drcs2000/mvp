@@ -226,9 +226,7 @@ const showMatchesContent = ref(false);
 
 onMounted(async () => {
   await stores.championships.fetchAllChampionships();
-  if (leagueChampionships.value.length > 0 && !selectedChampionship.value) {
-    selectedChampionship.value = leagueChampionships.value[0];
-  }
+  selectedChampionship.value = leagueChampionships.value[0];
 
   setTimeout(() => {
     showFeaturedMatch.value = true;
@@ -238,7 +236,7 @@ onMounted(async () => {
 
 const getLocalDateString = (utcDateString) => {
   if (!utcDateString) return null;
-  const date = new Date(utcDateString); 
+  const date = new Date(utcDateString);
 
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -261,18 +259,14 @@ const selectChampionshipWithAnimation = async (championship) => {
   showMatchesContent.value = true;
 };
 
-// Novo watch
 watch(
   selectedChampionship,
   async (newChampionship) => {
     if (newChampionship && newChampionship.id) {
-      // 1. Usa o ID interno do campeonato para buscar os jogos
       await stores.matches.fetchByChampionship(newChampionship.id);
 
-      // 2. Define a data inicial
       if (allGameDays.value.length > 0) {
         const today = new Date().toISOString().split("T")[0];
-        // Encontra o primeiro dia de jogo de hoje em diante, ou o último dia disponível
         selectedDate.value =
           allGameDays.value.find((day) => day >= today) ||
           allGameDays.value[allGameDays.value.length - 1];
@@ -304,7 +298,6 @@ const matchesOfSelectedDay = computed(() => {
   if (!selectedDate.value) return [];
   return stores.matches.matches
     .filter((m) => {
-      // Comparamos o dia local do jogo com o dia selecionado
       return getLocalDateString(m.date) === selectedDate.value;
     })
     .sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -326,9 +319,8 @@ const formatTime = (dateString) =>
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
-  // Usar replace para maior compatibilidade com o construtor da Data
-  const date = new Date(dateString.replace(/-/g, '/'));
-  
+  const date = new Date(dateString.replace(/-/g, "/"));
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
@@ -337,9 +329,8 @@ const formatDate = (dateString) => {
   if (date.getTime() === today.getTime()) return "Hoje";
   if (date.getTime() === tomorrow.getTime()) return "Amanhã";
 
-  // ADICIONADO: 'month: "long"' para incluir o nome do mês
   return new Intl.DateTimeFormat("pt-BR", {
-    weekday: "short", // 'short' (sex.) é melhor para caber no seletor
+    weekday: "short",
     day: "2-digit",
     month: "long",
   }).format(date);
@@ -387,7 +378,7 @@ const isAwayWinner = (match) =>
   display: none;
 }
 .no-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 </style>

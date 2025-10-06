@@ -6,7 +6,7 @@ interface User {
   id: number;
   name: string;
   email: string;
-  // Adicione outras propriedades do token se houver (ex: exp, iat)
+  exp: number;
 }
 
 // Descreve os dados necessários para o login
@@ -136,20 +136,48 @@ export const useAuthStore = defineStore('auth', {
      * Desloga o usuário.
      */
     async logout() {
+      // Pega a store de UI para mostrar o toast
+      const uiStore = useUiStore();
+      if (this.isAuthenticated) {
+        uiStore.showToast("Sua sessão expirou ou foi encerrada.", "info");
+      }
       this._clearState();
     },
 
     /**
      * Inicializa o estado de autenticação a partir do localStorage.
-     * Deve ser chamada em um plugin ou no onMounted do App.vue.
      */
     initializeAuth() {
       if (import.meta.client) {
         const token = localStorage.getItem('auth-token');
         if (token) {
           this._setStateFromToken(token);
+          // Adiciona a verificação aqui também
+          if (!this.checkTokenValidity()) {
+            console.log("Token do localStorage expirado, limpando sessão.");
+          }
         }
       }
-    }
+    },
+
+    /**
+     * Verifica a validade do token atual. Se estiver expirado ou ausente, desloga o usuário.
+     * @returns {boolean} Retorna `true` se o usuário estiver autenticado e o token for válido.
+     */
+    checkTokenValidity(): boolean {
+      if (!this.token || !this.user?.exp) {
+        if (this.isAuthenticated) this.logout();
+        return false;
+      }
+
+      const isExpired = this.user.exp * 1000 < Date.now();
+
+      if (isExpired) {
+        this.logout();
+        return false;
+      }
+
+      return true;
+    },
   },
 });

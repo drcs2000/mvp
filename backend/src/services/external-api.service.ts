@@ -86,6 +86,29 @@ class ExternalAPIService {
     const response = await this.apiClient.get(endpoint);
     return response.data?.events || [];
   }
+
+  /**
+ * Busca todos os jogos agendados para uma data específica em uma liga.
+ * @param leagueSlug O slug da liga (ex: 'bra.1', 'eng.1').
+ * @param date O objeto Date para o qual os jogos devem ser buscados.
+ * @returns Uma promessa que resolve para um array de eventos (jogos).
+ */
+public async getMatchesByDate(leagueSlug: string, date: Date): Promise<IEspnEvent[]> {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const dateString = `${year}${month}${day}`;
+  
+  const endpoint = `/${leagueSlug}/scoreboard?dates=${dateString}`;
+  
+  try {
+    const response = await this.apiClient.get(endpoint);
+    return response.data?.events || [];
+  } catch (error) {
+    console.error(`Erro ao buscar jogos para a liga ${leagueSlug} na data ${dateString}:`, error);
+    return []; // Retorna um array vazio em caso de erro para não parar o script
+  }
+}
 }
 
 export default new ExternalAPIService();

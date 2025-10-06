@@ -13,7 +13,7 @@
         </button>
 
         <p
-          class="text-sm font-semibold text-gray-700 dark:text-gray-200 w-36 text-center"
+          class="text-sm font-semibold text-gray-700 dark:text-gray-200 max-w-36 text-center truncate"
         >
           {{ label }}
         </p>

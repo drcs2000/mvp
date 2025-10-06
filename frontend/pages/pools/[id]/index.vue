@@ -1,5 +1,5 @@
 <template>
-  <section class="bg-white dark:bg-gray-800 pb-28 md:pb-8">
+  <section class="pb-28 md:pb-8">
     <div v-if="currentChampionship" class="sticky top-0 z-20">
       <ChampionshipHeader :championship="currentChampionship">
         <template #right>
@@ -58,7 +58,9 @@
           >
             <div
               class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200"
-              :class="{ 'cursor-pointer': match.status !== 'FT' }"
+              :class="{
+                'cursor-pointer': !isBettingTimeExpired(match) && isParticipant,
+              }"
               @click="toggleMatchDetails(match, $event)"
             >
               <div
@@ -418,9 +420,6 @@
                                 >
                               </div>
                             </div>
-                            <div
-                              class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2"
-                            />
                           </div>
                           <div>
                             <h4
@@ -476,9 +475,6 @@
                                 </p>
                               </div>
                             </div>
-                            <div
-                              class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2"
-                            />
                           </div>
                         </div>
                       </div>
@@ -516,7 +512,7 @@
     >
       <button
         :disabled="!hasChanges || !allBetsAreFilled || stores.bet.loading"
-        class="w-full px-4 py-3 text-base font-semibold text-white bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 md:w-auto md:px-6 md:py-2 md:text-sm md:shadow-sm dark:bg-blue-500 dark:hover:bg-blue-600 dark:disabled:bg-gray-600 dark:focus:ring-offset-gray-800"
+        class="w-full whitespace-nowrap rounded-md border-2 border-blue-600 bg-transparent px-4 py-3 text-base font-semibold text-blue-600 transition-colors duration-200 hover:bg-blue-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400 md:w-auto md:px-6 md:py-2 md:text-sm dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-gray-900 dark:focus-visible:ring-offset-gray-800 dark:disabled:border-gray-600 dark:disabled:text-gray-600"
         @click="submitAllBets"
       >
         Salvar Rodada
@@ -871,7 +867,7 @@ const submitAllBets = async () => {
   }
 };
 const toggleMatchDetails = async (match, event) => {
-  if (match.status === "FINAL" || match.status === "FULL_TIME") return;
+  if (isBettingTimeExpired(match) || !isParticipant.value) return;
   const isClosing = expandedMatchId.value === match.id;
   if (isClosing) {
     expandedMatchId.value = null;

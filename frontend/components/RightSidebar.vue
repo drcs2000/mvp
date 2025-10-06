@@ -106,23 +106,6 @@
       class="flex flex-col flex-1 p-3 overflow-hidden border border-gray-200 rounded-lg dark:border-gray-700"
     >
       <div v-if="selectedChampionship" class="flex flex-col flex-1 min-h-0">
-        <div class="shrink-0">
-          <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-200">
-            {{ selectedChampionship.name }}
-          </h3>
-          <div
-            class="grid grid-cols-12 gap-2 text-center text-gray-500 border-b border-gray-200 text-[9px] uppercase dark:text-gray-400 dark:border-gray-600"
-          >
-            <div class="col-span-1 py-1 font-normal text-left">#</div>
-            <div class="col-span-6 py-1 font-normal text-left">Time</div>
-            <div class="col-span-1 py-1 font-normal">P</div>
-            <div class="col-span-1 py-1 font-normal">J</div>
-            <div class="col-span-1 py-1 font-normal">V</div>
-            <div class="col-span-1 py-1 font-normal">E</div>
-            <div class="col-span-1 py-1 font-normal">D</div>
-          </div>
-        </div>
-
         <div class="flex-1 overflow-y-auto no-scrollbar">
           <div
             v-if="stores.standings.isLoading"
@@ -131,31 +114,48 @@
             Carregando...
           </div>
           <div v-else-if="stores.standings.standings.length > 0">
+            <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-200">
+              {{ selectedChampionship.name }}
+            </h3>
             <table class="w-full text-center table-fixed">
-              <tbody class="text-gray-800 dark:text-gray-200">
-                <tr
-                  v-for="team in stores.standings.standings"
-                  :key="team.teamEspnId"
-                  class="grid grid-cols-12 gap-2 items-center border-b border-gray-100 last:border-b-0 text-[9px] dark:border-gray-700"
-                  :class="getRowStyle(team.description)"
-                >
-                  <td class="col-span-1 py-2 font-medium text-left">
-                    {{ team.rank }}
-                  </td>
-                  <td class="col-span-6 py-2 text-left truncate">
-                    <div class="flex items-center">
-                      <img :src="team.teamLogoUrl" class="w-4 h-4 mr-2" >
-                      <span class="whitespace-nowrap">{{ team.teamName }}</span>
-                    </div>
-                  </td>
-                  <td class="col-span-1 py-2 font-bold">{{ team.points }}</td>
-                  <td class="col-span-1 py-2 text-gray-500 dark:text-gray-400">
-                    {{ team.played }}
-                  </td>
-                  <td class="col-span-1 py-2 text-gray-500 dark:text-gray-400">{{ team.win }}</td>
-                  <td class="col-span-1 py-2 text-gray-500 dark:text-gray-400">{{ team.draw }}</td>
-                  <td class="col-span-1 py-2 text-gray-500 dark:text-gray-400">{{ team.lose }}</td>
+              <thead class="text-[9px] uppercase text-gray-500 dark:text-gray-400">
+                <tr class="border-b border-gray-200 dark:border-gray-600">
+                  <th class="w-[8%] py-1 font-normal text-left pl-1">#</th>
+                  <th class="w-[42%] py-1 font-normal text-left">Time</th>
+                  <th class="w-[10%] py-1 font-normal">P</th>
+                  <th class="w-[10%] py-1 font-normal">J</th>
+                  <th class="w-[10%] py-1 font-normal">V</th>
+                  <th class="w-[10%] py-1 font-normal">E</th>
+                  <th class="w-[10%] py-1 font-normal">D</th>
                 </tr>
+              </thead>
+              <tbody class="text-gray-800 dark:text-gray-200 text-[9px]">
+                <template v-for="group in groupedStandings" :key="group.key">
+                  <tr v-if="groupedStandings.length > 1">
+                    <td colspan="7" class="py-2 px-1 font-bold text-left text-gray-600 bg-gray-100 dark:text-gray-300 dark:bg-gray-700/50">
+                      {{ group.displayName }}
+                    </td>
+                  </tr>
+                  <tr
+                    v-for="(team, index) in group.teams"
+                    :key="team.teamEspnId"
+                    class="border-b border-gray-100 last:border-b-0 dark:border-gray-700"
+                    :class="getRowStyle(team.description)"
+                  >
+                    <td class="py-2 font-medium text-left pl-1">{{ index + 1 }}</td>
+                    <td class="py-2 text-left">
+                      <div class="flex items-center truncate">
+                        <img :src="team.teamLogoUrl" class="inline-block object-contain w-4 h-4 mr-2 shrink-0" >
+                        <span class="whitespace-nowrap">{{ team.teamName }}</span>
+                      </div>
+                    </td>
+                    <td class="py-2 font-bold">{{ team.points }}</td>
+                    <td class="py-2 text-gray-500 dark:text-gray-400">{{ team.played }}</td>
+                    <td class="py-2 text-gray-500 dark:text-gray-400">{{ team.win }}</td>
+                    <td class="py-2 text-gray-500 dark:text-gray-400">{{ team.draw }}</td>
+                    <td class="py-2 text-gray-500 dark:text-gray-400">{{ team.lose }}</td>
+                  </tr>
+                </template>
               </tbody>
             </table>
           </div>
@@ -256,6 +256,47 @@ const isAdmin = computed(() => {
   );
 });
 
+const getGroupName = (roundString) => {
+  if (!roundString || !roundString.includes(' - ')) {
+    return roundString || 'N/A';
+  }
+  const parts = roundString.split(' - ');
+  return parts.pop().trim();
+};
+
+const groupedStandings = computed(() => {
+  const standings = stores.standings.standings;
+  if (!standings || standings.length === 0) {
+    return [];
+  }
+
+  const uniqueRounds = new Set(standings.map(team => team.round).filter(Boolean));
+
+  if (uniqueRounds.size > 1) {
+    const groups = standings.reduce((acc, team) => {
+      const roundKey = team.round || 'N/A';
+      if (!acc[roundKey]) {
+        acc[roundKey] = [];
+      }
+      acc[roundKey].push(team);
+      return acc;
+    }, {});
+
+    const sortedGroupEntries = Object.entries(groups).sort((a, b) => {
+      return getGroupName(a[0]).localeCompare(getGroupName(b[0]));
+    });
+
+    return sortedGroupEntries.map(([roundKey, teams]) => ({
+      key: roundKey,
+      displayName: getGroupName(roundKey),
+      teams: teams.sort((a, b) => b.points - a.points),
+    }));
+  }
+
+  return [{ key: 'default', displayName: 'default', teams: [...standings].sort((a, b) => a.rank - b.rank) }];
+});
+
+
 const handleLogout = async () => {
   await stores.auth.logout();
 };
@@ -270,11 +311,11 @@ const openInvitationsModal = async () => {
 const getRowStyle = (description) => {
   if (!description) return "";
   const desc = description.toLowerCase();
-  if (desc.includes("champions league") || desc.includes("libertadores"))
+  if (desc.includes("champions league") || desc.includes("libertadores") || desc.includes("promotion - round of 16"))
     return "bg-blue-50 dark:bg-blue-900/50";
   if (desc.includes("europa league") || desc.includes("sudamericana"))
     return "bg-green-50 dark:bg-green-900/50";
-  if (desc.includes("conference league") || desc.includes("qualification"))
+  if (desc.includes("conference league") || desc.includes("qualification") || desc.includes("play-offs"))
     return "bg-teal-50 dark:bg-teal-900/50";
   if (desc.includes("relegation") || desc.includes("rebaixamento"))
     return "bg-red-50 dark:bg-red-900/50";
@@ -284,11 +325,11 @@ const getRowStyle = (description) => {
 const getLegendIndicatorClass = (description) => {
   if (!description) return "bg-gray-400";
   const desc = description.toLowerCase();
-  if (desc.includes("champions league") || desc.includes("libertadores"))
+  if (desc.includes("champions league") || desc.includes("libertadores") || desc.includes("promotion - round of 16"))
     return "bg-blue-500";
   if (desc.includes("europa league") || desc.includes("sudamericana"))
     return "bg-green-500";
-  if (desc.includes("conference league") || desc.includes("qualification"))
+  if (desc.includes("conference league") || desc.includes("qualification") || desc.includes("play-offs"))
     return "bg-teal-500";
   if (desc.includes("relegation") || desc.includes("rebaixamento"))
     return "bg-red-500";
@@ -334,7 +375,7 @@ onMounted(async () => {
   display: none;
 }
 .no-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 </style>

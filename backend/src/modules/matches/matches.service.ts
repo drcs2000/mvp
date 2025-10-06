@@ -254,6 +254,7 @@ class MatchService {
   private mapEspnStatus(status: { name: string; detail: string }): MatchStatus {
     switch (status.name) {
       case 'STATUS_FINAL':
+      case 'STATUS_FINAL_PEN':
       case 'STATUS_FULL_TIME':
         return MatchStatus.FINAL;
       case 'STATUS_FIRST_HALF':

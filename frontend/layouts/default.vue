@@ -85,8 +85,6 @@ useHead({
 const stores = useStores();
 const { toastMessage, toastType } = storeToRefs(stores.ui);
 
-const { isAuthenticated } = storeToRefs(stores.auth);
-
 const { width } = useWindowSize();
 const isMobile = computed(() => width.value < 1250);
 
@@ -96,18 +94,11 @@ const isRightSidebarOpen = ref(false);
 const isMounted = ref(false);
 
 const checkAuthStatus = () => {
-  if (!isAuthenticated.value) {
-    stores.ui.showToast("Sua sessão expirou. Por favor, faça login novamente.", "error");
-    stores.auth.logout(); 
-    return false;
-  }
-  return true;
 };
 
 onMounted(() => {
-  if (checkAuthStatus()) {
-    isMounted.value = true;
-  }
+  stores.auth.initializeAuth(); 
+  isMounted.value = true;
 });
 
 const route = useRoute();
@@ -115,7 +106,8 @@ watch(
   () => route.path,
   () => {
     checkAuthStatus();
-  }
+  },
+  { deep: true, immediate: true }
 );
 
 const toggleLeftSidebar = () => {

@@ -11,7 +11,8 @@
     "migration:run": "npm run typeorm -- migration:run",
     "populate-team-ids": "ts-node scripts/populate-team-ids.ts",
     "mark-admin-as-paid": "ts-node src/scripts/mark-admin-as-paid.ts",
-    "db:populate": "ts-node src/scripts/populate-database.ts"
+    "db:populate": "ts-node src/scripts/populate-database.ts",
+    "db:update": "ts-node src/scripts/update-past-matches.ts"
   },
   "keywords": [],
   "author": "",

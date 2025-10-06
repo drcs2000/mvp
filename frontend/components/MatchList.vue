@@ -1,5 +1,5 @@
 <template>
-  <div class="sm:px-6 pb-6">
+  <div class="pb-6">
     <div
       v-if="loading"
       class="pt-8 text-center text-gray-500 dark:text-gray-400"

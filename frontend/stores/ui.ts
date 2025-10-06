@@ -2,10 +2,10 @@ import { defineStore } from 'pinia';
 
 export const useUiStore = defineStore('ui', () => {
   const toastMessage = ref('');
-  const toastType = ref<'success' | 'error'>('success');
+  const toastType = ref<'success' | 'error' | 'info'>('success');
   let timeoutId: NodeJS.Timeout | null = null;
 
-  function showToast(message: string, type: 'success' | 'error' = 'success', duration: number = 4000) {
+  function showToast(message: string, type: 'success' | 'error' | 'info' = 'success', duration: number = 4000) {
     if (timeoutId) {
       clearTimeout(timeoutId);
     }

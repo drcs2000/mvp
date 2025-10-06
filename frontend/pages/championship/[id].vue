@@ -4,7 +4,7 @@
       <header
         class="flex items-center shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm gap-4 dark:bg-gray-800/80 dark:border-gray-700"
       >
-        <img :src="championship.logoUrl" class="w-8 h-8 object-contain" >
+        <SafeImage :src="championship.logoUrl" class="object-contain w-6 h-6 shrink-0" />
         <h1 class="text-xl font-bold text-gray-900 dark:text-white">
           {{ championship.name }}
         </h1>
@@ -17,11 +17,7 @@
         <div class="p-4 text-white bg-gray-800 dark:bg-gray-700 rounded-xl">
           <div class="flex items-center justify-between">
             <div class="flex flex-col items-center w-1/3 text-center">
-              <img
-                :src="featuredMatch.homeTeamLogoUrl"
-                :alt="featuredMatch.homeTeamName"
-                class="object-contain w-16 h-16"
-              >
+              <SafeImage :src="featuredMatch.homeTeamLogoUrl" class="object-contain w-16 h-16 shrink-0" />
               <span
                 class="block mt-2 text-sm"
                 :class="{ 'font-bold': isHomeWinner(featuredMatch) }"
@@ -51,11 +47,7 @@
               }}</span>
             </div>
             <div class="flex flex-col items-center w-1/3 text-center">
-              <img
-                :src="featuredMatch.awayTeamLogoUrl"
-                :alt="featuredMatch.awayTeamName"
-                class="object-contain w-16 h-16"
-              >
+              <SafeImage :src="featuredMatch.awayTeamLogoUrl" class="object-contain w-16 h-16 shrink-0" />
               <span
                 class="block mt-2 text-sm"
                 :class="{ 'font-bold': isAwayWinner(featuredMatch) }"
@@ -104,10 +96,7 @@
                   :class="{ 'font-bold': isHomeWinner(match) }"
                   >{{ match.homeTeamName }}</span
                 >
-                <img
-                  :src="match.homeTeamLogoUrl"
-                  class="object-contain w-6 h-6 shrink-0"
-                >
+                <SafeImage :src="match.homeTeamLogoUrl" class="object-contain w-6 h-6 shrink-0" />
                 <div class="flex flex-col items-center">
                   <span class="w-12 text-center font-bold text-base">
                     <span
@@ -139,10 +128,7 @@
                     <span v-else>{{ getStatusText(match.status) }}</span>
                   </span>
                 </div>
-                <img
-                  :src="match.awayTeamLogoUrl"
-                  class="object-contain w-6 h-6 shrink-0"
-                >
+                <SafeImage :src="match.awayTeamLogoUrl" class="object-contain w-6 h-6 shrink-0" />
                 <span
                   class="text-left truncate"
                   :class="{ 'font-bold': isAwayWinner(match) }"
@@ -250,7 +236,7 @@ const featuredMatch = computed(() => {
   }
 
   const notPlayedStatuses = ["SCHEDULED", "POSTPONED", "NS", "TBD"];
-  const nowTimestamp = Date.now(); 
+  const nowTimestamp = Date.now();
 
   const todayString = getLocalDateString(new Date().toISOString());
   const todaysMatches = allMatches.filter(
@@ -261,7 +247,7 @@ const featuredMatch = computed(() => {
     const liveTodayMatch = todaysMatches.find(
       (m) => m.status === "IN_PROGRESS" || m.status === "HALFTIME"
     );
-    if (liveTodayMatch) return liveTodayMatch; 
+    if (liveTodayMatch) return liveTodayMatch;
 
     const upcomingTodayMatches = todaysMatches
       .filter(
@@ -271,9 +257,9 @@ const featuredMatch = computed(() => {
       )
       .sort((a, b) => new Date(a.date) - new Date(b.date));
     if (upcomingTodayMatches.length > 0) return upcomingTodayMatches[0];
-    
+
     return todaysMatches.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-  } 
+  }
   const upcomingFutureMatches = allMatches
     .filter(
       (m) =>
@@ -282,7 +268,7 @@ const featuredMatch = computed(() => {
     )
     .sort((a, b) => new Date(a.date) - new Date(b.date));
   if (upcomingFutureMatches.length > 0) return upcomingFutureMatches[0];
- 
+
   const pastMatches = allMatches.sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   );

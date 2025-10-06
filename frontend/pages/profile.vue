@@ -762,9 +762,17 @@ const previousPage = (poolId) => {
 };
 
 const formatDate = (dateString) => {
+  // A verificação inicial já ajuda com null ou undefined
   if (!dateString) return "";
-  // Usar replace para maior compatibilidade com o construtor da Data
+
   const date = new Date(dateString.replace(/-/g, '/'));
+  
+  // ADICIONADO: Verificação para garantir que a data é válida
+  // Se new Date() não conseguir processar a string, ele cria um "Invalid Date",
+  // e getTime() retorna NaN (Not a Number).
+  if (isNaN(date.getTime())) {
+    return "Data inválida"; // Ou simplesmente retorne ""
+  }
   
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -774,9 +782,8 @@ const formatDate = (dateString) => {
   if (date.getTime() === today.getTime()) return "Hoje";
   if (date.getTime() === tomorrow.getTime()) return "Amanhã";
 
-  // ADICIONADO: 'month: "long"' para incluir o nome do mês
   return new Intl.DateTimeFormat("pt-BR", {
-    weekday: "short", // 'short' (sex.) é melhor para caber no seletor
+    weekday: "short",
     day: "2-digit",
     month: "long",
   }).format(date);

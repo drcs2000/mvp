@@ -8,8 +8,8 @@
       <div class="flex items-center gap-4">
         <slot name="left">
           <img
-            v-if="championship?.leagueLogoUrl"
-            :src="championship.leagueLogoUrl"
+            v-if="championship?.logoUrl"
+            :src="championship.logoUrl"
             class="w-8 h-8 object-contain"
           >
           <h1 v-if="championship?.name" class="text-xl font-bold text-gray-900 dark:text-white">
