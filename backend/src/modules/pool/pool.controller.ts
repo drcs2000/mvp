@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
-import PoolService from './pool.service'
-import { encodeId, decodeId } from '../../utils/hashid.helper'
-import { Pool } from '../../entities/pool.entity'
+import PoolService from './pool.service.js'
+import { encodeId, decodeId } from '../../utils/hashid.helper.js'
+import { Pool } from '../../entities/pool.entity.js'
 
 class PoolController {
   private transformPoolResponse(pool: Pool) {

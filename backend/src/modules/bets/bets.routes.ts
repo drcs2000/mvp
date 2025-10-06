@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import BetsController from './bets.controller';
-import { authMiddleware } from '../../middlewares/auth.middleware';
+import BetsController from './bets.controller.js';
+import { authMiddleware } from '../../middlewares/auth.middleware.js';
 
 const betsRouter = Router();
 

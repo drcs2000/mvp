@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import StandingsService from './standings.service';
+import StandingsService from './standings.service.js';
 
 class StandingsController {
   public getStandings = async (req: Request, res: Response): Promise<Response> => {

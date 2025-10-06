@@ -1,10 +1,10 @@
 import 'dotenv/config';
 import { LessThan, Not } from 'typeorm';
-import { AppDataSource } from '../database/data-source';
-import { Match, MatchStatus } from '../entities/match.entity';
-import ExternalAPIService from '../services/external-api.service';
-import MatchService from '../modules/matches/matches.service';
-import StandingsService from '../modules/standings/standings.service';
+import { AppDataSource } from '../database/data-source.js';
+import { Match, MatchStatus } from '../entities/match.entity.js';
+import ExternalAPIService from '../services/external-api.service.js';
+import MatchService from '../modules/matches/matches.service.js';
+import StandingsService from '../modules/standings/standings.service.js';
 
 /**
  * Script para encontrar e atualizar partidas no banco de dados que já ocorreram

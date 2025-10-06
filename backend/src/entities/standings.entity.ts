@@ -7,7 +7,7 @@ import {
     JoinColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { Championship } from './championship.entity';
+import { Championship } from './championship.entity.js';
 
 @Entity('standings')
 @Unique(['championship', 'teamEspnId'])

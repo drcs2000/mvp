@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import StandingsController from './standings.controller';
+import StandingsController from './standings.controller.js';
 
 const standingsRouter = Router();
 

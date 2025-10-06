@@ -7,9 +7,9 @@ import {
     ManyToOne,
     Unique
 } from 'typeorm';
-import { User } from './user.entity';
-import { Pool } from './pool.entity';
-import { Match } from './match.entity';
+import { User } from './user.entity.js';
+import { Pool } from './pool.entity.js';
+import { Match } from './match.entity.js';
 
 @Entity('bets')
 @Unique(['user', 'pool', 'match'])

@@ -5,14 +5,14 @@ import {
     ManyToOne,
     JoinColumn,
 } from 'typeorm';
-import { Championship } from './championship.entity';
+import type { Championship } from './championship.entity.js';
 
 @Entity('championship_standing_rules')
 export class ChampionshipStandingRule {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @ManyToOne(() => Championship, (championship) => championship.standingRules, {
+    @ManyToOne('Championship', (championship: Championship) => championship.standingRules, {
         onDelete: 'CASCADE',
     })
     @JoinColumn({ name: 'championship_id' })

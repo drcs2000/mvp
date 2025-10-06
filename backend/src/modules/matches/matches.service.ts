@@ -1,11 +1,11 @@
 import { In, Repository } from 'typeorm';
-import { AppDataSource } from '../../database/data-source';
-import { Bet } from '../../entities/bet.entity';
-import { Championship } from '../../entities/championship.entity';
-import { HeadToHead, IH2HMatch, IH2HSummary } from '../../entities/h2h.entity';
-import { Match, MatchStatus } from '../../entities/match.entity';
-import { Pool } from '../../entities/pool.entity';
-import { IEspnEvent } from '../../services/external-api.service';
+import { AppDataSource } from '../../database/data-source.js';
+import { Bet } from '../../entities/bet.entity.js';
+import { Championship } from '../../entities/championship.entity.js';
+import { HeadToHead, IH2HMatch, IH2HSummary } from '../../entities/h2h.entity.js';
+import { Match, MatchStatus } from '../../entities/match.entity.js';
+import { Pool } from '../../entities/pool.entity.js';
+import { IEspnEvent } from '../../services/external-api.service.js';
 
 export interface IPointsSystem {
   full: number;

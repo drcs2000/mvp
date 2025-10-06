@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index, UpdateDateColumn, OneToMany } from 'typeorm';
-import { ChampionshipStandingRule } from './championship-standing-rule.entity';
+import { ChampionshipStandingRule } from './championship-standing-rule.entity.js';
 
 export enum ChampionshipType {
   LEAGUE = 'League',

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import InvitationService from './invitation.service';
-import { decodeId } from '../../utils/hashid.helper';
+import InvitationService from './invitation.service.js';
+import { decodeId } from '../../utils/hashid.helper.js';
 
 interface AuthenticatedRequest extends Request {
   user: {

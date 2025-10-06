@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
-import MatchService from './matches.service';
-import ChampionshipService from '../championships/championships.service';
-import ExternalApiService from '../../services/external-api.service';
+import MatchService from './matches.service.js';
 
 class MatchController {
   public getMatchesByChampionship = async (req: Request, res: Response): Promise<Response> => {

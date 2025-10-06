@@ -1,8 +1,8 @@
-import { AppDataSource } from '../../database/data-source';
-import { Standings } from '../../entities/standings.entity';
-import { Championship } from '../../entities/championship.entity';
+import { AppDataSource } from '../../database/data-source.js';
+import { Standings } from '../../entities/standings.entity.js';
+import { Championship } from '../../entities/championship.entity.js';
 import { Repository } from 'typeorm';
-import ExternalApiService from '../../services/external-api.service';
+import ExternalApiService from '../../services/external-api.service.js';
 
 export interface IEspnStandingEntry {
   team: {

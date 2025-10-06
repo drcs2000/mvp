@@ -8,7 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Championship } from './championship.entity';
+import { Championship } from './championship.entity.js';
 
 export enum MatchStatus {
   SCHEDULED = 'SCHEDULED',

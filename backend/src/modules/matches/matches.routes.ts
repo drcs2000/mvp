@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import MatchController from './matches.controller';
+import MatchController from './matches.controller.js';
 
 const matchesRouter = Router();
 

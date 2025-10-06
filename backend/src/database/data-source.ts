@@ -3,24 +3,24 @@
 import 'reflect-metadata';
 import 'dotenv/config';
 import { DataSource } from 'typeorm';
-import { User } from '../entities/user.entity';
-import { Pool } from '../entities/pool.entity';
-import { PoolParticipant } from '../entities/pool-participant.entity';
-import { Match } from '../entities/match.entity';
-import { Championship } from '../entities/championship.entity';
-import { Standings } from '../entities/standings.entity';
-import { Bet } from '../entities/bet.entity';
-import { ChampionshipStandingRule } from '../entities/championship-standing-rule.entity';
-import { HeadToHead } from '../entities/h2h.entity';
-import { Invitation } from '../entities/invitation.entity';
+import { User } from '../entities/user.entity.js';
+import { Pool } from '../entities/pool.entity.js';
+import { PoolParticipant } from '../entities/pool-participant.entity.js';
+import { Match } from '../entities/match.entity.js';
+import { Championship } from '../entities/championship.entity.js';
+import { Standings } from '../entities/standings.entity.js';
+import { Bet } from '../entities/bet.entity.js';
+import { ChampionshipStandingRule } from '../entities/championship-standing-rule.entity.js';
+import { HeadToHead } from '../entities/h2h.entity.js';
+import { Invitation } from '../entities/invitation.entity.js';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
 
   url: process.env.DATABASE_URL,
 
-  ssl: process.env.NODE_ENV === 'production' 
-    ? { rejectUnauthorized: false } 
+  ssl: process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: false }
     : false,
 
   synchronize: false,

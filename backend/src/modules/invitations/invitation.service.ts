@@ -1,9 +1,9 @@
 import { Repository } from 'typeorm';
-import { AppDataSource } from '../../database/data-source';
-import { Invitation, InvitationStatus } from '../../entities/invitation.entity';
-import { Pool } from '../../entities/pool.entity';
-import { User } from '../../entities/user.entity';
-import { PoolParticipant } from '../../entities/pool-participant.entity';
+import { AppDataSource } from '../../database/data-source.js';
+import { Invitation, InvitationStatus } from '../../entities/invitation.entity.js';
+import { Pool } from '../../entities/pool.entity.js';
+import { User } from '../../entities/user.entity.js';
+import { PoolParticipant } from '../../entities/pool-participant.entity.js';
 
 class AppError extends Error {
   public readonly statusCode: number;

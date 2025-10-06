@@ -1,5 +1,5 @@
 import typeorm, { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
-import { PoolParticipant } from './pool-participant.entity';
+import { PoolParticipant } from './pool-participant.entity.js';
 
 @Entity('users')
 export class User {

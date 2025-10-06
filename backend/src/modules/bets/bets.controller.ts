@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
-import BetsService from './bets.service'
-import { decodeId } from '../../utils/hashid.helper'
+import BetsService from './bets.service.js'
+import { decodeId } from '../../utils/hashid.helper.js'
 
 class BetsController {
   public createOrUpdateBet = async (req: Request, res: Response): Promise<Response> => {

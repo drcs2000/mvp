@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import ChampionshipService from './championships.service';
-import { ChampionshipType } from '../../entities/championship.entity';
+import ChampionshipService from './championships.service.js';
+import { ChampionshipType } from '../../entities/championship.entity.js';
 
 class ChampionshipController {
   public sync = async (req: Request, res: Response): Promise<Response> => {

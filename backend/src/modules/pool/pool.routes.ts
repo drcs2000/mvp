@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import PoolsController from './pool.controller';
-import { authMiddleware } from '../../middlewares/auth.middleware';
+import PoolsController from './pool.controller.js';
+import { authMiddleware } from '../../middlewares/auth.middleware.js';
 
 const poolsRouter = Router();
 

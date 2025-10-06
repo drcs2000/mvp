@@ -1,9 +1,9 @@
-import { AppDataSource } from '../../database/data-source'
-import { Bet } from '../../entities/bet.entity'
-import { Match, MatchStatus } from '../../entities/match.entity'
-import { Pool } from '../../entities/pool.entity'
-import { PoolParticipant } from '../../entities/pool-participant.entity'
-import MatchService from '../matches/matches.service';
+import { AppDataSource } from '../../database/data-source.js'
+import { Bet } from '../../entities/bet.entity.js'
+import { Match, MatchStatus } from '../../entities/match.entity.js'
+import { Pool } from '../../entities/pool.entity.js'
+import { PoolParticipant } from '../../entities/pool-participant.entity.js'
+import MatchService from '../matches/matches.service.js';
 import { IsNull } from 'typeorm';
 
 class BetsService {

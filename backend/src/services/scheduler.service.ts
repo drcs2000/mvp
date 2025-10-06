@@ -1,8 +1,8 @@
 import cron from 'node-cron';
-import MatchService from '../modules/matches/matches.service';
-import StandingsService from '../modules/standings/standings.service';
-import { AppDataSource } from '../database/data-source';
-import ExternalApiService from './external-api.service';
+import MatchService from '../modules/matches/matches.service.js';
+import StandingsService from '../modules/standings/standings.service.js';
+import { AppDataSource } from '../database/data-source.js';
+import ExternalApiService from './external-api.service.js';
 
 class SchedulerService {
   // Uma lista em memória para "anotar" os campeonatos que precisam de atualização.

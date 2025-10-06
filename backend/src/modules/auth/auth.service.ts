@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { AppDataSource } from '../../database/data-source';
-import { User } from '../../entities/user.entity';
+import { AppDataSource } from '../../database/data-source.js';
+import { User } from '../../entities/user.entity.js';
 
 class AuthService {
   private userRepository = AppDataSource.getRepository(User);

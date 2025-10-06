@@ -7,9 +7,9 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { PoolParticipant } from './pool-participant.entity';
-import { Invitation } from './invitation.entity';
-import { Championship } from './championship.entity';
+import { PoolParticipant } from './pool-participant.entity.js';
+import type { Invitation } from './invitation.entity.js';
+import { Championship } from './championship.entity.js';
 
 interface IPointsSystem {
   full: number;
@@ -58,6 +58,6 @@ export class Pool {
   @OneToMany(() => PoolParticipant, (participant) => participant.pool)
   participants!: PoolParticipant[];
 
-  @OneToMany(() => Invitation, (invitation) => invitation.pool)
+  @OneToMany('Invitation', (invitation: Invitation) => invitation.pool)
   invitations!: Invitation[];
 }

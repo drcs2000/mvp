@@ -1,18 +1,18 @@
-import 'dotenv/config';
 import 'reflect-metadata';
+import 'dotenv/config';
 import express, { Request, Response } from 'express';
-import { AppDataSource } from './database/data-source';
+import { AppDataSource } from './database/data-source.js';
 
-import authRouter from './modules/auth/auth.routes';
-import poolRouter from './modules/pool/pool.routes';
-import matchesRouter from './modules/matches/matches.routes';
-import championshipsRouter from './modules/championships/championships.routes';
-import StandingsRouter from './modules/standings/standings.routes';
-import BetsRouter from './modules/bets/bets.routes';
-import InvitationRouter from './modules/invitations/invitation.routes';
-import usersRouter from './modules/users/users.routes';
+import authRouter from './modules/auth/auth.routes.js';
+import poolRouter from './modules/pool/pool.routes.js';
+import matchesRouter from './modules/matches/matches.routes.js';
+import championshipsRouter from './modules/championships/championships.routes.js';
+import StandingsRouter from './modules/standings/standings.routes.js';
+import BetsRouter from './modules/bets/bets.routes.js';
+import InvitationRouter from './modules/invitations/invitation.routes.js';
+import usersRouter from './modules/users/users.routes.js';
 
-import SchedulerService from './services/scheduler.service';
+import SchedulerService from './services/scheduler.service.js';
 
 AppDataSource.initialize()
   .then(() => {

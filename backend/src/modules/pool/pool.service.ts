@@ -1,8 +1,8 @@
-import { AppDataSource } from '../../database/data-source';
-import { Pool } from '../../entities/pool.entity';
-import { PoolParticipant, PoolRole } from '../../entities/pool-participant.entity';
-import { Bet } from '../../entities/bet.entity';
-import { Invitation } from '../../entities/invitation.entity';
+import { AppDataSource } from '../../database/data-source.js';
+import { Pool } from '../../entities/pool.entity.js';
+import { PoolParticipant, PoolRole } from '../../entities/pool-participant.entity.js';
+import { Bet } from '../../entities/bet.entity.js';
+import { Invitation } from '../../entities/invitation.entity.js';
 
 interface ICreatePoolDTO {
   name: string;

@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
-import { AppDataSource } from '../../database/data-source';
-import { User } from '../../entities/user.entity';
-import { Bet } from '../../entities/bet.entity';
-import { Invitation } from '../../entities/invitation.entity';
+import { AppDataSource } from '../../database/data-source.js';
+import { User } from '../../entities/user.entity.js';
+import { Bet } from '../../entities/bet.entity.js';
+import { Invitation } from '../../entities/invitation.entity.js';
 
 type UserBetSummary = {
   matchDescription: string;

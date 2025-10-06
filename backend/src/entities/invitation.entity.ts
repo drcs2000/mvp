@@ -6,8 +6,8 @@ import {
     ManyToOne,
     JoinColumn,
 } from 'typeorm';
-import { User } from './user.entity';
-import { Pool } from './pool.entity';
+import { User } from './user.entity.js';
+import { Pool } from './pool.entity.js';
 
 export enum InvitationStatus {
     PENDING = 'pending',

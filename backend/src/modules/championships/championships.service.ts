@@ -1,8 +1,8 @@
-import { AppDataSource } from '../../database/data-source';
+import { AppDataSource } from '../../database/data-source.js';
 import {
   Championship,
   ChampionshipType,
-} from '../../entities/championship.entity';
+} from '../../entities/championship.entity.js';
 import {
   FindOptionsWhere
 } from 'typeorm';
