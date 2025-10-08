@@ -51,6 +51,8 @@ export const useMatchesStore = defineStore('matches', () => {
   const matchesCache = ref<{ [key: number]: Match[] }>({});
   const isLoading = ref(false);
   const error = ref<unknown | null>(null);
+  const config = useRuntimeConfig();
+  const apiBaseUrl = config.public.apiBaseUrl;
 
   async function fetchByChampionship(championshipId: number) {
     if (matchesCache.value[championshipId]) {
@@ -61,7 +63,8 @@ export const useMatchesStore = defineStore('matches', () => {
     isLoading.value = true;
     error.value = null;
     try {
-      const championshipMatches = await $fetch<Match[]>(`/api/matches/championship/${championshipId}`);
+      const url = import.meta.dev ? `/api/matches/championship/${championshipId}` : `${apiBaseUrl}/matches/championship/${championshipId}`;
+      const championshipMatches = await $fetch<Match[]>(url);
       matches.value = championshipMatches;
       matchesCache.value[championshipId] = championshipMatches;
     } catch (err: unknown) {
@@ -77,7 +80,8 @@ export const useMatchesStore = defineStore('matches', () => {
     isLoading.value = true;
     error.value = null;
     try {
-      const teamMatches = await $fetch<Match[]>(`/api/matches/team/${teamId}`);
+      const url = import.meta.dev ? `/api/matches/team/${teamId}` : `${apiBaseUrl}/matches/team/${teamId}`;
+      const teamMatches = await $fetch<Match[]>(url);
       matches.value = teamMatches;
     } catch (err: unknown) {
       console.error(`Erro ao buscar jogos do time ${teamId}:`, err);
@@ -90,20 +94,22 @@ export const useMatchesStore = defineStore('matches', () => {
 
   async function fetchLastGames(teamIds: number[]): Promise<{ [key: number]: Match[] } | null> {
     try {
-      const response = await $fetch<{ [key: number]: Match[] }>(`/api/matches/last-games`, {
+      const url = import.meta.dev ? `/api/matches/last-games` : `${apiBaseUrl}/matches/last-games`;
+      const response = await $fetch<{ [key: number]: Match[] }>(url, {
         params: { teamIds: teamIds.join(',') }
       });
       return response;
     } catch (err: unknown) {
       console.error('Erro ao buscar os últimos jogos dos times:', err);
-      error.value = err; 
+      error.value = err;
       return null;
     }
   }
 
   async function fetchH2H(team1Id: number, team2Id: number): Promise<H2HData | null> {
     try {
-      const h2hData = await $fetch<H2HData>(`/api/matches/h2h/${team1Id}/${team2Id}`);
+      const url = import.meta.dev ? `/api/matches/h2h/${team1Id}/${team2Id}` : `${apiBaseUrl}/matches/h2h/${team1Id}/${team2Id}`;
+      const h2hData = await $fetch<H2HData>(url);
       return h2hData;
     } catch (err: unknown) {
       console.error('Erro ao buscar H2H dos times:', err);

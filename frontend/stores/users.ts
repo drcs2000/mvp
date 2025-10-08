@@ -58,11 +58,18 @@ export interface UpdateProfilePayload {
   newPassword?: string;
 }
 
+interface ApiError {
+  data?: {
+    message?: string;
+  };
+}
 
 export const useUsersStore = defineStore('users', () => {
   const users = ref<User[]>([]);
   const myProfile = ref<UserProfileDetails | null>(null);
   const isLoading = ref(false);
+  const config = useRuntimeConfig();
+  const apiBaseUrl = config.public.apiBaseUrl;
 
   async function fetchAllUsers() {
     const authStore = useAuthStore();
@@ -71,7 +78,8 @@ export const useUsersStore = defineStore('users', () => {
 
     isLoading.value = true;
     try {
-      const allUsers = await $fetch<User[]>('/api/users', {
+      const url = import.meta.dev ? '/api/users' : `${apiBaseUrl}/users`;
+      const allUsers = await $fetch<User[]>(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${authStore.token}`
@@ -102,7 +110,8 @@ export const useUsersStore = defineStore('users', () => {
     const myId = authStore.user.id;
 
     try {
-      const profileData = await $fetch<UserProfileDetails>(`/api/users/${myId}`, {
+      const url = import.meta.dev ? `/api/users/${myId}` : `${apiBaseUrl}/users/${myId}`;
+      const profileData = await $fetch<UserProfileDetails>(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${authStore.token}`
@@ -111,9 +120,10 @@ export const useUsersStore = defineStore('users', () => {
 
       myProfile.value = profileData;
       return { success: true, data: profileData };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Erro ao buscar perfil do usuário ${myId}:`, error);
-      const errorMessage = error.data?.message || 'Falha ao carregar o seu perfil.';
+      const apiError = error as ApiError;
+      const errorMessage = apiError.data?.message || 'Falha ao carregar o seu perfil.';
       return { success: false, error: errorMessage };
     } finally {
       isLoading.value = false;
@@ -136,7 +146,8 @@ export const useUsersStore = defineStore('users', () => {
     const myId = authStore.user.id;
 
     try {
-      const updatedProfile = await $fetch<UserProfileDetails>(`/api/users/${myId}`, {
+      const url = import.meta.dev ? `/api/users/${myId}` : `${apiBaseUrl}/users/${myId}`;
+      const updatedProfile = await $fetch<UserProfileDetails>(url, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authStore.token}`
@@ -147,9 +158,10 @@ export const useUsersStore = defineStore('users', () => {
       myProfile.value = updatedProfile;
 
       return { success: true, data: updatedProfile };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Erro ao atualizar perfil do usuário ${myId}:`, error);
-      const errorMessage = error.data?.message || 'Falha ao atualizar o perfil.';
+      const apiError = error as ApiError;
+      const errorMessage = apiError.data?.message || 'Falha ao atualizar o perfil.';
       return { success: false, error: errorMessage };
     } finally {
       isLoading.value = false;
@@ -165,3 +177,4 @@ export const useUsersStore = defineStore('users', () => {
     updateMyProfile,
   };
 });
+

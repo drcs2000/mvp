@@ -25,9 +25,15 @@ export default defineNuxtConfig({
     '~/plugins/theme-init.client.ts',
   ],
 
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:3333'
+    }
+  },
+
   routeRules: {
     '/api/**': {
-      proxy: `${process.env.API_PROXY_URL}/**`,
+      proxy: `${process.env.NUXT_PUBLIC_API_BASE_URL}/**`,
     }
   },
 

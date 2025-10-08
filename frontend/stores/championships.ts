@@ -21,6 +21,8 @@ export const useChampionshipsStore = defineStore('championships', () => {
   const allChampionships = ref<Championship[]>([]);
   const isLoading = ref(false);
   const selectedChampionshipId = ref<number | null>(null);
+  const config = useRuntimeConfig();
+  const apiBaseUrl = config.public.apiBaseUrl;
 
   const selectedChampionship = computed(() => {
     if (!selectedChampionshipId.value) return null;
@@ -34,7 +36,8 @@ export const useChampionshipsStore = defineStore('championships', () => {
 
     isLoading.value = true;
     try {
-      const data = await $fetch<Championship[]>('/api/championships', {
+      const url = import.meta.dev ? '/api/championships' : `${apiBaseUrl}/championships`;
+      const data = await $fetch<Championship[]>(url, {
         method: 'GET',
       });
       allChampionships.value = data;

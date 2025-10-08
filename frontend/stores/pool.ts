@@ -45,14 +45,17 @@ export const usePoolsStore = defineStore('pools', () => {
   const currentPool = ref<Pool | null>(null);
   const loading = ref(false);
   const error = ref<unknown | null>(null);
+  const config = useRuntimeConfig();
+  const apiBaseUrl = config.public.apiBaseUrl;
 
   async function createPool(payload: CreatePoolPayload) {
-      const authStore = useAuthStore();
-      
+    const authStore = useAuthStore();
+
     loading.value = true;
     error.value = null;
     try {
-      const newPool = await $fetch<Pool>('/api/pools', {
+      const url = import.meta.dev ? '/api/pools' : `${apiBaseUrl}/pools`;
+      const newPool = await $fetch<Pool>(url, {
         method: 'POST',
         body: payload,
         headers: {
@@ -80,7 +83,8 @@ export const usePoolsStore = defineStore('pools', () => {
     loading.value = true;
     error.value = null;
     try {
-      const data = await $fetch<Pool[]>('/api/pools');
+      const url = import.meta.dev ? '/api/pools' : `${apiBaseUrl}/pools`;
+      const data = await $fetch<Pool[]>(url);
       publicPools.value = data;
     } catch (err: unknown) {
       error.value = err;
@@ -91,7 +95,7 @@ export const usePoolsStore = defineStore('pools', () => {
   }
 
   async function fetchMyPools(force = false) {
-      const authStore = useAuthStore();
+    const authStore = useAuthStore();
 
     if (myPools.value.length > 0 && !force) {
       return;
@@ -99,7 +103,8 @@ export const usePoolsStore = defineStore('pools', () => {
     loading.value = true;
     error.value = null;
     try {
-      const data = await $fetch<Pool[]>('/api/pools/my-pools', {
+      const url = import.meta.dev ? '/api/pools/my-pools' : `${apiBaseUrl}/pools/my-pools`;
+      const data = await $fetch<Pool[]>(url, {
         headers: {
           'Authorization': `Bearer ${authStore.token}`
         }
@@ -118,7 +123,8 @@ export const usePoolsStore = defineStore('pools', () => {
     loading.value = true;
     error.value = null;
     try {
-      const data = await $fetch<Pool>(`/api/pools/${poolId}`);
+      const url = import.meta.dev ? `/api/pools/${poolId}` : `${apiBaseUrl}/pools/${poolId}`;
+      const data = await $fetch<Pool>(url);
       currentPool.value = data;
       return data;
     } catch (err: unknown) {
@@ -131,11 +137,16 @@ export const usePoolsStore = defineStore('pools', () => {
   }
 
   async function joinPool(poolId: string) {
+    const authStore = useAuthStore();
     loading.value = true;
     error.value = null;
     try {
-      const updatedPool = await $fetch<Pool>(`/api/pools/${poolId}/join`, {
+      const url = import.meta.dev ? `/api/pools/${poolId}/join` : `${apiBaseUrl}/pools/${poolId}/join`;
+      const updatedPool = await $fetch<Pool>(url, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authStore.token}`
+        }
       });
       if (currentPool.value?.id === poolId) {
         currentPool.value = updatedPool;
@@ -154,10 +165,17 @@ export const usePoolsStore = defineStore('pools', () => {
   }
 
   async function deletePool(poolId: string) {
+    const authStore = useAuthStore();
     loading.value = true;
     error.value = null;
     try {
-      await $fetch(`/api/pools/${poolId}`, { method: 'DELETE' });
+      const url = import.meta.dev ? `/api/pools/${poolId}` : `${apiBaseUrl}/pools/${poolId}`;
+      await $fetch(url, { 
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${authStore.token}`
+        }
+      });
       publicPools.value = publicPools.value.filter(p => p.id !== poolId);
       myPools.value = myPools.value.filter(p => p.id !== poolId);
       if (currentPool.value?.id === poolId) {
@@ -173,10 +191,17 @@ export const usePoolsStore = defineStore('pools', () => {
   }
 
   async function removeParticipant(poolId: string, userId: number) {
+    const authStore = useAuthStore();
     loading.value = true;
     error.value = null;
     try {
-      await $fetch(`/api/pools/${poolId}/participants/${userId}`, { method: 'DELETE' });
+      const url = import.meta.dev ? `/api/pools/${poolId}/participants/${userId}` : `${apiBaseUrl}/pools/${poolId}/participants/${userId}`;
+      await $fetch(url, { 
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${authStore.token}`
+        }
+      });
       if (currentPool.value?.id === poolId) {
         currentPool.value.participants = currentPool.value.participants.filter(p => p.userId !== userId);
       }
@@ -190,10 +215,17 @@ export const usePoolsStore = defineStore('pools', () => {
   }
 
   async function confirmPayment(poolId: string, userId: number) {
+    const authStore = useAuthStore();
     loading.value = true;
     error.value = null;
     try {
-      await $fetch(`/api/pools/${poolId}/${userId}/payment`, { method: 'POST' });
+      const url = import.meta.dev ? `/api/pools/${poolId}/${userId}/payment` : `${apiBaseUrl}/pools/${poolId}/${userId}/payment`;
+      await $fetch(url, { 
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authStore.token}`
+        }
+      });
       if (currentPool.value?.id === poolId) {
         const participant = currentPool.value.participants.find(p => p.userId === userId);
         if (participant) {

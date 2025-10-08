@@ -49,9 +49,11 @@ export const useInvitationsStore = defineStore('invitations', {
       if (this.isLoading) return;
 
       const authStore = useAuthStore();
+      const config = useRuntimeConfig();
+      const apiBaseUrl = config.public.apiBaseUrl;
 
       if (!authStore.isAuthenticated || !authStore.token) {
-        const errorMsg = 'Você precisa estar logado para criar um torneio.';
+        const errorMsg = 'Você precisa estar logado para ver os convites.';
         console.error(errorMsg);
         return { success: false, error: errorMsg, data: null };
       }
@@ -59,7 +61,8 @@ export const useInvitationsStore = defineStore('invitations', {
       this.isLoading = true;
       this.error = null;
       try {
-        const invitations = await $fetch<Invitation[]>('/api/invitations/pending', {
+        const url = import.meta.dev ? '/api/invitations/pending' : `${apiBaseUrl}/invitations/pending`;
+        const invitations = await $fetch<Invitation[]>(url, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${authStore.token}`
@@ -81,15 +84,18 @@ export const useInvitationsStore = defineStore('invitations', {
      */
     async acceptInvitation(invitationId: string) {
       const authStore = useAuthStore();
+      const config = useRuntimeConfig();
+      const apiBaseUrl = config.public.apiBaseUrl;
 
       if (!authStore.isAuthenticated || !authStore.token) {
-        const errorMsg = 'Você precisa estar logado para criar um torneio.';
+        const errorMsg = 'Você precisa estar logado para aceitar um convite.';
         console.error(errorMsg);
         return { success: false, error: errorMsg, data: null };
       }
 
       try {
-        await $fetch(`/api/invitations/${invitationId}/accept`, {
+        const url = import.meta.dev ? `/api/invitations/${invitationId}/accept` : `${apiBaseUrl}/invitations/${invitationId}/accept`;
+        await $fetch(url, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${authStore.token}`
@@ -115,21 +121,23 @@ export const useInvitationsStore = defineStore('invitations', {
      */
     async declineInvitation(invitationId: string) {
       const authStore = useAuthStore();
+      const config = useRuntimeConfig();
+      const apiBaseUrl = config.public.apiBaseUrl;
 
       if (!authStore.isAuthenticated || !authStore.token) {
-        const errorMsg = 'Você precisa estar logado para criar um torneio.';
+        const errorMsg = 'Você precisa estar logado para recusar um convite.';
         console.error(errorMsg);
         return { success: false, error: errorMsg, data: null };
       }
       try {
-        await $fetch(`/api/invitations/${invitationId}/decline`, {
+        const url = import.meta.dev ? `/api/invitations/${invitationId}/decline` : `${apiBaseUrl}/invitations/${invitationId}/decline`;
+        await $fetch(url, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${authStore.token}`
           }
         });
 
-        // Remove o convite da lista local
         this.pendingInvitations = this.pendingInvitations.filter(
           (inv) => inv.id !== invitationId
         );
@@ -149,15 +157,18 @@ export const useInvitationsStore = defineStore('invitations', {
      */
     async createInvitation(payload: CreateInvitationPayload) {
       const authStore = useAuthStore();
+      const config = useRuntimeConfig();
+      const apiBaseUrl = config.public.apiBaseUrl;
 
       if (!authStore.isAuthenticated || !authStore.token) {
-        const errorMsg = 'Você precisa estar logado para criar um torneio.';
+        const errorMsg = 'Você precisa estar logado para enviar um convite.';
         console.error(errorMsg);
         return { success: false, error: errorMsg, data: null };
       }
 
       try {
-        await $fetch(`/api/invitations/pools/${payload.poolId}/invitations`, {
+        const url = import.meta.dev ? `/api/invitations/pools/${payload.poolId}/invitations` : `${apiBaseUrl}/invitations/pools/${payload.poolId}/invitations`;
+        await $fetch(url, {
           method: 'POST',
           body: { inviteeId: payload.inviteeId },
           headers: {

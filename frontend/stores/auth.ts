@@ -88,8 +88,14 @@ export const useAuthStore = defineStore('auth', {
      * @param payload Dados de registro do usuário.
      */
     async register(payload: RegisterPayload) {
+      // Obter a URL base da API a partir da runtimeConfig
+      const config = useRuntimeConfig();
+      const apiBaseUrl = config.public.apiBaseUrl;
+
       try {
-        const { token } = await $fetch<RegisterResponse>('/api/auth/register', {
+        // Usar a URL completa em produção, e o proxy '/api' em desenvolvimento
+        const url = import.meta.dev ? '/api/auth/register' : `${apiBaseUrl}/auth/register`;
+        const { token } = await $fetch<RegisterResponse>(url, {
           method: 'POST',
           body: payload,
         });
@@ -113,8 +119,14 @@ export const useAuthStore = defineStore('auth', {
      * @param payload Credenciais de login.
      */
     async login(payload: LoginPayload) {
+      // Obter a URL base da API a partir da runtimeConfig
+      const config = useRuntimeConfig();
+      const apiBaseUrl = config.public.apiBaseUrl;
+
       try {
-        const { token } = await $fetch<LoginResponse>('/api/auth/login', {
+        // Usar a URL completa em produção, e o proxy '/api' em desenvolvimento
+        const url = import.meta.dev ? '/api/auth/login' : `${apiBaseUrl}/auth/login`;
+        const { token } = await $fetch<LoginResponse>(url, {
           method: 'POST',
           body: payload,
         });

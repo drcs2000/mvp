@@ -31,6 +31,8 @@ export const useStandingsStore = defineStore('standings', () => {
   const standingsCache = ref<{ [key: number]: Standing[] }>({});
   const isLoading = ref(false);
   const error = ref<unknown | null>(null);
+  const config = useRuntimeConfig();
+  const apiBaseUrl = config.public.apiBaseUrl;
 
   async function fetchStandingsByChampionshipId(championshipId: number) {
     if (standingsCache.value[championshipId]) {
@@ -42,7 +44,8 @@ export const useStandingsStore = defineStore('standings', () => {
     error.value = null;
 
     try {
-      const data = await $fetch<Standing[]>(`/api/standings/${championshipId}`);
+      const url = import.meta.dev ? `/api/standings/${championshipId}` : `${apiBaseUrl}/standings/${championshipId}`;
+      const data = await $fetch<Standing[]>(url);
       standings.value = data;
       standingsCache.value[championshipId] = data;
     } catch (err: unknown) {

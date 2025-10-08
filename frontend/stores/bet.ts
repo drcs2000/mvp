@@ -46,6 +46,8 @@ export const useBetsStore = defineStore('bets', () => {
   const bets = ref<Bet[]>([]);
   const allPoolBets = ref<{ [poolId: string]: Bet[] }>({});
   const loading = ref(false);
+  const config = useRuntimeConfig();
+  const apiBaseUrl = config.public.apiBaseUrl;
 
   /**
    * Busca palpites com base nos parâmetros fornecidos (userId, poolId).
@@ -56,7 +58,8 @@ export const useBetsStore = defineStore('bets', () => {
     const authStore = useAuthStore();
     loading.value = true;
     try {
-      const fetchedBets = await $fetch<Bet[]>('/api/bets', {
+      const url = import.meta.dev ? '/api/bets' : `${apiBaseUrl}/bets`;
+      const fetchedBets = await $fetch<Bet[]>(url, {
         params,
         headers: {
           'Authorization': `Bearer ${authStore.token}`
@@ -86,7 +89,8 @@ export const useBetsStore = defineStore('bets', () => {
     const authStore = useAuthStore();
     loading.value = true;
     try {
-      const updatedBet = await $fetch<Bet>(`/api/bets/pools/${poolId}/matches/${matchId}`, {
+      const url = import.meta.dev ? `/api/bets/pools/${poolId}/matches/${matchId}` : `${apiBaseUrl}/bets/pools/${poolId}/matches/${matchId}`;
+      const updatedBet = await $fetch<Bet>(url, {
         method: 'POST',
         body: {
           homeScoreBet,
@@ -141,7 +145,8 @@ export const useBetsStore = defineStore('bets', () => {
 
     loading.value = true;
     try {
-      const fetchedBets = await $fetch<Bet[]>(`/api/bets/pools/${poolId}`, {
+      const url = import.meta.dev ? `/api/bets/pools/${poolId}` : `${apiBaseUrl}/bets/pools/${poolId}`;
+      const fetchedBets = await $fetch<Bet[]>(url, {
         headers: {
           'Authorization': `Bearer ${authStore.token}`
         }
@@ -168,7 +173,8 @@ export const useBetsStore = defineStore('bets', () => {
     const authStore = useAuthStore();
     loading.value = true;
     try {
-      await $fetch(`/api/bets/pools/${poolId}/sync`, {
+      const url = import.meta.dev ? `/api/bets/pools/${poolId}/sync` : `${apiBaseUrl}/bets/pools/${poolId}/sync`;
+      await $fetch(url, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authStore.token}`

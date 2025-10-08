@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
+import cors from 'cors';
 import { AppDataSource } from './database/data-source.js';
 
 import authRouter from './modules/auth/auth.routes.js';
@@ -20,6 +21,18 @@ AppDataSource.initialize()
 
     const app = express();
     const PORT = process.env.PORT || 3000;
+
+    const allowedOrigins = ['https://www.bethemvp.com.br'];
+
+    if (process.env.NODE_ENV !== 'production') {
+      allowedOrigins.push('http://localhost:3000');
+    }
+
+    const corsOptions = {
+      origin: allowedOrigins,
+    };
+
+    app.use(cors(corsOptions));
 
     app.use(express.json({ limit: '10mb' }));
 
