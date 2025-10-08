@@ -420,7 +420,6 @@
         </div>
       </form>
     </main>
-    {{ form }}
   </div>
 </template>
 
