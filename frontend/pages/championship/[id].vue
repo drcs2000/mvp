@@ -40,7 +40,7 @@
                     featuredMatch.awayScore ?? ""
                   }}</span>
                 </span>
-                <span v-else>{{ formatTime(featuredMatch.date) }}</span>
+                <span v-else>{{ featuredMatch.localTime }}</span>
               </div>
               <span class="mt-1 text-xs text-gray-400 dark:text-gray-300">{{
                 getStatusText(featuredMatch.status)
@@ -86,7 +86,7 @@
               <div
                 class="hidden md:block text-sm font-medium text-gray-800 dark:text-gray-300"
               >
-                {{ formatTime(match.date) }}
+                {{ match.localTime }}
               </div>
               <div
                 class="grid grid-cols-[1fr,auto,auto,auto,1fr] items-center gap-3 text-sm text-gray-800 dark:text-gray-200"
@@ -123,7 +123,7 @@
                         match.status === 'SCHEDULED' ||
                         match.status === 'POSTPONED'
                       "
-                      >{{ formatTime(match.date) }}</span
+                      >{{ match.localTime }}</span
                     >
                     <span v-else>{{ getStatusText(match.status) }}</span>
                   </span>
@@ -299,11 +299,6 @@ const nextDay = () => {
     selectedDate.value = allGameDays.value[currentIndex + 1];
   }
 };
-const formatTime = (dateString) =>
-  new Date(dateString).toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 const formatDate = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString.replace(/-/g, "/"));

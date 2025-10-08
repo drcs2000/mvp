@@ -61,7 +61,12 @@
               </div>
               <div class="text-center">
                 <div class="text-4xl font-bold">
-                  <span v-if="featuredMatch.status !== 'NS'">
+                  <span
+                    v-if="
+                      featuredMatch.status !== 'SCHEDULED' &&
+                      featuredMatch.status !== 'POSTPONED'
+                    "
+                  >
                     <span
                       :class="{ 'font-bold': isHomeWinner(featuredMatch) }"
                       >{{ featuredMatch.homeScore }}</span
@@ -72,7 +77,7 @@
                       >{{ featuredMatch.awayScore }}</span
                     >
                   </span>
-                  <span v-else>{{ formatTime(featuredMatch.date) }}</span>
+                  <span v-else>{{ featuredMatch.localTime }}</span>
                 </div>
                 <span class="mt-1 text-xs text-gray-400 dark:text-gray-400">{{
                   getStatusText(featuredMatch.status)
@@ -119,12 +124,12 @@
               <NuxtLink
                 v-for="match in matchesOfSelectedDay"
                 :key="match.id"
-                class="grid grid-cols-1 md:grid-cols-[100px,1fr,150px] gap-4 items-center px-4 sm:px-6 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 last:border-b-0"
+                class="grid grid-cols-1 md:grid-cols-[100px,1fr,150px] gap-4 items-center px-4 py-3 border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200 dark:border-gray-700 dark:hover:bg-gray-800/50"
               >
                 <div
                   class="hidden md:block text-sm font-medium text-gray-800 dark:text-gray-300"
                 >
-                  {{ formatTime(match.date) }}
+                  {{ match.localTime }}
                 </div>
 
                 <div
@@ -165,7 +170,7 @@
                           match.status === 'SCHEDULED' ||
                           match.status === 'POSTPONED'
                         "
-                        >{{ formatTime(match.date) }}</span
+                        >{{ match.localTime }}</span
                       >
                       <span v-else>{{ getStatusText(match.status) }}</span>
                     </span>
@@ -311,18 +316,13 @@ const featuredMatch = computed(() => {
   );
 });
 
-const formatTime = (dateString) =>
-  new Date(dateString).toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
 const formatDate = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString.replace(/-/g, "/"));
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 

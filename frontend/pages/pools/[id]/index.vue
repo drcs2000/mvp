@@ -7,7 +7,7 @@
             <button
               v-if="!isParticipant"
               :disabled="stores.pools.loading"
-              class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-sm hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 whitespace-nowrap dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-gray-800"
+              class="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap disabled:opacity-50 disabled:cursor-wait dark:text-gray-300 dark:hover:text-blue-400"
               @click="joinPool"
             >
               Entrar no Bolão
@@ -69,14 +69,14 @@
                 <div
                   class="hidden md:block text-sm font-medium text-gray-800 dark:text-gray-300"
                 >
-                  {{ formatTime(match.date) }}
+                  {{ match.localTime }}
                 </div>
 
                 <div class="w-full">
                   <div
                     class="md:hidden text-center text-sm font-medium text-gray-800 dark:text-gray-300 mb-2"
                   >
-                    {{ formatTime(match.date) }}
+                    {{ match.localTime }}
                   </div>
                   <div
                     class="grid grid-cols-[1fr_auto_1fr] gap-x-2 items-center w-full max-w-sm mx-auto"
@@ -130,7 +130,11 @@
 
                   <div class="md:hidden text-center mt-2">
                     <div
-                      v-if="match.status !== 'FT'"
+                      v-if="
+                        match.status === 'SCHEDULED' ||
+                        match.status === 'POSTPONED'
+                      "
+                      title="Tempo restante para palpitar"
                       class="flex items-center justify-center gap-1.5 text-xs text-gray-600 dark:text-gray-400"
                     >
                       {{ countdowns[match.id] || "..." }}
@@ -140,7 +144,8 @@
                       <p
                         class="font-semibold text-sm text-gray-800 dark:text-gray-200"
                       >
-                        {{ match.homeScore }} - {{ match.awayScore }}
+                        {{ match.homeScore ?? "?" }} -
+                        {{ match.awayScore ?? "?" }}
                       </p>
                     </div>
                   </div>
@@ -150,7 +155,11 @@
                   class="hidden md:flex flex-col items-end justify-center text-right"
                 >
                   <div
-                    v-if="match.status !== 'FT'"
+                    v-if="
+                      match.status === 'SCHEDULED' ||
+                      match.status === 'POSTPONED'
+                    "
+                    title="Tempo restante para palpitar"
                     class="flex items-center gap-1.5"
                   >
                     <div
@@ -166,7 +175,7 @@
                     v-else
                     class="font-semibold text-sm text-gray-800 dark:text-gray-200"
                   >
-                    {{ match.homeScore }} - {{ match.awayScore }}
+                    {{ match.homeScore ?? "?" }} - {{ match.awayScore ?? "?" }}
                   </div>
                 </div>
               </div>
@@ -786,27 +795,34 @@ const joinPool = async () => {
   }
 };
 const updateCountdown = (match) => {
-  if (!currentPool.value) return;
-  const matchDate = new Date(match.date);
+  if (!currentPool.value || !match.localTime) return;
+
+  const localDateStr = getLocalDateString(match.date);
+  const matchDate = new Date(`${localDateStr}T${match.localTime}`);
+
   const deadlineDate = new Date(
     matchDate.getTime() - currentPool.value.betDeadlineHours * 60 * 60 * 1000
   );
   const now = new Date();
   const diff = deadlineDate.getTime() - now.getTime();
+
   if (diff <= 0) {
     countdowns[match.id] = "Tempo esgotado!";
     clearInterval(countdownIntervals[match.id]);
+    countdownIntervals[match.id] = undefined;
     return;
   }
+
   const secondsTotal = Math.floor(diff / 1000);
   const days = Math.floor(secondsTotal / (60 * 60 * 24));
   const hours = Math.floor((secondsTotal % (60 * 60 * 24)) / (60 * 60));
   const minutes = Math.floor((secondsTotal % (60 * 60)) / 60);
+
   const parts = [];
   if (days > 0) parts.push(`${days}d`);
   if (hours > 0) parts.push(`${hours}h`);
-  if (minutes > 0) parts.push(`${minutes}m`);
-  if (parts.length === 0) parts.push("0m");
+  if (minutes > 0 || (days === 0 && hours === 0)) parts.push(`${minutes}m`);
+
   countdowns[match.id] = parts.join(" ");
 };
 const submitAllBets = async () => {
@@ -1038,11 +1054,6 @@ const fetchLast5Games = async (match) => {
   }
 };
 
-const formatTime = (dateString) =>
-  new Date(dateString).toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 const formatDate = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString.replace(/-/g, "/"));

@@ -76,7 +76,7 @@
               <div
                 class="hidden md:block text-sm font-medium text-gray-800 dark:text-gray-300 text-left"
               >
-                {{ formatTime(match.date) }}
+                {{ match.localTime }}
               </div>
 
               <div class="flex items-center justify-between text-sm gap-2">
@@ -107,7 +107,7 @@
                   <div
                     class="md:hidden text-xs text-gray-500 dark:text-gray-400 mt-1"
                   >
-                    {{ formatTime(match.date) }}
+                    {{ match.localTime }}
                   </div>
                 </div>
 
@@ -451,12 +451,6 @@ const groupedBetsByMatch = computed(() => {
     return acc;
   }, {});
 });
-
-const formatTime = (dateString) =>
-  new Date(dateString).toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 
 const formatDate = (dateString) => {
   if (!dateString) return "";

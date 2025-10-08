@@ -762,16 +762,12 @@ const previousPage = (poolId) => {
 };
 
 const formatDate = (dateString) => {
-  // A verificação inicial já ajuda com null ou undefined
   if (!dateString) return "";
 
   const date = new Date(dateString.replace(/-/g, '/'));
   
-  // ADICIONADO: Verificação para garantir que a data é válida
-  // Se new Date() não conseguir processar a string, ele cria um "Invalid Date",
-  // e getTime() retorna NaN (Not a Number).
   if (isNaN(date.getTime())) {
-    return "Data inválida"; // Ou simplesmente retorne ""
+    return "Data inválida";
   }
   
   const today = new Date();

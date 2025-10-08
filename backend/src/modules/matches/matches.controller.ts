@@ -6,12 +6,13 @@ class MatchController {
     try {
       const { championshipId } = req.params;
       const parsedId = parseInt(championshipId, 10);
+      const userTimezone = req.headers['x-user-timezone'] as string | undefined;
 
       if (isNaN(parsedId)) {
         return res.status(400).json({ message: "O ID do campeonato deve ser um número." });
       }
 
-      const matches = await MatchService.getMatches(parsedId);
+      const matches = await MatchService.getMatches(parsedId, userTimezone);
       return res.status(200).json(matches);
     } catch (error: any) {
       console.error(error);
@@ -22,7 +23,9 @@ class MatchController {
   public findByTeam = async (req: Request, res: Response): Promise<Response> => {
     try {
       const { teamId } = req.params;
-      const matches = await MatchService.findByTeam(Number(teamId));
+      const userTimezone = req.headers['x-user-timezone'] as string | undefined;
+
+      const matches = await MatchService.findByTeam(Number(teamId), userTimezone);
       return res.status(200).json(matches);
     } catch (error: any) {
       console.error(error);
@@ -44,7 +47,7 @@ class MatchController {
         return res.status(400).json({ message: 'Forneça IDs de times válidos.' });
       }
 
-      const lastGames = await MatchService.getLastGamesByTeams(parsedTeamIds);
+      const lastGames = await MatchService.getLastGamesByTeams(parsedTeamIds, 5);
       return res.status(200).json(lastGames);
 
     } catch (error: any) {

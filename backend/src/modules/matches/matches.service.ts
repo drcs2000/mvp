@@ -2,10 +2,11 @@ import { In, Repository } from 'typeorm';
 import { AppDataSource } from '../../database/data-source.js';
 import { Bet } from '../../entities/bet.entity.js';
 import { Championship } from '../../entities/championship.entity.js';
-import { HeadToHead, IH2HMatch, IH2HSummary } from '../../entities/h2h.entity.js';
+import { HeadToHead } from '../../entities/h2h.entity.js';
 import { Match, MatchStatus } from '../../entities/match.entity.js';
 import { Pool } from '../../entities/pool.entity.js';
 import { IEspnEvent } from '../../services/external-api.service.js';
+import { formatInTimeZone } from 'date-fns-tz';
 
 export interface IPointsSystem {
   full: number;
@@ -25,22 +26,38 @@ class MatchService {
     this.betRepository = AppDataSource.getRepository(Bet);
   }
 
+  private addLocalTime(matches: Match[], timezone: string | undefined): any[] {
+    const timeZone = timezone || 'UTC';
+    return matches.map(match => ({
+      ...match,
+      localTime: formatInTimeZone(new Date(match.date), timeZone, 'HH:mm'),
+    }));
+  }
 
-  public async getMatches(championshipId: number): Promise<Match[]> {
-    return this.matchRepository.find({
+  public async getMatches(championshipId: number, userTimezone?: string): Promise<any[]> {
+    const matches = await this.matchRepository.find({
       where: { championship: { id: championshipId } },
       order: { date: 'ASC' },
     });
+
+    if (matches.length === 0) {
+      return [];
+    }
+
+    const results = this.addLocalTime(matches, userTimezone);
+
+    return results;
   }
 
-  public async findByTeam(teamEspnId: number): Promise<Match[]> {
-    return this.matchRepository.find({
+  public async findByTeam(teamEspnId: number, userTimezone?: string): Promise<any[]> {
+    const matches = await this.matchRepository.find({
       where: [
         { homeTeamEspnId: teamEspnId },
         { awayTeamEspnId: teamEspnId },
       ],
       order: { date: 'ASC' },
     });
+    return this.addLocalTime(matches, userTimezone);
   }
 
   public async getLastGamesByTeams(teamIds: number[], limit: number = 5): Promise<{ [key: number]: Match[] }> {
@@ -62,7 +79,6 @@ class MatchService {
   public async getH2H(team1EspnId: number, team2EspnId: number): Promise<HeadToHead | null> {
     const ids = [team1EspnId, team2EspnId].sort((a, b) => a - b);
     const [id1, id2] = ids;
-
     return this.h2hRepository.findOneBy({ team1EspnId: id1, team2EspnId: id2 });
   }
 
@@ -189,7 +205,7 @@ class MatchService {
         updatedCount++;
         if (newStatus === MatchStatus.FINAL) {
           finishedChampionships.add(match.championship.id);
-          matchesToUpdateBets.push(match); 
+          matchesToUpdateBets.push(match);
         }
       }
     }
@@ -235,7 +251,7 @@ class MatchService {
 
   public async updateH2HForMatch(match: Match): Promise<void> {
     if (typeof match.homeScore !== 'number' || typeof match.awayScore !== 'number') {
-      console.log(`  -> H2H para jogo ${match.apiEspnId} pulado: placar não finalizado.`);
+      console.log(`  -> H2H para jogo ${match.apiEspnId} pulado: placar não finalizado.`);
       return;
     }
 
