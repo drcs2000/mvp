@@ -17,11 +17,14 @@ export interface IPointsSystem {
 class MatchService {
   private matchRepository: Repository<Match>;
   private h2hRepository: Repository<HeadToHead>;
+  private betRepository: Repository<Bet>;
 
   constructor() {
     this.matchRepository = AppDataSource.getRepository(Match);
     this.h2hRepository = AppDataSource.getRepository(HeadToHead);
+    this.betRepository = AppDataSource.getRepository(Bet);
   }
+
 
   public async getMatches(championshipId: number): Promise<Match[]> {
     return this.matchRepository.find({
@@ -156,6 +159,7 @@ class MatchService {
     });
 
     const matchesToSave: Match[] = [];
+    const matchesToUpdateBets: Match[] = [];
 
     for (const event of events) {
       const match = existingMatches.find(m => m.apiEspnId === parseInt(event.id, 10));
@@ -174,7 +178,6 @@ class MatchService {
       const newHomeScore = homeScoreValue != null ? parseInt(String(homeScoreValue), 10) : null;
       const newAwayScore = awayScoreValue != null ? parseInt(String(awayScoreValue), 10) : null;
 
-      const wasFinished = match.status === MatchStatus.FINAL;
       const hasChanged = match.status !== newStatus || match.homeScore !== newHomeScore || match.awayScore !== newAwayScore;
 
       if (hasChanged) {
@@ -184,20 +187,50 @@ class MatchService {
         match.apiEspnStatusDetail = competition.status.type.detail;
         matchesToSave.push(match);
         updatedCount++;
-
-        if (newStatus === MatchStatus.FINAL && !wasFinished) {
+        if (newStatus === MatchStatus.FINAL) {
           finishedChampionships.add(match.championship.id);
-          console.log(`  -> Jogo ${match.apiEspnId} [${match.championship.name}] finalizado. Acionando atualização de H2H e Standings.`);
-          await this.updateH2HForMatch(match);
+          matchesToUpdateBets.push(match); 
         }
       }
     }
 
     if (matchesToSave.length > 0) {
       await this.matchRepository.save(matchesToSave);
+      console.log(` -> ${matchesToSave.length} partidas atualizadas no banco de dados.`);
+    }
+
+    for (const match of matchesToUpdateBets) {
+      console.log(`  -> Jogo ${match.apiEspnId} [${match.championship.name}] finalizado. Acionando atualização de H2H e Apostas.`);
+      await this.updateH2HForMatch(match);
+      await this.updateBetsForFinishedMatch(match);
     }
 
     return { updated: updatedCount, finishedChampionships };
+  }
+
+  public async updateBetsForFinishedMatch(match: Match): Promise<void> {
+    if (match.status !== MatchStatus.FINAL || typeof match.homeScore !== 'number' || typeof match.awayScore !== 'number') {
+      console.warn(`  -> Cálculo de pontos para o jogo ${match.id} ignorado: partida não está finalizada.`);
+      return;
+    }
+
+    const bets = await this.betRepository.find({
+      where: { match: { id: match.id } },
+      relations: ['pool'],
+    });
+
+    if (bets.length === 0) {
+      console.log(`  -> Nenhuma aposta encontrada para o jogo ${match.id}.`);
+      return;
+    }
+
+    for (const bet of bets) {
+      const points = this.calculatePoints(bet, match, bet.pool);
+      bet.pointsEarned = points;
+    }
+
+    await this.betRepository.save(bets);
+    console.log(`  -> Pontos calculados para ${bets.length} aposta(s) do jogo ${match.id}.`);
   }
 
   public async updateH2HForMatch(match: Match): Promise<void> {
