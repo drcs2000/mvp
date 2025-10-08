@@ -4,7 +4,9 @@
       class="sticky top-0 z-10 p-4 bg-white/80 sm:p-6 backdrop-blur-sm border-b border-gray-200 dark:bg-gray-800/80 dark:border-gray-700"
     >
       <div class="max-w-4xl mx-auto">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Meus Bolões</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          Meus Bolões
+        </h1>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Acompanhe os bolões que você está participando.
         </p>
@@ -13,7 +15,10 @@
 
     <main class="p-4 sm:p-6">
       <div class="max-w-4xl mx-auto">
-        <div v-if="loading" class="text-center text-gray-500 dark:text-gray-400 py-10">
+        <div
+          v-if="loading"
+          class="text-center text-gray-500 dark:text-gray-400 py-10"
+        >
           Carregando seus torneios...
         </div>
 
@@ -21,7 +26,9 @@
           v-else-if="error"
           class="flex flex-col items-center justify-center p-6 bg-white border border-red-200 rounded-lg shadow-sm dark:bg-red-900/20 dark:border-red-500/30"
         >
-          <ExclamationTriangleIcon class="w-10 h-10 text-red-400 dark:text-red-300" />
+          <ExclamationTriangleIcon
+            class="w-10 h-10 text-red-400 dark:text-red-300"
+          />
           <h3 class="mt-2 text-lg font-semibold text-red-800 dark:text-red-200">
             Ocorreu um erro
           </h3>
@@ -36,7 +43,9 @@
             class="block p-4 transition-all duration-200 bg-white border border-gray-200 rounded-lg shadow-sm group hover:border-gray-400 hover:shadow-md dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-500"
           >
             <div class="flex items-center justify-between">
-              <span class="text-sm font-semibold text-gray-800 truncate pr-4 dark:text-gray-200">
+              <span
+                class="text-sm font-semibold text-gray-800 truncate pr-4 dark:text-gray-200"
+              >
                 {{ pool.name }}
               </span>
 
@@ -64,7 +73,10 @@
                     v-if="pool.private"
                     class="w-5 h-5 text-gray-400 dark:text-gray-500"
                   />
-                  <LockOpenIcon v-else class="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                  <LockOpenIcon
+                    v-else
+                    class="w-5 h-5 text-gray-400 dark:text-gray-500"
+                  />
                 </div>
               </div>
             </div>
@@ -72,7 +84,9 @@
             <div
               class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 md:hidden dark:border-gray-700"
             >
-              <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+              <div
+                class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400"
+              >
                 <span class="flex items-center">
                   <UsersIcon class="inline-block w-4 h-4 mr-1" />
                   {{ pool.participants.length }} / {{ pool.maxParticipants }}
@@ -87,8 +101,25 @@
                   v-if="pool.private"
                   class="w-5 h-5 text-gray-400 dark:text-gray-500"
                 />
-                <LockOpenIcon v-else class="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <LockOpenIcon
+                  v-else
+                  class="w-5 h-5 text-gray-400 dark:text-gray-500"
+                />
               </div>
+            </div>
+          </NuxtLink>
+
+          <NuxtLink
+            to="/pools/create"
+            class="block p-4 transition-all duration-200 bg-blue-500/10 border border-blue-200 rounded-lg shadow-sm group hover:border-blue-400 hover:shadow-md dark:bg-blue-900/20 dark:border-blue-700 dark:hover:border-blue-500"
+          >
+            <div class="flex items-center justify-center py-2">
+              <PlusCircleIcon
+                class="w-6 h-6 mr-3 text-blue-600 dark:text-blue-300"
+              />
+              <span class="text-lg font-bold text-blue-700 dark:text-blue-200">
+                Criar novo Bolão
+              </span>
             </div>
           </NuxtLink>
         </div>
@@ -121,6 +152,7 @@ import {
   UsersIcon,
   CurrencyDollarIcon,
   ExclamationTriangleIcon,
+  PlusCircleIcon,
 } from "@heroicons/vue/24/outline";
 
 useHead({
@@ -145,7 +177,7 @@ onMounted(async () => {
   try {
     await stores.pools.fetchMyPools();
   } catch (err) {
-    error.value = err.data?.error || 'Falha ao carregar seus bolões.';
+    error.value = err.data?.error || "Falha ao carregar seus bolões.";
   } finally {
     loading.value = false;
   }

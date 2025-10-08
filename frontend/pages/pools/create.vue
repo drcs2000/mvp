@@ -46,11 +46,13 @@
               >
               <input
                 id="max-participants"
-                v-model.number="form.maxParticipants"
+                :value="form.maxParticipants"
                 type="number"
                 required
-                min="2"
+                min="1"
+                :max="MAX_PARTICIPANTS"
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
+                @input="handleMaxParticipantsInput"
               >
             </div>
 
@@ -276,11 +278,13 @@
               </div>
               <input
                 id="points-full"
-                v-model.number="form.points.full"
+                :value="form.points.full"
                 type="number"
                 min="0"
+                :max="POINT_MAXES.full"
                 required
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
+                @input="handlePointInput('full', $event)"
               >
             </div>
             <div>
@@ -302,11 +306,13 @@
               </div>
               <input
                 id="points-partial"
-                v-model.number="form.points.partial"
+                :value="form.points.partial"
                 type="number"
                 min="0"
+                :max="POINT_MAXES.partial"
                 required
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
+                @input="handlePointInput('partial', $event)"
               >
             </div>
             <div>
@@ -328,11 +334,13 @@
               </div>
               <input
                 id="points-goal"
-                v-model.number="form.points.goal"
+                :value="form.points.goal"
                 type="number"
                 min="0"
+                :max="POINT_MAXES.goal"
                 required
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
+                @input="handlePointInput('goal', $event)"
               >
             </div>
             <div>
@@ -354,11 +362,13 @@
               </div>
               <input
                 id="points-result"
-                v-model.number="form.points.result"
+                :value="form.points.result"
                 type="number"
                 min="0"
+                :max="POINT_MAXES.result"
                 required
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
+                @input="handlePointInput('result', $event)"
               >
             </div>
           </div>
@@ -394,13 +404,15 @@
               </div>
               <input
                 id="entry-fee"
-                v-model.number="form.entryFee"
-                type="number"
+                :value="form.entryFee"
+                type="text"
+                inputmode="decimal"
                 required
                 min="0"
-                step="0.01"
+                :max="MAX_ENTRY_FEE"
                 class="block w-full px-3 py-2 pl-10 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
-                placeholder="0.00"
+                placeholder="0,00"
+                @input="handleEntryFeeInput"
               >
             </div>
           </div>
@@ -411,7 +423,7 @@
         >
           <button
             type="submit"
-            :disabled="loading"
+            :disabled="loading || !isFormValid"
             class="w-full flex items-center justify-center px-6 py-3 text-base font-semibold text-white bg-gray-800 border border-transparent rounded-md shadow-lg hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto sm:py-2 sm:text-sm sm:shadow-sm dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300 dark:focus:ring-offset-gray-800 dark:focus:ring-gray-400 dark:disabled:bg-gray-500 dark:disabled:text-gray-400"
           >
             <span v-if="!loading">Criar Torneio</span>
@@ -452,6 +464,17 @@ const router = useRouter();
 
 const championships = computed(() => stores.championships.allChampionships);
 const deadlineOptions = ref(Array.from({ length: 12 }, (_, i) => i + 1));
+const loading = ref(false);
+
+const MAX_PARTICIPANTS = 20;
+const MAX_ENTRY_FEE = 200;
+
+const POINT_MAXES = {
+  full: 25,
+  partial: 12,
+  goal: 5,
+  result: 10,
+};
 
 const form = reactive({
   name: "",
@@ -460,12 +483,116 @@ const form = reactive({
   baseChampionship: null,
   isPrivate: false,
   points: {
-    full: 25,
-    partial: 12,
-    goal: 5,
-    result: 10,
+    full: POINT_MAXES.full,
+    partial: POINT_MAXES.partial,
+    goal: POINT_MAXES.goal,
+    result: POINT_MAXES.result,
   },
   entryFee: 0,
+});
+
+const handlePointInput = (type, event) => {
+  let value = Number(event.target.value);
+  const maxValue = POINT_MAXES[type];
+  
+  if (isNaN(value) || event.target.value.trim() === '') {
+    value = 0;
+  }
+  
+  if (value > maxValue) {
+    value = maxValue;
+    let fieldName = '';
+    switch (type) {
+      case 'full': fieldName = 'Acerto completo'; break;
+      case 'partial': fieldName = 'Acerto parcial'; break;
+      case 'goal': fieldName = 'Acerto de gols'; break;
+      case 'result': fieldName = 'Acerto de resultado'; break;
+    }
+    stores.ui.showToast(`Pontuação máxima de ${maxValue} pontos para ${fieldName}.`, "info");
+  } else if (value < 0) {
+      value = 0;
+  }
+  
+  form.points[type] = value;
+  event.target.value = value;
+};
+
+const handleMaxParticipantsInput = (event) => {
+  let valueStr = event.target.value;
+  valueStr = valueStr.replace(/[^0-9]/g, ''); 
+  
+  let value = parseInt(valueStr) || 1; 
+  
+  const minValue = 1;
+
+  if (value > MAX_PARTICIPANTS) {
+    value = MAX_PARTICIPANTS;
+    stores.ui.showToast(`O número máximo de participantes é ${MAX_PARTICIPANTS}.`, "info");
+  } else if (value < minValue) {
+      value = minValue;
+      stores.ui.showToast(`O número mínimo de participantes é ${minValue}.`, "info");
+  }
+  
+  form.maxParticipants = value;
+  event.target.value = value; 
+};
+
+const handleEntryFeeInput = (event) => {
+    let valueStr = event.target.value;
+
+    valueStr = valueStr
+        .replace(/[^0-9.,]/g, '') 
+        .replace(',', '.');    
+
+    const parts = valueStr.split('.');
+    if (parts.length > 2) {
+        valueStr = parts[0] + '.' + parts.slice(1).join('');
+    }
+
+    if (parts.length > 1 && parts[1].length > 2) {
+        valueStr = parts[0] + '.' + parts[1].substring(0, 2);
+    }
+
+    event.target.value = valueStr.replace('.', ',');
+    
+    let value = parseFloat(valueStr) || 0;
+    
+    if (value > MAX_ENTRY_FEE) {
+        value = MAX_ENTRY_FEE;
+        
+        const fixedValueStr = value.toFixed(2);
+        event.target.value = fixedValueStr.replace('.', ',');
+        
+        stores.ui.showToast(`A taxa máxima de inscrição é de R$ ${fixedValueStr.replace('.', ',')}.`, "info");
+    } else if (value < 0) {
+        value = 0;
+        event.target.value = '0,00';
+    }
+    
+    form.entryFee = parseFloat(value.toFixed(2));
+};
+
+
+const isFormValid = computed(() => {
+  if (!form.name || form.name.trim() === '') return false;
+  if (!form.baseChampionship) return false;
+
+  const maxP = form.maxParticipants;
+  if (typeof maxP !== 'number' || maxP < 2 || maxP > MAX_PARTICIPANTS) return false;
+
+  const entryF = form.entryFee;
+  if (typeof entryF !== 'number' || entryF < 0 || entryF > MAX_ENTRY_FEE) return false;
+  
+  const entryFDecimal = (entryF * 100) % 1;
+  if (entryFDecimal > 0.0001) return false;
+
+  const p = form.points;
+  if (typeof p.full !== 'number' || p.full < 0 || p.full > POINT_MAXES.full) return false;
+  if (typeof p.partial !== 'number' || p.partial < 0 || p.partial > POINT_MAXES.partial) return false;
+  if (typeof p.goal !== 'number' || p.goal < 0 || p.goal > POINT_MAXES.goal) return false;
+  if (typeof p.result !== 'number' || p.result < 0 || p.result > POINT_MAXES.result) return false;
+
+  return true;
 });
 
 onMounted(async () => {
@@ -497,10 +624,11 @@ const handleSubmit = async () => {
     return;
   }
   
-  if (!form.baseChampionship) {
-    stores.ui.showToast("Por favor, selecione um campeonato base.", "error");
-    return;
+  if (!isFormValid.value) {
+     stores.ui.showToast("Por favor, preencha todos os campos obrigatórios e respeite os limites definidos.", "error");
+     return;
   }
+
 
   const payload = {
     name: form.name,
@@ -512,6 +640,7 @@ const handleSubmit = async () => {
     entryFee: form.entryFee,
   };
 
+  loading.value = true;
   try {
     const newPool = await stores.pools.createPool(payload);
     stores.ui.showToast("Bolão criado com sucesso!", "success");
@@ -519,6 +648,8 @@ const handleSubmit = async () => {
   } catch (error) {
     const message = getErrorMessage(error, "Erro desconhecido ao criar o bolão.");
     stores.ui.showToast(message, "error");
+  } finally {
+    loading.value = false;
   }
 };
 </script>
