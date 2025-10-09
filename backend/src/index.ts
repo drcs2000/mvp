@@ -12,6 +12,7 @@ import StandingsRouter from './modules/standings/standings.routes.js';
 import BetsRouter from './modules/bets/bets.routes.js';
 import InvitationRouter from './modules/invitations/invitation.routes.js';
 import usersRouter from './modules/users/users.routes.js';
+import iaRouter from './modules/ia/ia.routes.js';
 
 import SchedulerService from './services/scheduler.service.js';
 
@@ -48,6 +49,7 @@ AppDataSource.initialize()
     app.use('/bets', BetsRouter);
     app.use('/invitations', InvitationRouter);
     app.use('/users', usersRouter);
+    app.use('/ia', iaRouter)
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor rodando na porta ${PORT}`);

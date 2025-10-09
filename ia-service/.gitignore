@@ -1,0 +1,23 @@
+# Ambiente Virtual do Python
+# Essencial para ignorar. É específico da sua máquina e pode ser 
+# recriado a qualquer momento com o arquivo requirements.txt.
+/venv/
+
+# Arquivos de cache do Python e bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Arquivos de configuração de IDEs e Editores
+.vscode/
+.idea/
+
+# Checkpoints do Jupyter Notebook (caso você use no futuro)
+.ipynb_checkpoints/
+
+# Arquivos de ambiente (se você usar para guardar senhas, por exemplo)
+# MUITO IMPORTANTE para não vazar informações sensíveis.
+.env
+.env.*
+!.env.example
