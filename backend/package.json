@@ -9,10 +9,7 @@
     "typeorm": "ts-node ./node_modules/typeorm/cli.js -d ./src/database/data-source.ts",
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run",
-    "populate-team-ids": "ts-node scripts/populate-team-ids.ts",
-    "mark-admin-as-paid": "ts-node src/scripts/mark-admin-as-paid.ts",
-    "db:populate": "ts-node src/scripts/populate-database.ts",
-    "db:update": "ts-node src/scripts/update-past-matches.ts"
+    "db:update": "node --loader ts-node/esm src/scripts/update-past-matches.ts"
   },
   "keywords": [],
   "author": "",

@@ -1,74 +1,96 @@
 import cron from 'node-cron';
-import MatchService from '../modules/matches/matches.service.js';
+import path from 'path';
+import url from 'url';
+import { Worker } from 'worker_threads';
 import StandingsService from '../modules/standings/standings.service.js';
-import { AppDataSource } from '../database/data-source.js';
-import ExternalApiService from './external-api.service.js';
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+
+type StandingUpdateResult =
+  | { status: 'fulfilled'; id: number; }
+  | { status: 'rejected'; id: number; reason: any; };
 
 class SchedulerService {
-  // Uma lista em memória para "anotar" os campeonatos que precisam de atualização.
   private championshipsToUpdateStandings: Set<number> = new Set();
+  private isUpdateScoresJobRunning = false;
 
   public start() {
     console.log('✔ Agendador de tarefas iniciado.');
 
-    // Job 1: Atualiza os placares a cada 15 minutos.
-    cron.schedule('*/15 * * * *', this.updateScoresJob, {
+    cron.schedule('*/15 * * * *', this.triggerUpdateScoresWorker, {
       timezone: "America/Sao_Paulo"
     });
 
-    // Job 2: Atualiza as classificações a cada hora, no minuto 5 (ex: 13:05, 14:05).
     cron.schedule('5 * * * *', this.updateStandingsJob, {
       timezone: "America/Sao_Paulo"
     });
   }
 
-  // JOB 1: Roda a cada 15 minutos
-  private updateScoresJob = async () => {
-    console.log(`⏰ [JOB DE PARTIDAS] Executando...`);
-    try {
-      if (!AppDataSource.isInitialized) await AppDataSource.initialize();
-
-      const todaysEvents = await ExternalApiService.getFullDailyScoreboard();
-      if (todaysEvents.length === 0) {
-        console.log('[JOB DE PARTIDAS] Nenhum jogo encontrado hoje na API.');
-        return;
-      }
-      
-      const result = await MatchService.updateMatchesFromCron(todaysEvents);
-      console.log(`[JOB DE PARTIDAS] ${result.updated} partidas foram atualizadas.`);
-
-      // Se algum jogo terminou, adiciona o ID do campeonato na lista de espera.
-      if (result.finishedChampionships.size > 0) {
-        result.finishedChampionships.forEach(id => this.championshipsToUpdateStandings.add(id));
-        console.log(`[JOB DE PARTIDAS] Campeonatos [${[...result.finishedChampionships]}] adicionados à fila de atualização de classificação.`);
-      }
-    } catch (error) {
-      console.error('[JOB DE PARTIDAS] Erro:', error);
-    }
-  }
-  
-  // JOB 2: Roda a cada hora
-  private updateStandingsJob = async () => {
-    if (this.championshipsToUpdateStandings.size === 0) {
-      console.log('⏰ [JOB DE CLASSIFICAÇÃO] Nenhuma classificação para atualizar no momento.');
+  private triggerUpdateScoresWorker = () => {
+    if (this.isUpdateScoresJobRunning) {
+      console.log('🟡 [JOB DE PARTIDAS] O job anterior ainda está em execução. Pulando.');
       return;
     }
 
-    console.log(`⏰ [JOB DE CLASSIFICAÇÃO] Atualizando classificações para os campeonatos: [${[...this.championshipsToUpdateStandings]}]`);
-    
-    // Cria uma cópia da lista e limpa a original para o próximo ciclo
+    console.log('🚀 [JOB DE PARTIDAS] Disparando worker para atualização de placares...');
+    this.isUpdateScoresJobRunning = true;
+
+    const workerPath = path.join(__dirname, '../jobs/update-scores.worker.js');
+    const worker = new Worker(workerPath);
+
+    worker.on('message', (result) => {
+      if (result.error) {
+        console.error('[JOB DE PARTIDAS] Worker retornou um erro:', result.error);
+        return;
+      }
+      if (result.finishedChampionships && result.finishedChampionships.length > 0) {
+        result.finishedChampionships.forEach((id: number) => this.championshipsToUpdateStandings.add(id));
+        console.log(`[JOB DE PARTIDAS] Worker finalizou. Campeonatos [${result.finishedChampionships}] adicionados à fila.`);
+      } else {
+        console.log('[JOB DE PARTIDAS] Worker finalizou sem novas atualizações.');
+      }
+    });
+
+    worker.on('error', (error) => {
+      console.error('[JOB DE PARTIDAS] Erro fatal no worker:', error);
+      this.isUpdateScoresJobRunning = false;
+    });
+
+    worker.on('exit', (code) => {
+      if (code !== 0) {
+        console.error(`[JOB DE PARTIDAS] Worker parou com código de saída ${code}`);
+      }
+      this.isUpdateScoresJobRunning = false;
+    });
+  }
+
+  private updateStandingsJob = async () => {
+    if (this.championshipsToUpdateStandings.size === 0) {
+      return;
+    }
+
+    console.log(`⏰ [JOB DE CLASSIFICAÇÃO] Atualizando [${[...this.championshipsToUpdateStandings]}]`);
+
     const idsToProcess = new Set(this.championshipsToUpdateStandings);
     this.championshipsToUpdateStandings.clear();
 
-    for (const championshipId of idsToProcess) {
-      try {
-        console.log(`  -> Atualizando classificação para o campeonato ID ${championshipId}...`);
-        await StandingsService.updateStandings(championshipId);
-        console.log(`  -> Classificação para ID ${championshipId} atualizada com sucesso.`);
-      } catch (error) {
-        console.error(`  -> Falha ao atualizar classificação para ID ${championshipId}:`, error);
+    const promises = Array.from(idsToProcess).map((championshipId): Promise<StandingUpdateResult> => {
+      console.log(`  -> Disparando atualização para ID ${championshipId}...`);
+      return StandingsService.updateStandings(championshipId)
+        .then(() => ({ status: 'fulfilled' as const, id: championshipId }))
+        .catch(error => ({ status: 'rejected' as const, id: championshipId, reason: error }));
+    });
+
+    const results: StandingUpdateResult[] = await Promise.all(promises);
+
+    results.forEach(result => {
+      if (result.status === 'fulfilled') {
+        console.log(`  -> Classificação para ID ${result.id} atualizada com sucesso.`);
+      } else if (result.status === 'rejected') {
+        console.error(`  -> Falha ao atualizar classificação para ID ${result.id}:`, result.reason);
       }
-    }
+    });
+
     console.log('[JOB DE CLASSIFICAÇÃO] Tarefa concluída.');
   }
 }
