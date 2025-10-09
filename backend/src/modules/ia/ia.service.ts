@@ -75,10 +75,10 @@ class IaService {
       h2h_data: h2hRecord ? [h2hRecord] : [],
     };
 
-    const IA_API_URL = process.env.IA_API_URL || 'http://host.docker.internal:8000/predict';
-    console.log(`Enviando requisição de predição para ${IA_API_URL}...`);
+    const IA_URL = process.env.IA_URL || 'http://host.docker.internal:8000/predict';
+    console.log(`Enviando requisição de predição para ${IA_URL}...`);
 
-    const response = await axios.post(IA_API_URL, payload, {
+    const response = await axios.post(IA_URL, payload, {
       timeout: 60000,
     });
 
