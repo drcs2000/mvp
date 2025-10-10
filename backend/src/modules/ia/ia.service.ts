@@ -10,6 +10,8 @@ export interface ITrainingDataPayload {
   h2hData: HeadToHead[];
 }
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 class IaService {
   private matchRepository: Repository<Match>;
   private h2hRepository: Repository<HeadToHead>;
@@ -39,7 +41,7 @@ class IaService {
 
   public async getPrediction(homeTeamId: number, awayTeamId: number, championshipId: number): Promise<any> {
     console.log(`Iniciando predição para: Home ${homeTeamId} vs Away ${awayTeamId}`);
-
+    
     const teamIds = [homeTeamId, awayTeamId];
     const allMatchesForTeams = await this.matchRepository.find({
       where: [{ homeTeamEspnId: In(teamIds) }, { awayTeamEspnId: In(teamIds) }],
@@ -74,16 +76,34 @@ class IaService {
       matches: contextualMatches,
       h2h_data: h2hRecord ? [h2hRecord] : [],
     };
+    
+    const IA_URL = process.env.IA_URL || 'http://localhost:8000/predict';
+    
+    try {
+      console.log(`[Tentativa 1] Enviando requisição de predição para ${IA_URL}...`);
+      const response = await axios.post(IA_URL, payload, { timeout: 15000 });
+      console.log('Predição recebida da IA com sucesso na primeira tentativa!');
+      return response.data;
+    } catch (error: any) {
+      if (error.code === 'EAI_AGAIN' || error.code === 'ECONNABORTED') {
+        console.warn(`[Tentativa 1 Falhou] Erro de cold start detectado (${error.code}). Aquecendo o serviço e tentando novamente...`);
+        
+        await sleep(5000);
 
-    const IA_URL = process.env.IA_URL || 'http://host.docker.internal:8000/predict';
-    console.log(`Enviando requisição de predição para ${IA_URL}...`);
-
-    const response = await axios.post(IA_URL, payload, {
-      timeout: 60000,
-    });
-
-    console.log('Predição recebida da IA com sucesso!');
-    return response.data;
+        try {
+          console.log(`[Tentativa 2] Reenviando requisição de predição para ${IA_URL}...`);
+          const response = await axios.post(IA_URL, payload, { timeout: 30000 });
+          console.log('Predição recebida da IA com sucesso na segunda tentativa!');
+          return response.data;
+        } catch (retryError: any) {
+          console.error('[Tentativa 2 Falhou] O serviço de IA não respondeu mesmo após a retentativa.');
+          throw retryError; 
+        }
+      } else {
+        console.error('[Tentativa 1 Falhou] Erro não relacionado a cold start.');
+        throw error;
+      }
+    }
   }
 }
 

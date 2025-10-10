@@ -13,8 +13,7 @@ import BetsRouter from './modules/bets/bets.routes.js';
 import InvitationRouter from './modules/invitations/invitation.routes.js';
 import usersRouter from './modules/users/users.routes.js';
 import iaRouter from './modules/ia/ia.routes.js';
-
-import SchedulerService from './services/scheduler.service.js';
+import jobRouter from './modules/jobs/job.routes.js';
 
 AppDataSource.initialize()
   .then(() => {
@@ -50,11 +49,10 @@ AppDataSource.initialize()
     app.use('/invitations', InvitationRouter);
     app.use('/users', usersRouter);
     app.use('/ia', iaRouter)
+    app.use('/job', jobRouter)
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor rodando na porta ${PORT}`);
-
-      SchedulerService.start();
     });
 
   })
