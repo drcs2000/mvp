@@ -8,6 +8,7 @@ import { useInvitationsStore } from '~/stores/invitations'
 import { useStandingsStore } from '~/stores/standings'
 import { useUsersStore } from '~/stores/users'
 import { useUiStore } from '~/stores/ui'
+import { useAiStore } from '~/stores/ai'
 
 export default defineNuxtPlugin(() => {
   const stores = {
@@ -20,6 +21,7 @@ export default defineNuxtPlugin(() => {
     standings: useStandingsStore(),
     users: useUsersStore(),
     ui: useUiStore(),
+    ai: useAiStore()
   }
 
   return {

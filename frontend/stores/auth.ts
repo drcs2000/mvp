@@ -160,13 +160,14 @@ export const useAuthStore = defineStore('auth', {
      * Inicializa o estado de autenticação a partir do localStorage.
      */
     initializeAuth() {
+      const uiStore = useUiStore();
       if (import.meta.client) {
         const token = localStorage.getItem('auth-token');
         if (token) {
           this._setStateFromToken(token);
           // Adiciona a verificação aqui também
           if (!this.checkTokenValidity()) {
-            console.log("Token do localStorage expirado, limpando sessão.");
+            uiStore.showToast("Sua sessão expirou, faça login novamente.", "info");
           }
         }
       }

@@ -12,7 +12,6 @@
             >
               Entrar no Bolão
             </button>
-
             <NuxtLink
               :to="isParticipant ? `/pools/${poolId}/bets` : ''"
               :class="[
@@ -24,7 +23,6 @@
             >
               Ver Todos Palpites
             </NuxtLink>
-
             <NuxtLink
               :to="isParticipant ? `/pools/${poolId}/info` : ''"
               :class="[
@@ -186,13 +184,103 @@
                 v-if="expandedMatchId === match.id"
                 class="bg-gray-50/70 dark:bg-gray-900/70 p-4 sm:p-6"
               >
+                <div class="pb-6">
+                  <div
+                    v-if="predictingMatchId === match.id"
+                    class="flex justify-center items-center gap-2 text-sm text-gray-500 dark:text-gray-400 py-4"
+                  >
+                    <svg
+                      class="animate-spin h-5 w-5"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      />
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    <span>Analisando...</span>
+                  </div>
+                  <div
+                    v-else-if="predictions[match.id]"
+                    class="max-w-md mx-auto"
+                  >
+                    <div
+                      class="flex justify-between items-center gap-4 text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      <div class="flex-1 text-center">
+                        <p class="font-bold">
+                          {{
+                            (
+                              predictions[match.id].probabilidades
+                                .vitoria_casa * 100
+                            ).toFixed(1)
+                          }}%
+                        </p>
+                        <p
+                          class="text-xs text-gray-500 dark:text-gray-400 truncate"
+                        >
+                          {{ match.homeTeamName }}
+                        </p>
+                      </div>
+                      <div class="flex-1 text-center">
+                        <p class="font-bold">
+                          {{
+                            (
+                              predictions[match.id].probabilidades.empate * 100
+                            ).toFixed(1)
+                          }}%
+                        </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                          Empate
+                        </p>
+                      </div>
+                      <div class="flex-1 text-center">
+                        <p class="font-bold">
+                          {{
+                            (
+                              predictions[match.id].probabilidades
+                                .vitoria_visitante * 100
+                            ).toFixed(1)
+                          }}%
+                        </p>
+                        <p
+                          class="text-xs text-gray-500 dark:text-gray-400 truncate"
+                        >
+                          {{ match.awayTeamName }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="text-center">
+                    <button
+                      class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-500 disabled:text-gray-500 disabled:cursor-not-allowed dark:text-blue-400 dark:hover:text-blue-300 dark:disabled:text-gray-600 transition-colors"
+                      :disabled="isBettingTimeExpired(match)"
+                      @click="handlePrediction(match)"
+                    >
+                      <SparklesIcon class="w-4 h-4" />
+                      <span>Usar Palpite da IA</span>
+                    </button>
+                  </div>
+                  <hr class="mt-6 border-gray-200 dark:border-gray-700" >
+                </div>
+
                 <div
                   v-if="detailsLoading"
                   class="text-center text-sm text-gray-500 dark:text-gray-400 py-4"
                 >
                   Analisando dados...
                 </div>
-
                 <div v-else-if="lastGamesData[match.id]">
                   <div>
                     <h3
@@ -231,8 +319,7 @@
                                 getGameResultClass(game, match.homeTeamEspnId)
                               "
                             >
-                              {{ game.homeScore }} &times;
-                              {{ game.awayScore }}
+                              {{ game.homeScore }} &times; {{ game.awayScore }}
                             </span>
                             <span
                               class="text-left font-medium text-gray-600 dark:text-gray-400 truncate pl-2"
@@ -271,8 +358,7 @@
                                 getGameResultClass(game, match.awayTeamEspnId)
                               "
                             >
-                              {{ game.homeScore }} &times;
-                              {{ game.awayScore }}
+                              {{ game.homeScore }} &times; {{ game.awayScore }}
                             </span>
                             <span
                               class="text-left font-medium text-gray-600 dark:text-gray-400 truncate pl-2"
@@ -283,9 +369,7 @@
                       </div>
                     </div>
                   </div>
-
                   <hr class="my-8 border-gray-200 dark:border-gray-700" >
-
                   <div>
                     <div
                       v-if="isH2HLoading[match.id]"
@@ -293,14 +377,12 @@
                     >
                       Buscando histórico de confrontos...
                     </div>
-
                     <div v-else-if="h2hData[match.id]">
                       <h3
                         class="text-lg font-bold text-gray-800 dark:text-gray-100 text-center mb-4"
                       >
                         Confronto Direto
                       </h3>
-
                       <div
                         class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-center mb-6"
                       >
@@ -341,7 +423,6 @@
                           </div>
                         </div>
                       </div>
-
                       <div v-if="h2hData[match.id].length > 0">
                         <div class="mb-6">
                           <h4
@@ -390,7 +471,6 @@
                             </div>
                           </div>
                         </div>
-
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <h4
@@ -410,7 +490,6 @@
                                   class="text-right font-medium text-gray-600 dark:text-gray-400 truncate pr-2"
                                   >{{ game.homeTeamName }}</span
                                 >
-
                                 <span
                                   class="font-bold text-xs px-1.5 py-0.5 rounded"
                                   :class="
@@ -419,10 +498,10 @@
                                       match.homeTeamEspnId
                                     )
                                   "
-                                  >{{ game.homeScore }} &times;
-                                  {{ game.awayScore }}</span
                                 >
-
+                                  {{ game.homeScore }} &times;
+                                  {{ game.awayScore }}
+                                </span>
                                 <span
                                   class="text-left font-medium text-gray-600 dark:text-gray-400 truncate pl-2"
                                   >{{ game.awayTeamName }}</span
@@ -454,7 +533,6 @@
                                     class="text-right font-medium text-gray-600 dark:text-gray-400 truncate pr-2"
                                     >{{ game.homeTeamName }}</span
                                   >
-
                                   <span
                                     class="font-bold text-xs px-1.5 py-0.5 rounded"
                                     :class="
@@ -463,17 +541,16 @@
                                         match.homeTeamEspnId
                                       )
                                     "
-                                    >{{ game.homeScore }} &times;
-                                    {{ game.awayScore }}</span
                                   >
-
+                                    {{ game.homeScore }} &times;
+                                    {{ game.awayScore }}
+                                  </span>
                                   <span
                                     class="text-left font-medium text-gray-600 dark:text-gray-400 truncate pl-2"
                                     >{{ game.awayTeamName }}</span
                                   >
                                 </div>
                               </div>
-
                               <div
                                 v-else
                                 class="text-center text-xs text-gray-500 dark:text-gray-400 py-2 h-full flex items-center justify-center"
@@ -487,7 +564,6 @@
                           </div>
                         </div>
                       </div>
-
                       <div v-else>
                         <p
                           class="text-center text-sm text-gray-500 dark:text-gray-400 mt-6 border-t border-gray-200 dark:border-gray-700 pt-6"
@@ -497,7 +573,6 @@
                         </p>
                       </div>
                     </div>
-
                     <div v-else class="text-center">
                       <button
                         class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-semibold text-gray-600 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
@@ -534,7 +609,7 @@
 <script setup>
 import { computed, onMounted, reactive, watch, ref, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { InformationCircleIcon } from "@heroicons/vue/24/outline";
+import { InformationCircleIcon, SparklesIcon  } from "@heroicons/vue/24/outline";
 
 const stores = useStores();
 const route = useRoute();
@@ -561,6 +636,45 @@ const overallH2HGames = reactive({});
 const homeHomeGames = reactive({});
 const detailsLoading = ref(false);
 const isH2HLoading = reactive({});
+const predictingMatchId = ref(null);
+const predictions = reactive({});
+
+async function handlePrediction(match) {
+  if (predictions[match.id]) {
+    const prediction = predictions[match.id];
+    if (betForms.value[match.id]) {
+      betForms.value[match.id].homeScoreBet = prediction.home_score_predito;
+      betForms.value[match.id].awayScoreBet = prediction.away_score_predito;
+    }
+    expandedMatchId.value = match.id;
+    return;
+  }
+
+  predictingMatchId.value = match.id;
+
+  try {
+    await stores.ai.fetchPrediction(
+      match.homeTeamEspnId,
+      match.awayTeamEspnId,
+      currentPool.value.baseChampionship.id
+    );
+    if (stores.ai.prediction) {
+      const prediction = stores.ai.prediction;
+      predictions[match.id] = prediction;
+
+      if (betForms.value[match.id]) {
+        betForms.value[match.id].homeScoreBet = prediction.home_score_predito;
+        betForms.value[match.id].awayScoreBet = prediction.away_score_predito;
+      }
+
+      expandedMatchId.value = match.id;
+    }
+  } catch (err) {
+    stores.ui.showToast(err || "Erro ao obter predição da IA.", "error");
+  } finally {
+    predictingMatchId.value = null;
+  }
+}
 
 const getLocalDateString = (utcDateString) => {
   if (!utcDateString) return null;
@@ -631,7 +745,7 @@ const matchesByDay = computed(() => {
 });
 
 const isBettingTimeExpired = (match) => {
-  if (match.status === "FINAL" || match.status === "FULL_TIME") return true;
+  if (match.status !== "SCHEDULED" && match.status !== "POSTPONED") return true;
   if (!currentPool.value || !match.date) return true;
   const matchDate = new Date(match.date);
   const deadlineDate = new Date(
