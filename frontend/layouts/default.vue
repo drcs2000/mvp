@@ -27,6 +27,7 @@
       <div v-else class="flex flex-col h-screen w-screen overflow-hidden">
         <AppBar
           class="shrink-0"
+          :invitation-count="invitationCount"
           @toggle-left="toggleLeftSidebar"
           @toggle-right="toggleRightSidebar"
         />
@@ -85,6 +86,8 @@ useHead({
 const stores = useStores();
 const { toastMessage, toastType } = storeToRefs(stores.ui);
 
+const invitationCount = computed(() => stores.invitations.invitationCount);
+
 const { width } = useWindowSize();
 const isMobile = computed(() => width.value < 1250);
 
@@ -94,6 +97,7 @@ const isRightSidebarOpen = ref(false);
 const isMounted = ref(false);
 
 const checkAuthStatus = () => {
+  stores.auth.checkTokenValidity();
 };
 
 onMounted(() => {
@@ -150,4 +154,3 @@ body,
   display: none;
 }
 </style>
-

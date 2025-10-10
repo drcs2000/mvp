@@ -31,6 +31,7 @@
       <Transition name="fade" mode="out-in">
         <div
           v-if="showFeaturedMatch && featuredMatch && !stores.matches.loading"
+          id="v-step-1"
           :key="`featured-${selectedChampionship?.id}`"
           class="shrink-0 p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
         >
@@ -104,6 +105,7 @@
     <Transition name="fade" mode="out-in">
       <div
         v-if="showMatchesContent"
+        id="v-step-2"
         :key="`matches-${selectedChampionship?.id}`"
         class="pb-6"
       >
@@ -242,11 +244,9 @@ onMounted(async () => {
 const getLocalDateString = (utcDateString) => {
   if (!utcDateString) return null;
   const date = new Date(utcDateString);
-
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
-
   return `${year}-${month}-${day}`;
 };
 
@@ -319,16 +319,12 @@ const featuredMatch = computed(() => {
 const formatDate = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString.replace(/-/g, "/"));
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-
   if (date.getTime() === today.getTime()) return "Hoje";
   if (date.getTime() === tomorrow.getTime()) return "Amanhã";
-
   return new Intl.DateTimeFormat("pt-BR", {
     weekday: "short",
     day: "2-digit",

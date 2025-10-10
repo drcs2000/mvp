@@ -93,7 +93,6 @@ export const useAuthStore = defineStore('auth', {
       const apiBaseUrl = config.public.apiBaseUrl;
 
       try {
-        // Usar a URL completa em produção, e o proxy '/api' em desenvolvimento
         const url = import.meta.dev ? '/api/auth/register' : `${apiBaseUrl}/auth/register`;
         const { token } = await $fetch<RegisterResponse>(url, {
           method: 'POST',
@@ -124,7 +123,6 @@ export const useAuthStore = defineStore('auth', {
       const apiBaseUrl = config.public.apiBaseUrl;
 
       try {
-        // Usar a URL completa em produção, e o proxy '/api' em desenvolvimento
         const url = import.meta.dev ? '/api/auth/login' : `${apiBaseUrl}/auth/login`;
         const { token } = await $fetch<LoginResponse>(url, {
           method: 'POST',
@@ -145,37 +143,25 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * Desloga o usuário.
+     * Desloga o usuário, limpa o estado e redireciona.
      */
     async logout() {
-      // Pega a store de UI para mostrar o toast
       const uiStore = useUiStore();
+      
+      // Só mostra a mensagem se o usuário estava de fato logado
       if (this.isAuthenticated) {
         uiStore.showToast("Sua sessão expirou ou foi encerrada.", "info");
       }
+      
       this._clearState();
+      
+      // Redireciona para a página inicial após o logout
+      await navigateTo('/');
     },
 
     /**
-     * Inicializa o estado de autenticação a partir do localStorage.
-     */
-    initializeAuth() {
-      const uiStore = useUiStore();
-      if (import.meta.client) {
-        const token = localStorage.getItem('auth-token');
-        if (token) {
-          this._setStateFromToken(token);
-          // Adiciona a verificação aqui também
-          if (!this.checkTokenValidity()) {
-            uiStore.showToast("Sua sessão expirou, faça login novamente.", "info");
-          }
-        }
-      }
-    },
-
-    /**
-     * Verifica a validade do token atual. Se estiver expirado ou ausente, desloga o usuário.
-     * @returns {boolean} Retorna `true` se o usuário estiver autenticado e o token for válido.
+     * Verifica a validade do token atual.
+     * @returns {boolean} Retorna `true` se o token for válido, `false` caso contrário.
      */
     checkTokenValidity(): boolean {
       if (!this.token || !this.user?.exp) {
@@ -192,5 +178,18 @@ export const useAuthStore = defineStore('auth', {
 
       return true;
     },
+
+    /**
+     * Inicializa o estado de autenticação a partir do localStorage.
+     */
+    initializeAuth() {
+      if (import.meta.client) {
+        const token = localStorage.getItem('auth-token');
+        if (token) {
+          this._setStateFromToken(token);
+          this.checkTokenValidity();
+        }
+      }
+    }
   },
 });
