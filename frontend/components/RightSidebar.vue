@@ -4,7 +4,7 @@
       <div v-if="stores.auth.isAuthenticated && stores.auth.currentUser">
         <Menu v-slot="{ open }" as="div" class="relative">
           <MenuButton
-            class="flex items-center w-full px-2 py-1 transition-colors duration-200 border border-gray-300 rounded-md hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:hover:border-gray-500 dark:focus:ring-gray-600"
+            id="profile" class="flex items-center w-full px-2 py-1 transition-colors duration-200 border border-gray-300 rounded-md hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:hover:border-gray-500 dark:focus:ring-gray-600"
           >
             <div class="flex-shrink-0">
               <span
@@ -117,7 +117,7 @@
             <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-200">
               {{ selectedChampionship.name }}
             </h3>
-            <table class="w-full text-center table-fixed">
+            <table id="standings" class="w-full text-center table-fixed">
               <thead class="text-[9px] uppercase text-gray-500 dark:text-gray-400">
                 <tr class="border-b border-gray-200 dark:border-gray-600">
                   <th class="w-[8%] py-1 font-normal text-left pl-1">#</th>

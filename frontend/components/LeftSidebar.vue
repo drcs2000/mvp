@@ -17,6 +17,7 @@
         Gerenciar
       </h3>
       <NuxtLink
+        id="create-pool"
         to="/pools/create"
         class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
         active-class="bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
@@ -25,15 +26,17 @@
         <span class="text-[13px] font-medium truncate">Criar Bolão</span>
       </NuxtLink>
       <NuxtLink
+        id="list-pools"
         to="/pools"
         class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
         active-class="bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
       >
         <QueueListIcon class="w-4 h-4 mr-2 shrink-0" />
-        <span class="text-[13px] font-medium truncate">Listar Bolões</span>
+        <span class="text-[13px] font-medium truncate">Bolões Públicos</span>
       </NuxtLink>
 
       <NuxtLink
+        id="list-my-pools"
         to="/pools/my"
         class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
         active-class="bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"

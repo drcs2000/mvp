@@ -52,9 +52,11 @@
       <template #match="{ matches }">
         <template v-for="match in matches" :key="match.id">
           <div
+            :id="`match-row-${match.id}`"
             class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
           >
             <div
+              id="v-step-1-bet"
               class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200"
               :class="{
                 'cursor-pointer': !isBettingTimeExpired(match) && isParticipant,
@@ -91,7 +93,7 @@
                       >
                     </div>
 
-                    <div class="flex items-center gap-1">
+                    <div id="v-step-6-bet-result" class="flex items-center gap-1">
                       <input
                         v-model.number="betForms[match.id].homeScoreBet"
                         type="text"
@@ -216,6 +218,7 @@
                     class="max-w-md mx-auto"
                   >
                     <div
+                      id="v-step-5-bet-prediction"
                       class="flex justify-between items-center gap-4 text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
                       <div class="flex-1 text-center">
@@ -264,11 +267,11 @@
                   </div>
                   <div v-else class="text-center">
                     <button
+                      id="v-step-4-bet-ia"
                       class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-500 disabled:text-gray-500 disabled:cursor-not-allowed dark:text-blue-400 dark:hover:text-blue-300 dark:disabled:text-gray-600 transition-colors"
                       :disabled="isBettingTimeExpired(match)"
                       @click="handlePrediction(match)"
                     >
-                      <SparklesIcon class="w-4 h-4" />
                       <span>Usar Palpite da IA</span>
                     </button>
                   </div>
@@ -282,7 +285,7 @@
                   Analisando dados...
                 </div>
                 <div v-else-if="lastGamesData[match.id]">
-                  <div>
+                  <div id="v-step-2-bet-last-five">
                     <h3
                       class="text-lg font-bold text-gray-800 dark:text-gray-100 text-center mb-4"
                     >
@@ -377,7 +380,7 @@
                     >
                       Buscando histórico de confrontos...
                     </div>
-                    <div v-else-if="h2hData[match.id]">
+                    <div v-else-if="h2hData[match.id]" id="v-step-3-bet-h2h">
                       <h3
                         class="text-lg font-bold text-gray-800 dark:text-gray-100 text-center mb-4"
                       >
@@ -595,6 +598,7 @@
       class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-sm border-t border-gray-200 md:relative md:p-0 md:bg-transparent md:border-none md:mt-6 text-center dark:bg-gray-800/90 dark:border-gray-700"
     >
       <button
+        id="v-step-7-bet-save"
         :disabled="!hasChanges || !allBetsAreFilled || stores.bet.loading"
         class="w-full whitespace-nowrap rounded-md border-2 border-blue-600 bg-transparent px-4 py-3 text-base font-semibold text-blue-600 transition-colors duration-200 hover:bg-blue-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400 md:w-auto md:px-6 md:py-2 md:text-sm dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-gray-900 dark:focus-visible:ring-offset-gray-800 dark:disabled:border-gray-600 dark:disabled:text-gray-600"
         @click="submitAllBets"
@@ -609,11 +613,14 @@
 <script setup>
 import { computed, onMounted, reactive, watch, ref, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { InformationCircleIcon, SparklesIcon  } from "@heroicons/vue/24/outline";
+import { InformationCircleIcon } from "@heroicons/vue/24/outline";
+import { useTour } from "~/composables/useTour";
 
 const stores = useStores();
 const route = useRoute();
 const router = useRouter();
+
+const { addSteps, start, tour } = useTour();
 
 const poolId = computed(() => route.params.id);
 const error = ref(null);
@@ -836,7 +843,10 @@ onMounted(async () => {
         allBets.value = betsResult.data;
       }
     } else {
-      throw new Error("Campeonato não encontrado para este bolão.");
+      stores.ui.showToast(
+        "Campeonato não encontrado para este bolão.",
+        "error"
+      );
     }
   } catch (e) {
     error.value =
@@ -845,6 +855,152 @@ onMounted(async () => {
     router.push("/");
   } finally {
     loading.value = false;
+  }
+  if (
+    stores.auth.isAuthenticated &&
+    isParticipant.value &&
+    !localStorage.getItem("betting_tour_completed")
+  ) {
+
+    addSteps([
+      {
+        id: "step-1-bet",
+        attachTo: {
+          element: "#v-step-1-bet",
+          on: "top",
+        },
+        title: "Partida a ser Palpitada",
+        text: "Aqui você vê a partida a qual você irá palpitar.",
+        buttons: [
+          { text: "Pular", action: tour.cancel, secondary: true },
+          {
+            text: "Próximo",
+            action: async () => {
+              const matchToExpand = matchesOfSelectedDay.value[0];
+
+              if (matchToExpand) {
+                expandedMatchId.value = matchToExpand.id;
+
+                if (!lastGamesData[matchToExpand.id]) {
+                  detailsLoading.value = true;
+                  try {
+                    await Promise.all([
+                      fetchLast5Games(matchToExpand),
+                      fetchH2HData(matchToExpand),
+                    ]);
+                  } catch (error) {
+                    console.error(
+                      "Tour: Falha ao carregar detalhes do jogo.",
+                      error
+                    );
+                  } finally {
+                    detailsLoading.value = false;
+                  }
+                }
+
+                nextTick(() => {
+                  const matchElement = document.querySelector(
+                    `#match-row-${matchToExpand.id}`
+                  );
+                  if (matchElement) {
+                    const detailsPanel = matchElement.nextElementSibling;
+                    if (detailsPanel) {
+                      detailsPanel.scrollIntoView({
+                        behavior: "smooth",
+                        block: "nearest",
+                      });
+                    }
+                  }
+                });
+              }
+
+              setTimeout(() => {
+                tour.next();
+              }, 500);
+            },
+          },
+        ],
+        classes: "sheperd-custom",
+      },
+      {
+        id: "step-2-bet",
+        title: "Forma Recente",
+        text: "Aqui nós vemos os últimos 5 jogos do time mandante e do time visitante, para auxílio do palpiteiro.",
+        buttons: [
+          { text: "Anterior", action: tour.back, secondary: true },
+          { text: "Próximo", action: tour.next },
+        ],
+        classes: "shepderd-custom",
+        attachTo: { element: "#v-step-2-bet-last-five", on: "top" },
+      },
+      {
+        id: "step-3-bet",
+        title: "Confronto Direto",
+        text: "Aqui nós vemos os dados dos últimos confrontos entre os 2 times, nosso database possui dados desde 2006.",
+        buttons: [
+          { text: "Anterior", action: tour.back, secondary: true },
+          { text: "Próximo", action: tour.next },
+        ],
+        classes: "sheperd-custom",
+        attachTo: { element: "#v-step-3-bet-h2h", on: "top" },
+      },
+      {
+        id: "step-4-bet",
+        title: "Previsão da IA",
+        text: "Nós desenvolvemos uma IA preditiva, que leva em consideração os últimos 5 confrontos de cada equipe, as forças de cada confronto (uma vitória em cima do líder do campeonato naquela altura vale mais do que uma vitória contra o lanterna), os últimos confrontos entre as 2 equipes e os confrontos entre as duas equipes do mandante como mandante e visitante como visitante.",
+        buttons: [
+          { text: "Anterior", action: tour.back, secondary: true },
+          {
+            text: "Próximo",
+            action: async () => {
+              await handlePrediction(matchesOfSelectedDay.value[0])
+                .then(() => {
+                  tour.next();
+                })
+            },
+          },
+        ],
+        classes: "sheperd-custom",
+        attachTo: { element: "#v-step-4-bet-ia", on: "top" },
+      },
+      {
+        id: "step-5-bet",
+        title: "% de chance segundo nossa IA",
+        text: "Após analisar os dados, nós mostraremos os resultados da probabilidade de vitória de cada time segundo nosso algoritmo.",
+        buttons: [
+          { text: "Anterior", action: tour.back },
+          { text: "Próximo", action: tour.next }
+        ],
+        classes: "sheperd-custom",
+        attachTo: { element: "#v-step-5-bet-prediction", on: "bottom" }
+      },
+      {
+        id: "step-6-bet",
+        title: "Resultado da IA",
+        text: "Nosso algoritmo também já colocará o time que ele acredita que vencerá o confronto, ele foi treinado para colocar sempre os palpites 2x1 para vitória do mandante, 1x2 para vitória do visitante e 1x1 para empate. Sinta-se livre para alterar o palpite como quiser.",
+        buttons: [
+          { text: "Anterior", action: tour.back },
+          { text: "Próximo", action: tour.next }
+        ],
+        classes: "sheperd-custom",
+        attachTo: { element: "#v-step-6-bet-result", on: "bottom" }
+      },
+      {
+        id: "step-7-bet",
+        title: "Salvar",
+        text: "Após preencher todos os palpites do dia, você poderá salvá-los.",
+        buttons: [
+          { text: "Anterior", action: tour.back },
+          { text: "Cncluir", action: tour.complete }
+        ],
+        classes: "sheperd-custom",
+        attachTo: { element: "#v-step-7-bet-save", on: "top" }
+      },
+    ]);
+    setTimeout(() => {
+      start();
+      localStorage.setItem("betting_tour_completed", "true");
+    }, 500);
   }
 });
 

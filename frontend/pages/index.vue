@@ -1,7 +1,7 @@
 <template>
   <section>
     <div class="sticky top-0 z-20">
-      <header class="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
+      <header id="header" class="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
         <nav class="w-full overflow-x-auto no-scrollbar">
           <div
             v-if="!stores.championships.isLoading"
