@@ -160,12 +160,13 @@ class MatchService {
     return 0;
   }
 
-  public async updateMatchesFromCron(events: IEspnEvent[]): Promise<{ updated: number; finishedChampionships: Set<number> }> {
+  public async updateMatchesFromCron(events: IEspnEvent[]): Promise<{ created: number; updated: number; finishedChampionships: Set<number> }> {
+    let createdCount = 0;
     let updatedCount = 0;
     const finishedChampionships = new Set<number>();
 
     if (events.length === 0) {
-      return { updated: 0, finishedChampionships };
+      return { created: 0, updated: 0, finishedChampionships };
     }
 
     const eventIds = events.map(event => parseInt(event.id, 10));
@@ -177,32 +178,61 @@ class MatchService {
     const matchesToSave: Match[] = [];
     const matchesToUpdateBets: Match[] = [];
 
-    for (const event of events) {
-      const match = existingMatches.find(m => m.apiEspnId === parseInt(event.id, 10));
-      if (!match) continue;
+    let inferredChampionship: Championship | null = existingMatches.length > 0 ? existingMatches[0].championship : null;
 
+    for (const event of events) {
       const competition = event.competitions?.[0];
       if (!competition) continue;
 
       const homeTeam = competition.competitors.find(c => c.homeAway === 'home');
       const awayTeam = competition.competitors.find(c => c.homeAway === 'away');
-      if (!homeTeam || !awayTeam) continue;
+      if (!homeTeam?.team?.id || !awayTeam?.team?.id) continue;
 
+      let match = existingMatches.find(m => m.apiEspnId === parseInt(event.id, 10));
+      let isNewMatch = false;
+
+      if (!match) {
+        if (!inferredChampionship) {
+          console.warn(` -> Não foi possível inferir o campeonato para o novo evento ${event.id}. Pulando.`);
+          continue;
+        }
+        isNewMatch = true;
+        match = this.matchRepository.create();
+        match.apiEspnId = parseInt(event.id, 10);
+        match.championship = inferredChampionship;
+        createdCount++;
+      }
+      
       const newStatus = this.mapEspnStatus(competition.status.type);
       const homeScoreValue = homeTeam.score?.value ?? homeTeam.score;
       const awayScoreValue = awayTeam.score?.value ?? awayTeam.score;
       const newHomeScore = homeScoreValue != null ? parseInt(String(homeScoreValue), 10) : null;
       const newAwayScore = awayScoreValue != null ? parseInt(String(awayScoreValue), 10) : null;
 
-      const hasChanged = match.status !== newStatus || match.homeScore !== newHomeScore || match.awayScore !== newAwayScore;
+      const hasChanged = isNewMatch || match.status !== newStatus || match.homeScore !== newHomeScore || match.awayScore !== newAwayScore;
 
       if (hasChanged) {
+        if (!isNewMatch) {
+          updatedCount++;
+        }
+        
+        match.date = new Date(event.date);
+        match.venueName = competition.venue?.fullName || null;
+        match.venueCity = competition.venue?.address?.city || null;
+        match.round = event.week?.text || null;
+        match.homeTeamEspnId = parseInt(homeTeam.team.id, 10);
+        match.homeTeamName = homeTeam.team.displayName;
+        match.awayTeamEspnId = parseInt(awayTeam.team.id, 10);
+        match.awayTeamName = awayTeam.team.displayName;
+        match.homeTeamLogoUrl = `https://a.espncdn.com/i/teamlogos/soccer/500/${homeTeam.team.id}.png`;
+        match.awayTeamLogoUrl = `https://a.espncdn.com/i/teamlogos/soccer/500/${awayTeam.team.id}.png`;
         match.status = newStatus;
         match.homeScore = newHomeScore;
         match.awayScore = newAwayScore;
         match.apiEspnStatusDetail = competition.status.type.detail;
+
         matchesToSave.push(match);
-        updatedCount++;
+
         if (newStatus === MatchStatus.FINAL) {
           finishedChampionships.add(match.championship.id);
           matchesToUpdateBets.push(match);
@@ -212,7 +242,7 @@ class MatchService {
 
     if (matchesToSave.length > 0) {
       await this.matchRepository.save(matchesToSave);
-      console.log(` -> ${matchesToSave.length} partidas atualizadas no banco de dados.`);
+      console.log(` -> ${createdCount} partidas criadas e ${updatedCount} atualizadas no banco de dados.`);
     }
 
     for (const match of matchesToUpdateBets) {
@@ -221,7 +251,7 @@ class MatchService {
       await this.updateBetsForFinishedMatch(match);
     }
 
-    return { updated: updatedCount, finishedChampionships };
+    return { created: createdCount, updated: updatedCount, finishedChampionships };
   }
 
   public async updateBetsForFinishedMatch(match: Match): Promise<void> {

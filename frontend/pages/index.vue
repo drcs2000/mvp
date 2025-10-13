@@ -309,11 +309,50 @@ const matchesOfSelectedDay = computed(() => {
 });
 
 const featuredMatch = computed(() => {
-  if (matchesOfSelectedDay.value.length === 0) return null;
-  return (
-    matchesOfSelectedDay.value.find((m) => m.status !== "FT") ||
-    matchesOfSelectedDay.value[0]
+  const allMatches = stores.matches.matches;
+  if (!allMatches || allMatches.length === 0) {
+    return null;
+  }
+
+  const notPlayedStatuses = ["SCHEDULED", "POSTPONED", "NS", "TBD"];
+  const nowTimestamp = Date.now();
+
+  const todayString = getLocalDateString(new Date().toISOString());
+  const todaysMatches = allMatches.filter(
+    (m) => getLocalDateString(m.date) === todayString
   );
+
+  if (todaysMatches.length > 0) {
+    const liveTodayMatch = todaysMatches.find(
+      (m) => m.status === "IN_PROGRESS" || m.status === "HALFTIME"
+    );
+    if (liveTodayMatch) return liveTodayMatch;
+
+    const upcomingTodayMatches = todaysMatches
+      .filter(
+        (m) =>
+          new Date(m.date).getTime() >= nowTimestamp &&
+          notPlayedStatuses.includes(m.status)
+      )
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    if (upcomingTodayMatches.length > 0) return upcomingTodayMatches[0];
+
+    return todaysMatches.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+  }
+  const upcomingFutureMatches = allMatches
+    .filter(
+      (m) =>
+        new Date(m.date).getTime() >= nowTimestamp &&
+        notPlayedStatuses.includes(m.status)
+    )
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (upcomingFutureMatches.length > 0) return upcomingFutureMatches[0];
+
+  const pastMatches = allMatches.sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
+  if (pastMatches.length > 0) return pastMatches[0];
+  return null;
 });
 
 const formatDate = (dateString) => {
