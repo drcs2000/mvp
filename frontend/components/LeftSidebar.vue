@@ -123,7 +123,6 @@
                     class="w-4 h-4 mr-2 flex-shrink-0"
                   >
                   <span class="text-[13px] truncate">{{ league.title }}</span>
-                  <div class="tooltip">{{ league.title }}</div>
                 </NuxtLink>
               </div>
             </div>
@@ -132,16 +131,19 @@
       </nav>
     </div>
 
-    <div class="shrink-0 pt-4">
+    <div class="shrink-0 pt-4 mt-auto">
       <hr class="my-6 border-t border-gray-200 dark:border-gray-700" >
-      <NuxtLink
-        to="/settings"
+      <button
         class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-        active-class="bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
+        @click="toggleTheme"
       >
-        <Cog6ToothIcon class="w-4 h-4 mr-2 shrink-0" />
-        <span class="text-[13px] font-medium truncate">Configurações</span>
-      </NuxtLink>
+        <SunIcon v-if="theme === 'dark'" class="w-4 h-4 mr-2 shrink-0" />
+        <MoonIcon v-else class="w-4 h-4 mr-2 shrink-0" />
+
+        <span class="text-[13px] font-medium truncate">
+          {{ themeButtonText }}
+        </span>
+      </button>
     </div>
   </aside>
 </template>
@@ -150,7 +152,8 @@
 import { ref, computed, onMounted, watch } from "vue";
 import {
   ChevronRightIcon,
-  Cog6ToothIcon,
+  SunIcon,
+  MoonIcon,
   PlusCircleIcon,
   QueueListIcon,
   TrophyIcon,
@@ -158,6 +161,7 @@ import {
 import SvgIcon from "@jamescoyle/vue-icon";
 import { mdiSoccer } from "@mdi/js";
 
+const { theme, setTheme } = useTheme();
 const route = useRoute();
 const stores = useStores();
 
@@ -260,6 +264,14 @@ const buildMenuData = () => {
     a.title.localeCompare(b.title)
   );
 };
+
+const toggleTheme = () => {
+  setTheme(theme.value === "dark" ? "light" : "dark");
+};
+
+const themeButtonText = computed(() => {
+  return theme.value === "dark" ? "Tema Claro" : "Tema Escuro";
+});
 </script>
 
 <style scoped>
@@ -281,18 +293,5 @@ const buildMenuData = () => {
 
 .flex-shrink-0 {
   flex-shrink: 0;
-}
-
-.tooltip {
-  @apply absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-  z-index: 50;
-}
-
-.group:hover .tooltip {
-  opacity: 1;
-  visibility: visible;
 }
 </style>

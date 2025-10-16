@@ -36,6 +36,11 @@ export interface IEspnEvent {
   };
 }
 
+export interface IEspnTeam {
+  id: string;
+  name: string;
+}
+
 class ExternalAPIService {
   private apiClient = axios.create({
     baseURL: 'http://site.api.espn.com/apis/site/v2/sports/soccer',
@@ -77,6 +82,35 @@ class ExternalAPIService {
       return response.data?.events || [];
     } catch (error) {
       console.error(`Erro ao buscar jogos para a liga ${leagueSlug} na data ${dateString}:`, error);
+      return [];
+    }
+  }
+
+  public async getScheduleForTeam(leagueSlug: string, teamId: string): Promise<IEspnEvent[]> {
+    const pastGamesEndpoint = `/${leagueSlug}/teams/${teamId}/schedule`;
+    const futureGamesEndpoint = `/${leagueSlug}/teams/${teamId}/schedule?fixture=true`;
+
+    try {
+      const [pastGamesResponse, futureGamesResponse] = await Promise.all([
+        this.apiClient.get(pastGamesEndpoint),
+        this.apiClient.get(futureGamesEndpoint)
+      ]);
+
+      const pastEvents: IEspnEvent[] = pastGamesResponse.data?.events || [];
+      const futureEvents: IEspnEvent[] = futureGamesResponse.data?.events || [];
+
+      const allEventsMap = new Map<string, IEspnEvent>();
+      for (const event of pastEvents) {
+        allEventsMap.set(event.id, event);
+      }
+      for (const event of futureEvents) {
+        allEventsMap.set(event.id, event);
+      }
+
+      return Array.from(allEventsMap.values());
+
+    } catch (error) {
+      console.error(`Erro ao buscar calendário completo para o time ${teamId} na liga ${leagueSlug}:`, error);
       return [];
     }
   }

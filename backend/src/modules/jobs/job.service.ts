@@ -21,7 +21,7 @@ class JobService {
     this.isUpdateScoresJobRunning = true;
     const workerPath = path.join(__dirname, '../../jobs/update-scores.worker.js'); // Ajuste o caminho se necessário
     const worker = new Worker(workerPath);
-    
+
     worker.on('message', (result) => {
       if (result.error) {
         console.error('[JOB DE PARTIDAS] Worker retornou um erro:', result.error);
@@ -50,24 +50,33 @@ class JobService {
     }
     this.isUpdateStandingsJobRunning = true;
     console.log(`⏰ [JOB DE CLASSIFICAÇÃO] Atualizando [${[...this.championshipsToUpdateStandings]}]`);
-    
+
     const idsToProcess = new Set(this.championshipsToUpdateStandings);
     this.championshipsToUpdateStandings.clear();
 
-    const promises = Array.from(idsToProcess).map((championshipId): Promise<StandingUpdateResult> => 
+    const promises = Array.from(idsToProcess).map((championshipId): Promise<StandingUpdateResult> =>
       StandingsService.updateStandings(championshipId)
         .then(() => ({ status: 'fulfilled' as const, id: championshipId }))
         .catch(error => ({ status: 'rejected' as const, id: championshipId, reason: error }))
     );
-    
+
     const results = await Promise.all(promises);
     results.forEach(result => {
       if (result.status === 'fulfilled') console.log(` -> Sucesso na atualização da ID ${result.id}.`);
       else if (result.status === 'rejected') console.error(` -> Falha na atualização da ID ${result.id}:`, result.reason);
     });
-    
+
     console.log('[JOB DE CLASSIFICAÇÃO] Tarefa concluída.');
     this.isUpdateStandingsJobRunning = false;
+  }
+
+  public triggerFullSyncWorker = () => {
+    console.log('🚀 [JOB DE SYNC COMPLETO] Disparando worker...');
+    const workerPath = path.join(__dirname, '../../jobs/sync-full-season.worker.js');
+    const worker = new Worker(workerPath);
+    worker.on('message', (result) => console.log('[JOB DE SYNC COMPLETO] Worker finalizou:', result));
+    worker.on('error', (error) => console.error('[JOB DE SYNC COMPLETO] Erro fatal no worker:', error));
+    worker.on('exit', (code) => { if (code !== 0) console.error(`[JOB DE SYNC COMPLETO] Worker parou com código ${code}`) });
   }
 }
 

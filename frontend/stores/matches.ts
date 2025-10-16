@@ -54,6 +54,13 @@ export const useMatchesStore = defineStore('matches', () => {
   const config = useRuntimeConfig();
   const apiBaseUrl = config.public.apiBaseUrl;
 
+  function getHeadersWithTimezone() {
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return {
+      'x-user-timezone': userTimezone
+    };
+  }
+
   async function fetchByChampionship(championshipId: number) {
     if (matchesCache.value[championshipId]) {
       matches.value = matchesCache.value[championshipId];
@@ -64,7 +71,11 @@ export const useMatchesStore = defineStore('matches', () => {
     error.value = null;
     try {
       const url = import.meta.dev ? `/api/matches/championship/${championshipId}` : `${apiBaseUrl}/matches/championship/${championshipId}`;
-      const championshipMatches = await $fetch<Match[]>(url);
+      
+      const championshipMatches = await $fetch<Match[]>(url, {
+        headers: getHeadersWithTimezone()
+      });
+
       matches.value = championshipMatches;
       matchesCache.value[championshipId] = championshipMatches;
     } catch (err: unknown) {
@@ -81,7 +92,11 @@ export const useMatchesStore = defineStore('matches', () => {
     error.value = null;
     try {
       const url = import.meta.dev ? `/api/matches/team/${teamId}` : `${apiBaseUrl}/matches/team/${teamId}`;
-      const teamMatches = await $fetch<Match[]>(url);
+      
+      const teamMatches = await $fetch<Match[]>(url, {
+        headers: getHeadersWithTimezone()
+      });
+
       matches.value = teamMatches;
     } catch (err: unknown) {
       console.error(`Erro ao buscar jogos do time ${teamId}:`, err);

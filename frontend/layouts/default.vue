@@ -159,7 +159,7 @@ onMounted(async () => {
       {
         id: "step-3",
         title: "Menu Principal",
-        text: "Ao lado vcê vê as opções do sistema, como criar seu bolão ou entrar em um bolão em andamento.",
+        text: "Ao lado você vê as opções do sistema, como criar seu bolão ou entrar em um bolão em andamento.",
         buttons: [
           { text: "Anterior", action: tour.back, secondary: true },
           {
@@ -283,7 +283,7 @@ onMounted(async () => {
     ]);
     setTimeout(() => {
       start('firstAccess');
-    }, 1000);
+    }, 500);
   }
 });
 

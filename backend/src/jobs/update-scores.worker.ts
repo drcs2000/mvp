@@ -2,48 +2,71 @@ import { parentPort } from 'worker_threads';
 import { AppDataSource } from '../database/data-source.js';
 import ExternalApiService, { IEspnEvent } from '../services/external-api.service.js';
 import MatchService from '../modules/matches/matches.service.js';
-import ChampionshipService from '../modules/championships/championships.service.js';
+import { In, LessThan } from 'typeorm';
+import { Match, MatchStatus } from '../entities/match.entity.js';
 
 async function runUpdateScoresJob() {
   try {
-    console.log(`⏰ [WORKER] Executando...`);
+    console.log(`⏰ [WORKER] Executando atualização de placares...`);
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
       console.log(`[WORKER] Conexão com o banco de dados inicializada.`);
     }
 
-    const championships = await ChampionshipService.getAll();
-    const slugs: string[] = championships.map(c => c.apiEspnSlug).filter(Boolean);
+    const matchRepository = AppDataSource.getRepository(Match);
 
-    if (slugs.length === 0) {
-      return { message: 'Nenhum campeonato com slug encontrado no DB.' };
+    const relevantMatches = await matchRepository.find({
+      where: [
+        { status: In([MatchStatus.IN_PROGRESS, MatchStatus.HALFTIME]) },
+        { status: MatchStatus.SCHEDULED, date: LessThan(new Date()) },
+      ],
+      relations: ['championship'],
+    });
+
+    if (relevantMatches.length === 0) {
+      console.log('[WORKER] Nenhum jogo ativo ou recém-iniciado encontrado para atualizar.');
+      return { message: 'Nenhuma partida ativa encontrada.' };
     }
-    console.log(`[WORKER] Buscando jogos para ${slugs.length} campeonatos...`);
 
-    const promises = slugs.map(slug => ExternalApiService.getTodaysMatches(slug));
+    const activeSlugs = [...new Set(relevantMatches.map(match => match.championship.apiEspnSlug).filter(Boolean))];
+
+    if (activeSlugs.length === 0) {
+      console.log('[WORKER] Jogos relevantes encontrados, mas nenhum tem slug de campeonato associado.');
+      return { message: 'Nenhum slug de campeonato para jogos ativos.' };
+    }
+
+    console.log(`[WORKER] Encontrados ${relevantMatches.length} jogos potencialmente ativos em ${activeSlugs.length} campeonatos. Buscando dados...`);
+
+    const promises = activeSlugs.map(slug => ExternalApiService.getTodaysMatches(slug));
     const results = await Promise.allSettled(promises);
 
     let allEvents: IEspnEvent[] = [];
     results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        allEvents = allEvents.concat(result.value);
-      } else {
-        console.error(`[WORKER] Falha ao buscar slug '${slugs[index]}':`, result.reason.message);
+      if (result.status === 'fulfilled' && result.value) {
+        allEvents.push(...result.value);
+      } else if (result.status === 'rejected') {
+        console.error(`[WORKER] Falha ao buscar dados para o slug '${activeSlugs[index]}':`, result.reason?.message);
       }
     });
 
     if (allEvents.length === 0) {
-      return { message: 'Nenhuma partida encontrada para os slugs monitorados.' };
+      console.warn('[WORKER] Nenhuma informação pôde ser buscada da API externa para os slugs ativos.');
+      return { message: 'Não foi possível buscar dados ao vivo.' };
     }
 
-    const result = await MatchService.updateMatchesFromCron(allEvents);
-    console.log(`[WORKER] ${result.updated} partidas foram atualizadas.`);
-    
-    return { finishedChampionships: [...result.finishedChampionships] };
-    
+    const updateResult = await MatchService.updateMatchesFromCron(allEvents);
+    console.log(`[WORKER] ${updateResult.created} partidas criadas e ${updateResult.updated} atualizadas.`);
+
+    return { finishedChampionships: [...updateResult.finishedChampionships] };
+
   } catch (error) {
-    console.error('[WORKER] Erro:', error);
+    console.error('[WORKER] Erro catastrófico durante a execução:', error);
     throw error;
+  } finally {
+    if (AppDataSource.isInitialized) {
+      await AppDataSource.destroy();
+      console.log(`[WORKER] Conexão com o banco de dados fechada.`);
+    }
   }
 }
 
