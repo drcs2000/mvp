@@ -3,6 +3,7 @@ import 'dotenv/config';
 
 export interface IEspnEventCompetitor {
   id: string;
+  date: string;
   homeAway: 'home' | 'away';
   score: any;
   team: {
@@ -62,9 +63,9 @@ class ExternalAPIService {
     const month = (today.getMonth() + 1).toString().padStart(2, '0');
     const day = today.getDate().toString().padStart(2, '0');
     const dateString = `${year}${month}${day}`;
-    
+
     const endpoint = `/${leagueSlug}/scoreboard?dates=${dateString}`;
-    
+
     const response = await this.apiClient.get(endpoint);
     return response.data?.events || [];
   }
@@ -74,9 +75,9 @@ class ExternalAPIService {
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
     const dateString = `${year}${month}${day}`;
-    
+
     const endpoint = `/${leagueSlug}/scoreboard?dates=${dateString}`;
-    
+
     try {
       const response = await this.apiClient.get(endpoint);
       return response.data?.events || [];

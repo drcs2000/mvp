@@ -9,7 +9,8 @@
     "typeorm": "node --loader ts-node/esm ./node_modules/typeorm/cli.js -d ./src/database/data-source.ts",
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run",
-    "db:update": "node --loader ts-node/esm src/scripts/update-past-matches.ts"
+    "db:update": "node --loader ts-node/esm src/scripts/update-past-matches.ts",
+    "db:fix-timezones": "node --loader ts-node/esm src/scripts/fix-match-timezones.ts"
   },
   "keywords": [],
   "author": "",

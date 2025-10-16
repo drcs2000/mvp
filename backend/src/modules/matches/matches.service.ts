@@ -202,21 +202,27 @@ class MatchService {
         match.championship = inferredChampionship;
         createdCount++;
       }
-      
+
       const newStatus = this.mapEspnStatus(competition.status.type);
       const homeScoreValue = homeTeam.score?.value ?? homeTeam.score;
       const awayScoreValue = awayTeam.score?.value ?? awayTeam.score;
       const newHomeScore = homeScoreValue != null ? parseInt(String(homeScoreValue), 10) : null;
       const newAwayScore = awayScoreValue != null ? parseInt(String(awayScoreValue), 10) : null;
 
-      const hasChanged = isNewMatch || match.status !== newStatus || match.homeScore !== newHomeScore || match.awayScore !== newAwayScore;
+      const apiDate = new Date(event.date);
+
+      const hasChanged = isNewMatch ||
+        match.status !== newStatus ||
+        match.homeScore !== newHomeScore ||
+        match.awayScore !== newAwayScore ||
+        match.date.getTime() !== apiDate.getTime();
 
       if (hasChanged) {
         if (!isNewMatch) {
           updatedCount++;
         }
-        
-        match.date = new Date(event.date);
+
+        match.date = apiDate;
         match.venueName = competition.venue?.fullName || null;
         match.venueCity = competition.venue?.address?.city || null;
         match.round = event.week?.text || null;
