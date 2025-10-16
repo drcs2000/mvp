@@ -182,12 +182,10 @@ class UserService {
       throw new Error('A senha atual é necessária para definir uma nova senha.');
     }
 
-    // 2. Lógica para atualização de nome
     if (updateData.name !== undefined) {
       dataToUpdate.name = updateData.name;
     }
 
-    // 3. Lógica para atualização de e-mail
     if (updateData.email !== undefined && updateData.email !== user.email) {
       const existingUserWithEmail = await this.userRepository.findOne({ where: { email: updateData.email } });
       if (existingUserWithEmail && existingUserWithEmail.id !== userId) {
@@ -196,18 +194,39 @@ class UserService {
       dataToUpdate.email = updateData.email;
     }
 
-    // Verifica se há dados para atualizar
     if (Object.keys(dataToUpdate).length === 0) {
       throw new Error('Nenhum dado válido fornecido para atualização.');
     }
 
-    // Executa a atualização no banco de dados
     await this.userRepository.update(userId, dataToUpdate);
 
-    // Busca e retorna o usuário atualizado sem o hash da senha
     const updatedUser = await this.userRepository.findOne({
       where: { id: userId },
       select: ['id', 'name', 'email', 'createdAt']
+    });
+
+    return updatedUser;
+  }
+
+   public async updateAccessFlag(userId: number, field: string): Promise<Omit<User, 'passwordHash'> | null> {
+    const allowedFields = ['firstAccess', 'firstBet'];
+    if (!allowedFields.includes(field)) {
+      throw new Error(`Campo inválido. Apenas '${allowedFields.join("' ou '")}' são permitidos.`);
+    }
+
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user) {
+      throw new Error('Usuário não encontrado.');
+    }
+    
+    const updatePayload: Partial<User> = {
+      [field]: false
+    };
+
+    await this.userRepository.update(userId, updatePayload);
+
+    const updatedUser = await this.userRepository.findOne({
+      where: { id: userId },
     });
 
     return updatedUser;

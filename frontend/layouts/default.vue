@@ -107,13 +107,13 @@ const checkAuthStatus = () => {
   stores.auth.checkTokenValidity();
 };
 
-onMounted(() => {
-  stores.auth.initializeAuth();
+onMounted(async () => {
+  await stores.auth.initializeAuth();
   isMounted.value = true;
 
   if (
     stores.auth.isAuthenticated &&
-    !localStorage.getItem("home_tour_completed")
+    stores.users.myProfile.firstAccess
   ) {
     router.push("/");
     addSteps([
@@ -235,7 +235,7 @@ onMounted(() => {
         buttons: [
           { text: "Anterior", action: tour.back, secondary: true },
           {
-            text: "Concluir",
+            text: "Próximo",
             action: isMobile.value
               ? () => {
                   toggleRightSidebar();
@@ -255,7 +255,7 @@ onMounted(() => {
       {
         id: "step-4.1",
         title: "Perfil",
-        text: "Esse botão te mostra o seu Perfil, convites enviados ou recebidos e a opção de deslogar de nosso sistema",
+        text: "Esse botão te mostra o seu Perfil, convites enviados ou recebidos e a opção de deslogar de nosso sistema.",
         buttons: [
           { text: "Anterior", action: tour.back, secondary: true },
           { text: "Próximo", action: tour.next },
@@ -269,10 +269,10 @@ onMounted(() => {
       {
         id: "step-4.1",
         title: "Classificação",
-        text: "Aqui nós te mostramos a classificação do campeonato em que você está",
+        text: "Aqui nós te mostramos a classificação do campeonato em que você está.",
         buttons: [
           { text: "Anterior", action: tour.back, secondary: true },
-          { text: "Próximo", action: tour.next },
+          { text: "Concluir", action: tour.complete },
         ],
         classes: "sheperd-custom",
         attachTo: {
@@ -282,8 +282,7 @@ onMounted(() => {
       },
     ]);
     setTimeout(() => {
-      start();
-      localStorage.setItem("home_tour_completed", "true");
+      start('firstAccess');
     }, 1000);
   }
 });
@@ -340,46 +339,25 @@ body,
 .shepherd-element.shepherd-custom {
   max-width: 320px;
   border-radius: 8px;
-  background-color: #212b36; /* Fundo mais escuro, um tom mais claro que o gray-900 para contraste */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Sombra mais suave e escura */
-  border: 1px solid rgba(255, 255, 255, 0.08); /* Borda sutil para definir o card */
+  background-color: #212b36;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); 
+  border: 1px solid rgba(255, 255, 255, 0.08); 
 }
 
-/* Seta do popover */
-.shepherd-element.shepherd-custom[data-popper-placement^="top"]
-  > .shepherd-arrow::before {
-  border-bottom-color: #212b36; /* Cor da seta para cima */
-}
-.shepherd-element.shepherd-custom[data-popper-placement^="bottom"]
-  > .shepherd-arrow::before {
-  border-top-color: #212b36; /* Cor da seta para baixo */
-}
-.shepherd-element.shepherd-custom[data-popper-placement^="left"]
-  > .shepherd-arrow::before {
-  border-right-color: #212b36; /* Cor da seta para esquerda */
-}
-.shepherd-element.shepherd-custom[data-popper-placement^="right"]
-  > .shepherd-arrow::before {
-  border-left-color: #212b36; /* Cor da seta para direita */
-}
-
-/* Header (onde fica o título e o ícone de fechar) */
 .shepherd-element.shepherd-custom .shepherd-header {
-  background-color: transparent; /* Transparente para usar o fundo do card */
-  padding: 0.75rem 1rem 0.5rem; /* Menor padding para um header mais compacto */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05); /* Linha fina e sutil */
+  background-color: transparent; 
+  padding: 0.75rem 1rem 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Título do passo */
 .shepherd-element.shepherd-custom .shepherd-title {
   color: #64748b;
-  font-weight: 700; /* Mais negrito */
-  font-size: 1.05rem; /* Um pouco maior que antes, mas ainda compacto */
+  font-weight: 700;
+  font-size: 1.05rem;
 }
 
-/* Ícone de fechar */
 .shepherd-element.shepherd-custom .shepherd-cancel-icon {
-  color: #64748b; /* gray-500 */
+  color: #64748b;
   font-size: 1rem;
   transition: color 0.2s ease;
 }
@@ -387,26 +365,23 @@ body,
   color: #cbd5e1;
 }
 
-/* Corpo do texto */
 .shepherd-element.shepherd-custom .shepherd-text {
-  color: #a0aec0; /* gray-400, mais suave */
-  padding: 0.75rem 1rem 1rem; /* Padding ajustado */
-  font-size: 0.875rem; /* Padrão de texto */
+  color: #a0aec0;
+  padding: 0.75rem 1rem 1rem; 
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
-/* Footer (onde ficam os botões) */
 .shepherd-element.shepherd-custom .shepherd-footer {
   padding: 0.75rem 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05); /* Linha fina e sutil */
+  border-top: 1px solid rgba(255, 255, 255, 0.05); 
   display: flex;
   justify-content: flex-end;
-  gap: 0.5rem; /* Espaçamento entre botões */
+  gap: 0.5rem;
 }
 
-/* Botão principal (Próximo, Concluir) */
 .shepherd-element.shepherd-custom .shepherd-button {
-  background-color: transparent; /* Azul primário */
+  background-color: transparent;
   color: #fff;
   padding: 0.375rem 0.875rem;
   font-size: 0.875rem;
@@ -415,38 +390,35 @@ body,
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
 .shepherd-element.shepherd-custom .shepherd-button:hover {
-  transform: translateY(-1px); /* Pequeno efeito de elevação */
+  transform: translateY(-1px); 
 }
 .shepherd-element.shepherd-custom .shepherd-button:active {
   transform: translateY(0);
 }
 
-/* Botão secundário (Pular, Anterior) */
 .shepherd-element.shepherd-custom .shepherd-button.shepherd-button-secondary {
   background-color: transparent;
-  color: #9ca3af; /* gray-400 */
+  color: #9ca3af;
   font-weight: 500;
-  border: none; /* Sem borda */
+  border: none;
 }
 .shepherd-element.shepherd-custom
   .shepherd-button.shepherd-button-secondary:hover {
-  color: #e2e8f0; /* gray-200 no hover */
-  background-color: rgba(255, 255, 255, 0.05); /* Fundo sutil no hover */
-  transform: none; /* Sem efeito de elevação */
+  color: #e2e8f0; 
+  background-color: rgba(255, 255, 255, 0.05);
+  transform: none;
 }
 
-/* Overlay (o fundo escuro) */
 .shepherd-modal-overlay-container {
   background-color: rgba(0, 0, 0, 0.6);
 }
 
-/* Ajustes para mobile */
 @media (max-width: 767px) {
   .shepherd-element.shepherd-custom {
-    max-width: 90%; /* Ocupa um pouco mais no mobile */
+    max-width: 90%;
   }
   .shepherd-element.shepherd-custom .shepherd-footer {
-    justify-content: space-between; /* Botões espalhados no mobile */
+    justify-content: space-between; 
   }
 }
 </style>

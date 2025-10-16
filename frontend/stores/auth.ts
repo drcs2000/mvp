@@ -147,14 +147,14 @@ export const useAuthStore = defineStore('auth', {
      */
     async logout() {
       const uiStore = useUiStore();
-      
+
       // Só mostra a mensagem se o usuário estava de fato logado
       if (this.isAuthenticated) {
         uiStore.showToast("Sua sessão expirou ou foi encerrada.", "info");
       }
-      
+
       this._clearState();
-      
+
       // Redireciona para a página inicial após o logout
       await navigateTo('/');
     },
@@ -180,16 +180,23 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * Inicializa o estado de autenticação a partir do localStorage.
+     * Inicializa o estado de autenticação e busca o perfil completo do usuário.
      */
-    initializeAuth() {
+    async initializeAuth() {
       if (import.meta.client) {
         const token = localStorage.getItem('auth-token');
         if (token) {
           this._setStateFromToken(token);
-          this.checkTokenValidity();
+
+          // Se o token for válido e o usuário decodificado, busca o perfil completo
+          if (this.isAuthenticated) {
+            const usersStore = useUsersStore();
+            // Esta chamada 'await' é o que torna a função inteira assíncrona
+            await usersStore.fetchMyProfile();
+            this.checkTokenValidity();
+          }
         }
       }
-    }
+    },
   },
 });

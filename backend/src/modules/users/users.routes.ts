@@ -7,5 +7,6 @@ const usersRouter = Router();
 usersRouter.get('/', authMiddleware, UserController.getAllUsers);
 usersRouter.get('/:id', UserController.getUserById);
 usersRouter.put('/:id', authMiddleware, UserController.updateUser);
+usersRouter.put('/', authMiddleware, UserController.updateAccess)
 
 export default usersRouter;

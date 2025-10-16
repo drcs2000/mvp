@@ -109,6 +109,40 @@ class UserController {
       });
     }
   }
+
+  public async updateAccess(req: Request, res: Response): Promise<Response> {
+    try {
+      // O ID do usuário vem do token JWT, injetado pelo authMiddleware
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Usuário não autenticado.' });
+      }
+
+      // O campo a ser atualizado (ex: "firstAccess" ou "firstBet") vem do corpo da requisição
+      const { fieldToUpdate } = req.body;
+      if (!fieldToUpdate) {
+        return res.status(400).json({ message: 'O campo "fieldToUpdate" é obrigatório.' });
+      }
+
+      const updatedUser = await UserService.updateAccessFlag(userId, fieldToUpdate);
+
+      return res.status(200).json(updatedUser);
+
+    } catch (error: any) {
+      console.error(`Erro ao atualizar flag de acesso para usuário:`, error);
+
+      if (error.message.includes('Campo inválido')) {
+        return res.status(400).json({ message: error.message });
+      }
+      if (error.message.includes('Usuário não encontrado')) {
+        return res.status(404).json({ message: error.message });
+      }
+      
+      return res.status(500).json({
+        message: 'Ocorreu um erro interno ao atualizar a flag de acesso.'
+      });
+    }
+  }
 }
 
 export default new UserController();

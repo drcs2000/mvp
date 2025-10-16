@@ -18,6 +18,12 @@ export class User {
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 
+  @Column({ name: 'first_access', type: 'boolean', default: true })
+  firstAccess!: boolean;
+
+  @Column({ name: 'first_bet', type: 'boolean', default: true })
+  firstBet!: boolean;
+
   @OneToMany(() => PoolParticipant, (participant) => participant.user)
   pools!: PoolParticipant[];
 }

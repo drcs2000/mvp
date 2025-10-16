@@ -93,7 +93,10 @@
                       >
                     </div>
 
-                    <div id="v-step-6-bet-result" class="flex items-center gap-1">
+                    <div
+                      id="v-step-6-bet-result"
+                      class="flex items-center gap-1"
+                    >
                       <input
                         v-model.number="betForms[match.id].homeScoreBet"
                         type="text"
@@ -186,7 +189,10 @@
                 v-if="expandedMatchId === match.id"
                 class="bg-gray-50/70 dark:bg-gray-900/70 p-4 sm:p-6"
               >
-                <div class="pb-6">
+                <div
+                  id="v-step-4-bet-ia"
+                  class="pb-6"
+                >
                   <div
                     v-if="predictingMatchId === match.id"
                     class="flex justify-center items-center gap-2 text-sm text-gray-500 dark:text-gray-400 py-4"
@@ -267,7 +273,6 @@
                   </div>
                   <div v-else class="text-center">
                     <button
-                      id="v-step-4-bet-ia"
                       class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-500 disabled:text-gray-500 disabled:cursor-not-allowed dark:text-blue-400 dark:hover:text-blue-300 dark:disabled:text-gray-600 transition-colors"
                       :disabled="isBettingTimeExpired(match)"
                       @click="handlePrediction(match)"
@@ -859,9 +864,8 @@ onMounted(async () => {
   if (
     stores.auth.isAuthenticated &&
     isParticipant.value &&
-    !localStorage.getItem("betting_tour_completed")
+    stores.users.myProfile.firstBet
   ) {
-
     addSteps([
       {
         id: "step-1-bet",
@@ -872,7 +876,11 @@ onMounted(async () => {
         title: "Partida a ser Palpitada",
         text: "Aqui você vê a partida a qual você irá palpitar.",
         buttons: [
-          { text: "Pular", action: tour.cancel, secondary: true },
+          {
+            text: "Pular",
+            action: tour.cancel,
+            secondary: true,
+          },
           {
             text: "Próximo",
             action: async () => {
@@ -948,20 +956,48 @@ onMounted(async () => {
         id: "step-4-bet",
         title: "Previsão da IA",
         text: "Nós desenvolvemos uma IA preditiva, que leva em consideração os últimos 5 confrontos de cada equipe, as forças de cada confronto (uma vitória em cima do líder do campeonato naquela altura vale mais do que uma vitória contra o lanterna), os últimos confrontos entre as 2 equipes e os confrontos entre as duas equipes do mandante como mandante e visitante como visitante.",
+        classes: "shepherd-custom",
+        attachTo: { element: "#v-step-4-bet-ia", on: "top" },
         buttons: [
           { text: "Anterior", action: tour.back, secondary: true },
           {
-            text: "Próximo",
+            text: "Analisar com IA",
             action: async () => {
-              await handlePrediction(matchesOfSelectedDay.value[0])
-                .then(() => {
-                  tour.next();
-                })
+              const currentStep = tour.currentStep;
+
+              if (!currentStep || !currentStep.el) {
+                console.error("Shepherd step element não encontrado.");
+                return;
+              }
+
+              const nextButton = currentStep.el.querySelector(
+                ".shepherd-button:not(.shepherd-button-secondary)"
+              );
+              if (!nextButton) return;
+
+              const originalText = nextButton.textContent;
+
+              nextButton.disabled = true;
+              nextButton.innerHTML = `Analisando...`;
+
+              try {
+                await handlePrediction(matchesOfSelectedDay.value[0]);
+                tour.next();
+              } catch (error) {
+                console.error("Ação do Tour (handlePrediction) falhou:", error);
+                stores.ui.showToast(
+                  "Não foi possível obter a predição da IA.",
+                  "error"
+                );
+              } finally {
+                if (nextButton) {
+                  nextButton.disabled = false;
+                  nextButton.textContent = originalText;
+                }
+              }
             },
           },
         ],
-        classes: "sheperd-custom",
-        attachTo: { element: "#v-step-4-bet-ia", on: "top" },
       },
       {
         id: "step-5-bet",
@@ -969,10 +1005,10 @@ onMounted(async () => {
         text: "Após analisar os dados, nós mostraremos os resultados da probabilidade de vitória de cada time segundo nosso algoritmo.",
         buttons: [
           { text: "Anterior", action: tour.back },
-          { text: "Próximo", action: tour.next }
+          { text: "Próximo", action: tour.next },
         ],
         classes: "sheperd-custom",
-        attachTo: { element: "#v-step-5-bet-prediction", on: "bottom" }
+        attachTo: { element: "#v-step-5-bet-prediction", on: "bottom" },
       },
       {
         id: "step-6-bet",
@@ -980,10 +1016,10 @@ onMounted(async () => {
         text: "Nosso algoritmo também já colocará o time que ele acredita que vencerá o confronto, ele foi treinado para colocar sempre os palpites 2x1 para vitória do mandante, 1x2 para vitória do visitante e 1x1 para empate. Sinta-se livre para alterar o palpite como quiser.",
         buttons: [
           { text: "Anterior", action: tour.back },
-          { text: "Próximo", action: tour.next }
+          { text: "Próximo", action: tour.next },
         ],
         classes: "sheperd-custom",
-        attachTo: { element: "#v-step-6-bet-result", on: "bottom" }
+        attachTo: { element: "#v-step-6-bet-result", on: "bottom" },
       },
       {
         id: "step-7-bet",
@@ -991,15 +1027,17 @@ onMounted(async () => {
         text: "Após preencher todos os palpites do dia, você poderá salvá-los.",
         buttons: [
           { text: "Anterior", action: tour.back },
-          { text: "Cncluir", action: tour.complete }
+          {
+            text: "Concluir",
+            action: tour.complete,
+          },
         ],
         classes: "sheperd-custom",
-        attachTo: { element: "#v-step-7-bet-save", on: "top" }
+        attachTo: { element: "#v-step-7-bet-save", on: "top" },
       },
     ]);
     setTimeout(() => {
-      start();
-      localStorage.setItem("betting_tour_completed", "true");
+      start("firstBet");
     }, 500);
   }
 });

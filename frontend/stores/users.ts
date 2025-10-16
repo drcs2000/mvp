@@ -43,6 +43,8 @@ export interface UserProfileDetails {
     sent: UserInvitationSummary[];
     received: UserInvitationSummary[];
   };
+  first_access: boolean;
+  first_bet: boolean;
 }
 
 interface User {
@@ -168,6 +170,40 @@ export const useUsersStore = defineStore('users', () => {
     }
   }
 
+  async function updateAccessFlag(field: 'firstAccess' | 'firstBet') {
+    isLoading.value = true;
+    const authStore = useAuthStore();
+
+    if (!authStore.token) {
+      isLoading.value = false;
+      return { success: false, error: 'Usuário não autenticado.' };
+    }
+
+    try {
+      const url = import.meta.dev ? '/api/users' : `${apiBaseUrl}/users`;
+      const updatedProfile = await $fetch<UserProfileDetails>(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${authStore.token}`
+        },
+        body: {
+          fieldToUpdate: field
+        }
+      });
+
+      myProfile.value = updatedProfile;
+
+      return { success: true, data: updatedProfile };
+    } catch (error: unknown) {
+      console.error(`Erro ao atualizar a flag '${field}':`, error);
+      const apiError = error as ApiError;
+      const errorMessage = apiError.data?.message || `Falha ao atualizar a flag ${field}.`;
+      return { success: false, error: errorMessage };
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   return {
     users,
     myProfile,
@@ -175,6 +211,7 @@ export const useUsersStore = defineStore('users', () => {
     fetchAllUsers,
     fetchMyProfile,
     updateMyProfile,
+    updateAccessFlag
   };
 });
 

@@ -30,11 +30,6 @@
 
 <script setup>
 import { Bars3Icon, TableCellsIcon } from "@heroicons/vue/24/outline";
-import { useTour } from "~/composables/useTour";
-import { useRoute } from "#app";
-
-const { addSteps, tour } = useTour();
-const route = useRoute();
 
 defineProps({
   invitationCount: {
@@ -44,29 +39,4 @@ defineProps({
 });
 
 defineEmits(["toggleLeft", "toggleRight"]);
-
-watch(
-  () => route.query.tourStep,
-  (newStep) => {
-    if (newStep === "3") {
-      const isMobileTour = route.query.isMobile === "true";
-
-      console.log(route.query)
-
-      if (isMobileTour) {
-        // Lógica para o tour mobile
-        const mobileSteps = [
-          
-        ];
-        addSteps(mobileSteps);
-        }
-
-      // Inicia o tour no passo 3
-      setTimeout(() => {
-        tour.show("step-3");
-      }, 500);
-    }
-  },
-  { immediate: true }
-);
 </script>
