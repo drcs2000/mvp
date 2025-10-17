@@ -9,7 +9,7 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function runFullSyncJob() {
   try {
-    console.log(`⏰ [WORKER-SYNC] Iniciando sincronização completa da temporada...`);
+    console.log(`⏰ [WORKER-SYNC] Iniciando sincronização completa da temporada para TODOS os campeonatos...`);
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
       console.log(`[WORKER-SYNC] Conexão com o banco de dados inicializada.`);
@@ -20,6 +20,7 @@ async function runFullSyncJob() {
     
     const championships = await championshipRepository.find();
     if (championships.length === 0) {
+      console.log('[WORKER-SYNC] Nenhum campeonato encontrado no banco de dados.');
       return { message: 'Nenhum campeonato encontrado para sincronizar.' };
     }
     console.log(`[WORKER-SYNC] Encontrados ${championships.length} campeonatos para processar.`);
@@ -68,7 +69,7 @@ async function runFullSyncJob() {
     return { message: 'Sincronização completa da temporada finalizada com sucesso.' };
 
   } catch (error) {
-    console.error('[WORKER-SYNC] Erro catastrófico:', error);
+    console.error('[WORKER-SYNC] Erro catastrófico durante a execução:', error);
     throw error;
   } finally {
     if (AppDataSource.isInitialized) {

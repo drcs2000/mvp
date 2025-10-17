@@ -2,70 +2,72 @@ import { parentPort } from 'worker_threads';
 import { AppDataSource } from '../database/data-source.js';
 import ExternalApiService, { IEspnEvent } from '../services/external-api.service.js';
 import MatchService from '../modules/matches/matches.service.js';
-import { In, LessThan } from 'typeorm';
-import { Match, MatchStatus } from '../entities/match.entity.js';
+import { Championship } from '../entities/championship.entity.js';
 
 async function runUpdateScoresJob() {
   try {
-    console.log(`⏰ [WORKER] Executando atualização de placares...`);
+    console.log(`⏰ [WORKER-PLACAR] Executando sincronização de placares ao vivo...`);
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
-      console.log(`[WORKER] Conexão com o banco de dados inicializada.`);
+      console.log(`[WORKER-PLACAR] Conexão com o banco de dados inicializada.`);
     }
 
-    const matchRepository = AppDataSource.getRepository(Match);
-
-    const relevantMatches = await matchRepository.find({
-      where: [
-        { status: In([MatchStatus.IN_PROGRESS, MatchStatus.HALFTIME]) },
-        { status: MatchStatus.SCHEDULED, date: LessThan(new Date()) },
-      ],
-      relations: ['championship'],
-    });
-
-    if (relevantMatches.length === 0) {
-      console.log('[WORKER] Nenhum jogo ativo ou recém-iniciado encontrado para atualizar.');
-      return { message: 'Nenhuma partida ativa encontrada.' };
+    const championshipRepository = AppDataSource.getRepository(Championship);
+    
+    const allChampionships = await championshipRepository.find();
+    if (allChampionships.length === 0) {
+      console.log('[WORKER-PLACAR] Nenhum campeonato encontrado no DB. Encerrando.');
+      return { message: 'Nenhum campeonato para monitorar.' };
     }
+    const slugs = allChampionships.map(c => c.apiEspnSlug);
+    console.log(`[WORKER-PLACAR] Monitorando ${slugs.length} campeonatos...`);
 
-    const activeSlugs = [...new Set(relevantMatches.map(match => match.championship.apiEspnSlug).filter(Boolean))];
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
 
-    if (activeSlugs.length === 0) {
-      console.log('[WORKER] Jogos relevantes encontrados, mas nenhum tem slug de campeonato associado.');
-      return { message: 'Nenhum slug de campeonato para jogos ativos.' };
+    const datesToFetch = [today, yesterday];
+    const promises: Promise<IEspnEvent[]>[] = [];
+
+    for (const slug of slugs) {
+      for (const date of datesToFetch) {
+        promises.push(ExternalApiService.getMatchesByDate(slug, date));
+      }
     }
-
-    console.log(`[WORKER] Encontrados ${relevantMatches.length} jogos potencialmente ativos em ${activeSlugs.length} campeonatos. Buscando dados...`);
-
-    const promises = activeSlugs.map(slug => ExternalApiService.getTodaysMatches(slug));
+    
     const results = await Promise.allSettled(promises);
 
-    let allEvents: IEspnEvent[] = [];
-    results.forEach((result, index) => {
+    const allEventsMap = new Map<string, IEspnEvent>();
+    results.forEach(result => {
       if (result.status === 'fulfilled' && result.value) {
-        allEvents.push(...result.value);
+        for (const event of result.value) {
+          allEventsMap.set(event.id, event);
+        }
       } else if (result.status === 'rejected') {
-        console.error(`[WORKER] Falha ao buscar dados para o slug '${activeSlugs[index]}':`, result.reason?.message);
+        console.error(`[WORKER-PLACAR] Falha ao buscar dados da API:`, result.reason?.message);
       }
     });
 
-    if (allEvents.length === 0) {
-      console.warn('[WORKER] Nenhuma informação pôde ser buscada da API externa para os slugs ativos.');
-      return { message: 'Não foi possível buscar dados ao vivo.' };
+    const uniqueEvents = Array.from(allEventsMap.values());
+
+    if (uniqueEvents.length === 0) {
+        console.log('[WORKER-PLACAR] Nenhum evento encontrado na API para as datas e campeonatos monitorados.');
+        return { message: 'Nenhum evento encontrado.' };
     }
 
-    const updateResult = await MatchService.updateMatchesFromCron(allEvents);
-    console.log(`[WORKER] ${updateResult.created} partidas criadas e ${updateResult.updated} atualizadas.`);
+    console.log(`[WORKER-PLACAR] Total de ${uniqueEvents.length} eventos únicos encontrados na API. Sincronizando com o banco de dados...`);
 
+    const updateResult = await MatchService.updateMatchesFromCron(uniqueEvents);
+    
     return { finishedChampionships: [...updateResult.finishedChampionships] };
-
+    
   } catch (error) {
-    console.error('[WORKER] Erro catastrófico durante a execução:', error);
+    console.error('[WORKER-PLACAR] Erro catastrófico durante a execução:', error);
     throw error;
   } finally {
     if (AppDataSource.isInitialized) {
       await AppDataSource.destroy();
-      console.log(`[WORKER] Conexão com o banco de dados fechada.`);
+      console.log(`[WORKER-PLACAR] Conexão com o banco de dados fechada.`);
     }
   }
 }

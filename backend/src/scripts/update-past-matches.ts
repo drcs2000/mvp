@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { LessThan, Not } from 'typeorm';
+import { LessThanOrEqual, Not } from 'typeorm';
 import { AppDataSource } from '../database/data-source.js';
 import { Match, MatchStatus } from '../entities/match.entity.js';
 import ExternalAPIService from '../services/external-api.service.js';
@@ -16,8 +16,7 @@ async function runUpdateScript() {
     console.log('🔍 Buscando partidas que já ocorreram e não foram finalizadas...');
     const outdatedMatches = await AppDataSource.getRepository(Match).find({
       where: {
-        status: Not(MatchStatus.FINAL),
-        date: LessThan(new Date()),
+        status: Not(MatchStatus.FINAL)
       },
       relations: ['championship'],
     });

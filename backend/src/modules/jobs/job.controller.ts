@@ -21,9 +21,9 @@ class JobController {
   }
 
   public triggerFullSync = async (req: Request, res: Response): Promise<Response> => {
-  JobService.triggerFullSyncWorker();
-  return res.status(202).json({ message: 'Job de sincronização completa disparado em segundo plano.' });
-}
+    JobService.triggerFullSyncWorker();
+    return res.status(202).json({ message: 'Job de sincronização completa disparado em segundo plano.' });
+  }
 }
 
 export default new JobController();

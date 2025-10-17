@@ -204,6 +204,9 @@ class MatchService {
       }
 
       const newStatus = this.mapEspnStatus(competition.status.type);
+
+      console.log(newStatus)
+
       const homeScoreValue = homeTeam.score?.value ?? homeTeam.score;
       const awayScoreValue = awayTeam.score?.value ?? awayTeam.score;
       const newHomeScore = homeScoreValue != null ? parseInt(String(homeScoreValue), 10) : null;
@@ -340,6 +343,7 @@ class MatchService {
     switch (status.name) {
       case 'STATUS_FINAL':
       case 'STATUS_FINAL_PEN':
+      case 'STATUS_FINAL_AET':
       case 'STATUS_FULL_TIME':
         return MatchStatus.FINAL;
       case 'STATUS_FIRST_HALF':

@@ -2,6 +2,7 @@ import path from 'path';
 import url from 'url';
 import { Worker } from 'worker_threads';
 import StandingsService from '../standings/standings.service.js';
+import ChampionshipService from '../championships/championships.service.js';
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -43,31 +44,39 @@ class JobService {
   }
 
   public updateStandingsJob = async () => {
-    if (this.championshipsToUpdateStandings.size === 0) return;
+    // if (this.championshipsToUpdateStandings.size === 0) return;
     if (this.isUpdateStandingsJobRunning) {
       console.log('🟡 [JOB DE CLASSIFICAÇÃO] O job anterior ainda está em execução. Pulando.');
       return;
     }
     this.isUpdateStandingsJobRunning = true;
-    console.log(`⏰ [JOB DE CLASSIFICAÇÃO] Atualizando [${[...this.championshipsToUpdateStandings]}]`);
+    console.log(`⏰ [JOB DE CLASSIFICAÇÃO FORÇADO] Buscando todos os campeonatos para atualizar...`);
 
-    const idsToProcess = new Set(this.championshipsToUpdateStandings);
-    this.championshipsToUpdateStandings.clear();
+    try {
+      const championships = await ChampionshipService.getAll();
+      if (!championships || championships.length === 0) {
+        console.log('[JOB DE CLASSIFICAÇÃO FORÇADO] Nenhum campeonato encontrado no banco de dados.');
+        return;
+      }
 
-    const promises = Array.from(idsToProcess).map((championshipId): Promise<StandingUpdateResult> =>
-      StandingsService.updateStandings(championshipId)
-        .then(() => ({ status: 'fulfilled' as const, id: championshipId }))
-        .catch(error => ({ status: 'rejected' as const, id: championshipId, reason: error }))
-    );
+      const idsToProcess = championships.map(c => c.id);
+      console.log(` -> Atualizando classificações para os campeonatos: [${idsToProcess.join(', ')}]`);
 
-    const results = await Promise.all(promises);
-    results.forEach(result => {
-      if (result.status === 'fulfilled') console.log(` -> Sucesso na atualização da ID ${result.id}.`);
-      else if (result.status === 'rejected') console.error(` -> Falha na atualização da ID ${result.id}:`, result.reason);
-    });
+      const promises = idsToProcess.map((championshipId): Promise<StandingUpdateResult> =>
+        StandingsService.updateStandings(championshipId)
+          .then(() => ({ status: 'fulfilled' as const, id: championshipId }))
+          .catch(error => ({ status: 'rejected' as const, id: championshipId, reason: error }))
+      );
 
-    console.log('[JOB DE CLASSIFICAÇÃO] Tarefa concluída.');
-    this.isUpdateStandingsJobRunning = false;
+      await Promise.all(promises);
+
+      console.log('[JOB DE CLASSIFICAÇÃO FORÇADO] Tarefa concluída.');
+
+    } catch (error) {
+      console.error('[JOB DE CLASSIFICAÇÃO FORÇADO] Ocorreu um erro catastrófico:', error);
+    } finally {
+      this.isUpdateStandingsJobRunning = false;
+    }
   }
 
   public triggerFullSyncWorker = () => {
