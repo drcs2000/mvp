@@ -59,42 +59,46 @@
             :class="{ shake: loginError }"
             @submit.prevent="handleLogin"
           >
-            <div class="relative">
-              <EnvelopeIcon
-                class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-              />
+            <div :class="[
+              'flex w-full items-center rounded-lg border shadow-sm transition-colors dark:bg-gray-700',
+              'focus-within:ring-1',
+              (isLoginEmailInvalid || loginError)
+                ? 'border-red-500 ring-1 ring-red-500 focus-within:ring-red-500'
+                : 'border-gray-300 dark:border-gray-600 focus-within:ring-gray-800 dark:focus-within:ring-gray-200'
+            ]">
+              <div class="pl-3">
+                <EnvelopeIcon class="h-5 w-5 text-gray-400" />
+              </div>
               <input
                 id="login-email"
                 v-model="loginForm.email"
                 type="email"
                 required
                 placeholder="seu@email.com"
-                :class="[
-                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400',
-                  isLoginEmailInvalid || loginError
-                    ? 'border-red-500 focus:ring-1 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-gray-800 dark:focus:ring-gray-200 focus:border-gray-800 dark:focus:border-gray-200',
-                ]"
-              >
-            </div>
-            <div class="relative">
-              <LockClosedIcon
-                class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                class="w-full appearance-none bg-transparent p-3 text-sm placeholder-gray-400 focus:outline-none dark:text-gray-200 dark:placeholder-gray-400"
               />
+            </div>
+            
+            <div :class="[
+              'flex w-full items-center rounded-lg border shadow-sm transition-colors dark:bg-gray-700',
+              'focus-within:ring-1',
+              loginError
+                ? 'border-red-500 ring-1 ring-red-500 focus-within:ring-red-500'
+                : 'border-gray-300 dark:border-gray-600 focus-within:ring-gray-800 dark:focus-within:ring-gray-200'
+            ]">
+              <div class="pl-3">
+                <LockClosedIcon class="h-5 w-5 text-gray-400" />
+              </div>
               <input
                 id="login-password"
                 v-model="loginForm.password"
                 type="password"
                 required
                 placeholder="Sua senha"
-                :class="[
-                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400',
-                  loginError
-                    ? 'border-red-500 focus:ring-1 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-gray-800 dark:focus:ring-gray-200 focus:border-gray-800 dark:focus:border-gray-200',
-                ]"
-              >
+                class="w-full appearance-none bg-transparent p-3 text-sm placeholder-gray-400 focus:outline-none dark:text-gray-200 dark:placeholder-gray-400"
+              />
             </div>
+
             <button
               type="submit"
               :disabled="loading"
@@ -131,64 +135,123 @@
             :class="{ shake: registerError }"
             @submit.prevent="handleRegister"
           >
-            <div class="relative">
-              <UserIcon
-                class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-              />
+            <div :class="[
+              'flex w-full items-center rounded-lg border shadow-sm transition-colors dark:bg-gray-700',
+              'focus-within:ring-1',
+              registerError
+                ? 'border-red-500 ring-1 ring-red-500 focus-within:ring-red-500'
+                : 'border-gray-300 dark:border-gray-600 focus-within:ring-gray-800 dark:focus-within:ring-gray-200'
+            ]">
+              <div class="pl-3">
+                <UserIcon class="h-5 w-5 text-gray-400" />
+              </div>
               <input
                 id="register-name"
                 v-model="registerForm.name"
                 type="text"
                 required
                 placeholder="Nome completo"
-                :class="[
-                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400',
-                  registerError
-                    ? 'border-red-500 focus:ring-1 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-gray-800 dark:focus:ring-gray-200 focus:border-gray-800 dark:focus:border-gray-200',
-                ]"
-              >
-            </div>
-            <div class="relative">
-              <EnvelopeIcon
-                class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                class="w-full appearance-none bg-transparent p-3 text-sm placeholder-gray-400 focus:outline-none dark:text-gray-200 dark:placeholder-gray-400"
               />
-              <input
-                id="register-email"
-                v-model="registerForm.email"
-                type="email"
-                required
-                placeholder="seu@email.com"
-                :class="[
-                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400',
-                  isRegisterEmailInvalid || registerError
-                    ? 'border-red-500 focus:ring-1 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-gray-800 dark:focus:ring-gray-200 focus:border-gray-800 dark:focus:border-gray-200',
-                ]"
-              >
             </div>
-            <div class="relative">
-              <LockClosedIcon
-                class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-              />
+            
+            <div>
+              <div :class="[
+                'flex w-full items-center rounded-lg border shadow-sm transition-colors dark:bg-gray-700',
+                'focus-within:ring-1',
+                (isRegisterEmailInvalid || registerError)
+                  ? 'border-red-500 ring-1 ring-red-500 focus-within:ring-red-500'
+                  : 'border-gray-300 dark:border-gray-600 focus-within:ring-gray-800 dark:focus-within:ring-gray-200'
+              ]">
+                <div class="pl-3">
+                  <EnvelopeIcon class="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="register-email"
+                  v-model="registerForm.email"
+                  type="email"
+                  required
+                  placeholder="seu@email.com"
+                  class="w-full appearance-none bg-transparent p-3 text-sm placeholder-gray-400 focus:outline-none dark:text-gray-200 dark:placeholder-gray-400"
+                />
+              </div>
+              <p v-if="isRegisterEmailInvalid" class="mt-1 text-xs text-red-500">
+                Por favor, insira um e-mail válido.
+              </p>
+            </div>
+            
+            <div :class="[
+              'flex w-full items-center rounded-lg border shadow-sm transition-colors dark:bg-gray-700',
+              'focus-within:ring-1',
+              ((isPasswordInvalid && registerForm.password.length > 0) || registerError)
+                ? 'border-red-500 ring-1 ring-red-500 focus-within:ring-red-500'
+                : 'border-gray-300 dark:border-gray-600 focus-within:ring-gray-800 dark:focus-within:ring-gray-200'
+            ]">
+              <div class="pl-3">
+                <LockClosedIcon class="h-5 w-5 text-gray-400" />
+              </div>
               <input
                 id="register-password"
                 v-model="registerForm.password"
                 type="password"
                 required
                 placeholder="Crie uma senha"
-                :class="[
-                  'block w-full pl-10 pr-3 py-3 text-sm placeholder-gray-400 border rounded-lg shadow-sm appearance-none focus:outline-none transition-colors dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400',
-                  registerError
-                    ? 'border-red-500 focus:ring-1 focus:ring-red-500 focus:border-red-500'
-                    : 'border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-gray-800 dark:focus:ring-gray-200 focus:border-gray-800 dark:focus:border-gray-200',
-                ]"
-              >
+                class="w-full appearance-none bg-transparent p-3 text-sm placeholder-gray-400 focus:outline-none dark:text-gray-200 dark:placeholder-gray-400"
+              />
             </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                <span
+                  :class="[
+                    'inline-flex items-center transition-colors',
+                    passwordValidation.minLength ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
+                  ]"
+                >
+                  <CheckCircleIcon class="w-4 h-4 mr-1.5"/>
+                  Pelo menos 8 caracteres
+                </span>
+                <span
+                  :class="[
+                    'inline-flex items-center transition-colors',
+                    passwordValidation.uppercase ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
+                  ]"
+                >
+                  <CheckCircleIcon class="w-4 h-4 mr-1.5"/>
+                  Uma letra maiúscula
+                </span>
+                <span
+                  :class="[
+                    'inline-flex items-center transition-colors',
+                    passwordValidation.lowercase ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
+                  ]"
+                >
+                  <CheckCircleIcon class="w-4 h-4 mr-1.5"/>
+                  Uma letra minúscula
+                </span>
+                <span
+                  :class="[
+                    'inline-flex items-center transition-colors',
+                    passwordValidation.number ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
+                  ]"
+                >
+                  <CheckCircleIcon class="w-4 h-4 mr-1.5"/>
+                  Pelo menos um número
+                </span>
+                 <span
+                  :class="[
+                    'inline-flex items-center transition-colors col-span-full',
+                    passwordValidation.specialChar ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
+                  ]"
+                >
+                  <CheckCircleIcon class="w-4 h-4 mr-1.5"/>
+                  Um caractere especial (@$!%*?&)
+                </span>
+            </div>
+
             <button
               type="submit"
-              :disabled="loading"
-              class="flex items-center justify-center w-full px-4 py-3 text-sm font-semibold text-white bg-gray-800 border border-transparent rounded-lg shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 disabled:bg-gray-400 transition-all duration-300 dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300 dark:focus:ring-gray-400 dark:disabled:bg-gray-500"
+              :disabled="loading || isRegisterEmailInvalid || isPasswordInvalid"
+              class="flex items-center justify-center w-full px-4 py-3 text-sm font-semibold text-white bg-gray-800 border border-transparent rounded-lg shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300 dark:focus:ring-gray-400 dark:disabled:bg-gray-500"
             >
               <svg
                 v-if="loading"
@@ -223,12 +286,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from "vue";
+import { ref, reactive, computed, watch } from "vue";
 import {
   EnvelopeIcon,
   LockClosedIcon,
   UserIcon,
-} from "@heroicons/vue/24/outline";
+  CheckCircleIcon,
+} from "@heroicons/vue/24/solid";
 
 definePageMeta({
   layout: "login",
@@ -250,7 +314,7 @@ const registerForm = reactive({ name: "", email: "", password: "" });
 
 const isValidEmail = (email) => {
   if (!email) return false;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   return emailRegex.test(email);
 };
 
@@ -260,6 +324,26 @@ const isLoginEmailInvalid = computed(() => {
 
 const isRegisterEmailInvalid = computed(() => {
   return registerForm.email.length > 0 && !isValidEmail(registerForm.email);
+});
+
+const passwordValidation = reactive({
+  minLength: false,
+  uppercase: false,
+  lowercase: false,
+  number: false,
+  specialChar: false,
+});
+
+const isPasswordInvalid = computed(() => {
+  return Object.values(passwordValidation).some(valid => !valid);
+});
+
+watch(() => registerForm.password, (newPassword) => {
+    passwordValidation.minLength = newPassword.length >= 8;
+    passwordValidation.uppercase = /[A-Z]/.test(newPassword);
+    passwordValidation.lowercase = /[a-z]/.test(newPassword);
+    passwordValidation.number = /\d/.test(newPassword);
+    passwordValidation.specialChar = /[@$!%*?&]/.test(newPassword);
 });
 
 const handleLogin = async () => {
@@ -280,12 +364,19 @@ const handleLogin = async () => {
 };
 
 const handleRegister = async () => {
+  if (isRegisterEmailInvalid.value || isPasswordInvalid.value) {
+      stores.ui.showToast("Por favor, corrija os campos em vermelho.", "error");
+      registerError.value = true;
+      setTimeout(() => (registerError.value = false), 500);
+      return;
+  }
+
   loading.value = true;
   registerError.value = false;
   const result = await stores.auth.register(registerForm);
   if (result.success) {
     stores.ui.showToast("Conta criada com sucesso!", "success");
-    tab.value = "login"; // Muda para a aba de login após o sucesso
+    tab.value = "login";
   } else {
     stores.ui.showToast(
       result.error || "Erro ao criar a sua conta, tente novamente.",
@@ -299,7 +390,6 @@ const handleRegister = async () => {
 </script>
 
 <style>
-/* Estilos para a animação de erro */
 .shake {
   animation: shake 0.5s ease-in-out;
 }
@@ -324,7 +414,6 @@ const handleRegister = async () => {
   }
 }
 
-/* Estilos para a transição do formulário */
 .slide-fade-enter-active,
 .slide-fade-leave-active {
   transition: all 0.3s ease-out;
