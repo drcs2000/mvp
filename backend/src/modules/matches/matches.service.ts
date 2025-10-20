@@ -360,7 +360,7 @@ class MatchService {
       case 'STATUS_CANCELED':
         return MatchStatus.CANCELED;
       default:
-        return MatchStatus.SCHEDULED;
+        return MatchStatus.IN_PROGRESS;
     }
   }
 }
