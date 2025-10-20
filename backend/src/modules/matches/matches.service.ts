@@ -348,6 +348,9 @@ class MatchService {
         return MatchStatus.FINAL;
       case 'STATUS_FIRST_HALF':
       case 'STATUS_SECOND_HALF':
+      case 'STATUS_HALFTIME':
+      case 'HALFTIME':
+      case 'STATUS_HALF_TIME':
       case 'STATUS_IN_PROGRESS':
         return MatchStatus.IN_PROGRESS;
       case 'STATUS_SCHEDULED':
