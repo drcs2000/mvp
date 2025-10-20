@@ -99,9 +99,11 @@
                         type="number"
                         min="0"
                         :max="10"
+                        step="1"
                         :disabled="isBettingTimeExpired(match) || !isParticipant"
                         class="hide-number-arrows w-6 text-center border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
                         @click.stop
+                        @keydown="allowOnlyIntegers"
                         @input="validateNonNegative(betForms[match.id], 'homeScoreBet')"
                       >
                       <span class="dark:text-gray-400">-</span>
@@ -110,9 +112,11 @@
                         type="number"
                         min="0"
                         :max="10"
+                        step="1"
                         :disabled="isBettingTimeExpired(match) || !isParticipant"
                         class="hide-number-arrows w-6 text-center border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
                         @click.stop
+                        @keydown="allowOnlyIntegers"
                         @input="validateNonNegative(betForms[match.id], 'awayScoreBet')"
                       >
                     </div>
@@ -1190,19 +1194,44 @@ const submitAllBets = async () => {
   }
 };
 const validateNonNegative = (form, key) => {
-  let value = form[key];
-  const MAX_SCORE = 10;
-  const MIN_SCORE = 0;
+  setTimeout(() => {
+    let value = form[key];
+    
+    if (value === null || typeof value === 'undefined') return;
 
-  if (value < MIN_SCORE) {
-    form[key] = MIN_SCORE;
+    let sanitizedValue = String(value).replace(/\D/g, '');
+
+    const MAX_SCORE = 10;
+    const MIN_SCORE = 0;
+
+    if (sanitizedValue === '') {
+      form[key] = null;
+      return;
+    }
+
+    let numValue = parseInt(sanitizedValue, 10);
+
+    if (numValue > MAX_SCORE) {
+      numValue = MAX_SCORE;
+    }
+    
+    if (numValue < MIN_SCORE) {
+        numValue = MIN_SCORE;
+    }
+
+    if (form[key] !== numValue) {
+      form[key] = numValue;
+    }
+  }, 0);
+};
+const allowOnlyIntegers = (event) => {
+  const allowedKeys = [
+    "Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Home", "End"
+  ];
+  if (allowedKeys.includes(event.key) || (event.key >= '0' && event.key <= '9')) {
     return;
   }
-
-  if (value > MAX_SCORE) {
-    form[key] = MAX_SCORE;
-    return;
-  }
+  event.preventDefault();
 };
 const toggleMatchDetails = async (match, event) => {
   if (isBettingTimeExpired(match) || !isParticipant.value) return;
