@@ -100,7 +100,7 @@
                         min="0"
                         :max="10"
                         :disabled="isBettingTimeExpired(match) || !isParticipant"
-                        class="w-6 text-center border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
+                        class="hide-number-arrows w-6 text-center border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
                         @click.stop
                         @input="validateNonNegative(betForms[match.id], 'homeScoreBet')"
                       >
@@ -111,7 +111,7 @@
                         min="0"
                         :max="10"
                         :disabled="isBettingTimeExpired(match) || !isParticipant"
-                        class="w-6 text-center border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
+                        class="hide-number-arrows w-6 text-center border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
                         @click.stop
                         @input="validateNonNegative(betForms[match.id], 'awayScoreBet')"
                       >
@@ -1405,5 +1405,16 @@ const formatDate = (dateString) => {
 .expand-leave-to {
   opacity: 0;
   max-height: 0;
+}
+/* Esconde as setas em navegadores baseados em WebKit (Chrome, Safari, etc.) */
+.hide-number-arrows::-webkit-outer-spin-button,
+.hide-number-arrows::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Esconde as setas no Firefox */
+.hide-number-arrows {
+  -moz-appearance: textfield;
 }
 </style>
