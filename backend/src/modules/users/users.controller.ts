@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import UserService from './users.service.js';
+import { encodeId } from '../../utils/hashid.helper.js';
 
 class UserController {
 
@@ -28,13 +29,23 @@ class UserController {
         return res.status(400).json({ message: 'ID de usuário inválido.' });
       }
 
-      const user = await UserService.getUserById(userId);
+      const userProfile = await UserService.getUserById(userId);
 
-      if (!user) {
+      if (!userProfile) {
         return res.status(404).json({ message: 'Usuário não encontrado.' });
       }
 
-      return res.status(200).json(user);
+      const transformedPools = userProfile.pools.map(pool => ({
+        ...pool,
+        id: encodeId(pool.id),
+      }));
+
+      const response = {
+        ...userProfile,
+        pools: transformedPools,
+      };
+
+      return res.status(200).json(response);
     } catch (error: any) {
       console.error(`Erro ao buscar usuário com ID ${req.params.id}:`, error);
       return res.status(500).json({ message: 'Ocorreu um erro interno ao buscar o usuário.' });
@@ -58,7 +69,6 @@ class UserController {
         return res.status(400).json({ message: 'Nenhum dado fornecido para atualização.' });
       }
 
-      // Validação de campos permitidos
       const allowedFields = ['name', 'email', 'currentPassword', 'newPassword'];
       const invalidFields = Object.keys(updateData).filter(field => !allowedFields.includes(field));
 
@@ -68,7 +78,6 @@ class UserController {
         });
       }
 
-      // Lógica para quando a senha é alterada
       if (updateData.newPassword && !updateData.currentPassword) {
         return res.status(400).json({
           message: 'A senha atual é obrigatória para definir uma nova senha.'
@@ -112,13 +121,11 @@ class UserController {
 
   public async updateAccess(req: Request, res: Response): Promise<Response> {
     try {
-      // O ID do usuário vem do token JWT, injetado pelo authMiddleware
       const userId = req.user?.id;
       if (!userId) {
         return res.status(401).json({ message: 'Usuário não autenticado.' });
       }
 
-      // O campo a ser atualizado (ex: "firstAccess" ou "firstBet") vem do corpo da requisição
       const { fieldToUpdate } = req.body;
       if (!fieldToUpdate) {
         return res.status(400).json({ message: 'O campo "fieldToUpdate" é obrigatório.' });
@@ -137,7 +144,7 @@ class UserController {
       if (error.message.includes('Usuário não encontrado')) {
         return res.status(404).json({ message: error.message });
       }
-      
+
       return res.status(500).json({
         message: 'Ocorreu um erro interno ao atualizar a flag de acesso.'
       });

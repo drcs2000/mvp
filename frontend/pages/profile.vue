@@ -42,15 +42,20 @@
                 <div
                   class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gray-200 flex items-center justify-center shrink-0 ring-4 ring-white shadow dark:bg-gray-700 dark:ring-gray-800"
                 >
-                  <span class="text-xl md:text-2xl font-bold text-gray-600 dark:text-gray-300">{{
-                    userInitials
-                  }}</span>
+                  <span
+                    class="text-xl md:text-2xl font-bold text-gray-600 dark:text-gray-300"
+                    >{{ userInitials }}</span
+                  >
                 </div>
                 <div>
-                  <h1 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
+                  <h1
+                    class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white"
+                  >
                     {{ myProfile.name }}
                   </h1>
-                  <p class="text-sm text-gray-500 hidden sm:block dark:text-gray-400">
+                  <p
+                    class="text-sm text-gray-500 hidden sm:block dark:text-gray-400"
+                  >
                     Membro desde {{ formatDate(myProfile.createdAt) }}
                   </p>
                 </div>
@@ -59,7 +64,11 @@
                 <div
                   class="px-3 py-2 bg-white/60 rounded-lg border border-gray-200/80 dark:bg-gray-800/60 dark:border-gray-700/80"
                 >
-                  <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">Bolões</dt>
+                  <dt
+                    class="text-xs font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Bolões
+                  </dt>
                   <dd
                     class="mt-1 text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100"
                   >
@@ -69,7 +78,11 @@
                 <div
                   class="px-3 py-2 bg-white/60 rounded-lg border border-gray-200/80 dark:bg-gray-800/60 dark:border-gray-700/80"
                 >
-                  <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">Palpites</dt>
+                  <dt
+                    class="text-xs font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Palpites
+                  </dt>
                   <dd
                     class="mt-1 text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100"
                   >
@@ -79,7 +92,11 @@
                 <div
                   class="px-3 py-2 bg-white/60 rounded-lg border border-gray-200/80 dark:bg-gray-800/60 dark:border-gray-700/80"
                 >
-                  <dt class="text-xs font-medium text-gray-500 dark:text-gray-400">Pontos</dt>
+                  <dt
+                    class="text-xs font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Pontos
+                  </dt>
                   <dd
                     class="mt-1 text-lg md:text-xl font-semibold text-blue-600 dark:text-blue-400"
                   >
@@ -160,7 +177,9 @@
                   />
                 </div>
               </DisclosureButton>
-              <DisclosurePanel class="border-t border-gray-200 bg-gray-50/70 dark:border-gray-700 dark:bg-gray-900/50">
+              <DisclosurePanel
+                class="border-t border-gray-200 bg-gray-50/70 dark:border-gray-700 dark:bg-gray-900/50"
+              >
                 <div class="px-4 py-5 sm:px-6">
                   <div
                     v-if="pool.bets.length === 0"
@@ -187,7 +206,9 @@
                             </p>
                           </div>
                           <div class="ml-4 text-right shrink-0">
-                            <p class="text-xs text-gray-400 dark:text-gray-500">Pontos</p>
+                            <p class="text-xs text-gray-400 dark:text-gray-500">
+                              Pontos
+                            </p>
                             <p
                               class="font-bold text-lg"
                               :class="
@@ -203,8 +224,12 @@
                         <div
                           class="mt-3 flex items-stretch gap-3 sm:gap-4 text-center"
                         >
-                          <div class="flex-1 p-2 bg-gray-100 rounded-md dark:bg-gray-600/50">
-                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                          <div
+                            class="flex-1 p-2 bg-gray-100 rounded-md dark:bg-gray-600/50"
+                          >
+                            <p
+                              class="text-xs font-semibold text-gray-500 dark:text-gray-400"
+                            >
                               Seu Palpite
                             </p>
                             <p
@@ -216,7 +241,9 @@
                           <div
                             class="flex-1 p-2 bg-blue-50 border border-blue-200 rounded-md dark:bg-blue-900/30 dark:border-blue-800/50"
                           >
-                            <p class="text-xs font-semibold text-blue-800 dark:text-blue-300">
+                            <p
+                              class="text-xs font-semibold text-blue-800 dark:text-blue-300"
+                            >
                               Resultado Final
                             </p>
                             <p
@@ -283,7 +310,8 @@
               <DisclosureButton class="w-full p-4 text-left focus:outline-none">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-x-3">
-                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200"
+                    <span
+                      class="text-sm font-semibold text-gray-800 dark:text-gray-200"
                       >Convites Recebidos</span
                     >
                     <span
@@ -308,7 +336,9 @@
                   />
                 </div>
               </DisclosureButton>
-              <DisclosurePanel class="border-t border-gray-200 bg-gray-50/70 dark:border-gray-700 dark:bg-gray-900/50">
+              <DisclosurePanel
+                class="border-t border-gray-200 bg-gray-50/70 dark:border-gray-700 dark:bg-gray-900/50"
+              >
                 <div class="px-4 py-5 sm:px-6">
                   <div
                     v-if="myProfile.invitations.received.length === 0"
@@ -317,7 +347,9 @@
                     Você não tem convites.
                   </div>
                   <div v-else class="flow-root">
-                    <ul class="-my-4 divide-y divide-gray-200 dark:divide-gray-700">
+                    <ul
+                      class="-my-4 divide-y divide-gray-200 dark:divide-gray-700"
+                    >
                       <li
                         v-for="inv in myProfile.invitations.received"
                         :key="inv.id"
@@ -327,16 +359,22 @@
                           <div
                             class="flex-shrink-0 bg-white rounded-full p-2 border dark:bg-gray-700 dark:border-gray-600"
                           >
-                            <ArrowDownTrayIcon class="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                            <ArrowDownTrayIcon
+                              class="h-5 w-5 text-gray-500 dark:text-gray-400"
+                            />
                           </div>
-                          <p class="ml-4 text-sm text-gray-600 truncate dark:text-gray-400">
-                            <span class="font-semibold text-gray-800 dark:text-gray-200">{{
-                              inv.relatedUserName
-                            }}</span>
+                          <p
+                            class="ml-4 text-sm text-gray-600 truncate dark:text-gray-400"
+                          >
+                            <span
+                              class="font-semibold text-gray-800 dark:text-gray-200"
+                              >{{ inv.relatedUserName }}</span
+                            >
                             te convidou para
-                            <span class="font-semibold text-gray-800 dark:text-gray-200">{{
-                              inv.poolName
-                            }}</span>
+                            <span
+                              class="font-semibold text-gray-800 dark:text-gray-200"
+                              >{{ inv.poolName }}</span
+                            >
                           </p>
                         </div>
                         <div
@@ -384,7 +422,8 @@
               <DisclosureButton class="w-full p-4 text-left focus:outline-none">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-x-3">
-                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200"
+                    <span
+                      class="text-sm font-semibold text-gray-800 dark:text-gray-200"
                       >Convites Enviados</span
                     >
                     <span
@@ -400,7 +439,9 @@
                   />
                 </div>
               </DisclosureButton>
-              <DisclosurePanel class="border-t border-gray-200 bg-gray-50/70 dark:border-gray-700 dark:bg-gray-900/50">
+              <DisclosurePanel
+                class="border-t border-gray-200 bg-gray-50/70 dark:border-gray-700 dark:bg-gray-900/50"
+              >
                 <div class="px-4 py-5 sm:px-6">
                   <div
                     v-if="myProfile.invitations.sent.length === 0"
@@ -409,7 +450,9 @@
                     Você não enviou nenhum convite.
                   </div>
                   <div v-else class="flow-root">
-                    <ul class="-my-4 divide-y divide-gray-200 dark:divide-gray-700">
+                    <ul
+                      class="-my-4 divide-y divide-gray-200 dark:divide-gray-700"
+                    >
                       <li
                         v-for="inv in myProfile.invitations.sent"
                         :key="inv.id"
@@ -419,17 +462,23 @@
                           <div
                             class="flex-shrink-0 bg-white rounded-full p-2 border dark:bg-gray-700 dark:border-gray-600"
                           >
-                            <PaperAirplaneIcon class="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                            <PaperAirplaneIcon
+                              class="h-5 w-5 text-gray-500 dark:text-gray-400"
+                            />
                           </div>
-                          <p class="ml-4 text-sm text-gray-600 truncate dark:text-gray-400">
+                          <p
+                            class="ml-4 text-sm text-gray-600 truncate dark:text-gray-400"
+                          >
                             Convite para
-                            <span class="font-semibold text-gray-800 dark:text-gray-200">{{
-                              inv.relatedUserName
-                            }}</span>
+                            <span
+                              class="font-semibold text-gray-800 dark:text-gray-200"
+                              >{{ inv.relatedUserName }}</span
+                            >
                             no bolão
-                            <span class="font-semibold text-gray-800 dark:text-gray-200">{{
-                              inv.poolName
-                            }}</span>
+                            <span
+                              class="font-semibold text-gray-800 dark:text-gray-200"
+                              >{{ inv.poolName }}</span
+                            >
                           </p>
                         </div>
                         <div class="shrink-0">
@@ -468,7 +517,9 @@
               <div
                 class="bg-white shadow-sm rounded-xl p-4 sm:p-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700"
               >
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <h3
+                  class="text-lg font-semibold text-gray-900 dark:text-gray-100"
+                >
                   Informações de Perfil
                 </h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -506,7 +557,9 @@
               <div
                 class="bg-white shadow-sm rounded-xl p-4 sm:p-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700"
               >
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <h3
+                  class="text-lg font-semibold text-gray-900 dark:text-gray-100"
+                >
                   Alterar Senha
                 </h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -681,7 +734,9 @@ watch(
 const isSaveEnabled = computed(() => {
   if (!myProfile.value) return false;
 
-  const profileChanged = form.value.name !== myProfile.value.name || form.value.email !== myProfile.value.email;
+  const profileChanged =
+    form.value.name !== myProfile.value.name ||
+    form.value.email !== myProfile.value.email;
 
   const passwordChangeValid =
     form.value.currentPassword &&
@@ -764,12 +819,12 @@ const previousPage = (poolId) => {
 const formatDate = (dateString) => {
   if (!dateString) return "";
 
-  const date = new Date(dateString.replace(/-/g, '/'));
-  
+  const date = new Date(dateString);
+
   if (isNaN(date.getTime())) {
     return "Data inválida";
   }
-  
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
@@ -782,6 +837,7 @@ const formatDate = (dateString) => {
     weekday: "short",
     day: "2-digit",
     month: "long",
+    year: "numeric",
   }).format(date);
 };
 
