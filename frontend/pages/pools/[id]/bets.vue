@@ -23,7 +23,7 @@
       <div class="sticky top-0 z-20">
         <ChampionshipHeader :championship="currentChampionship">
           <template #right>
-            <button
+            <!-- <button
               type="button"
               :disabled="stores.bet.loading"
               class="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap disabled:opacity-50 disabled:cursor-wait dark:text-gray-300 dark:hover:text-blue-400"
@@ -34,7 +34,7 @@
                 :class="{ 'animate-spin': stores.bet.loading }"
               />
               Sincronizar
-            </button>
+            </button> -->
             <NuxtLink
               :to="`/pools/${poolId}`"
               class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap dark:text-gray-300 dark:hover:text-blue-400"
