@@ -7,7 +7,7 @@
             <button
               v-if="!isParticipant"
               :disabled="stores.pools.loading"
-              class="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap disabled:opacity-50 disabled:cursor-wait dark:text-gray-300 dark:hover:text-blue-400"
+              class="flex items-center gap-1.5 whitespace-nowrap rounded-md px-4 py-2 text-sm font-semibold transition-colors duration-200 disabled:cursor-wait disabled:opacity-50 bg-gray-800 text-white hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300"
               @click="joinPool"
             >
               Entrar no Bolão
@@ -93,28 +93,27 @@
                       >
                     </div>
 
-                    <div
-                      id="v-step-6-bet-result"
-                      class="flex items-center gap-1"
-                    >
+                    <div id="v-step-6-bet-result" class="flex items-center gap-1">
                       <input
                         v-model.number="betForms[match.id].homeScoreBet"
-                        type="text"
-                        :disabled="
-                          isBettingTimeExpired(match) || !isParticipant
-                        "
+                        type="number"
+                        min="0"
+                        :max="10"
+                        :disabled="isBettingTimeExpired(match) || !isParticipant"
                         class="w-6 text-center border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
                         @click.stop
+                        @input="validateNonNegative(betForms[match.id], 'homeScoreBet')"
                       >
                       <span class="dark:text-gray-400">-</span>
                       <input
                         v-model.number="betForms[match.id].awayScoreBet"
-                        type="text"
-                        :disabled="
-                          isBettingTimeExpired(match) || !isParticipant
-                        "
+                        type="number"
+                        min="0"
+                        :max="10"
+                        :disabled="isBettingTimeExpired(match) || !isParticipant"
                         class="w-6 text-center border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
                         @click.stop
+                        @input="validateNonNegative(betForms[match.id], 'awayScoreBet')"
                       >
                     </div>
 
@@ -1188,6 +1187,21 @@ const submitAllBets = async () => {
     if (updatedBetsResult.success) {
       allBets.value = updatedBetsResult.data;
     }
+  }
+};
+const validateNonNegative = (form, key) => {
+  let value = form[key];
+  const MAX_SCORE = 10;
+  const MIN_SCORE = 0;
+
+  if (value < MIN_SCORE) {
+    form[key] = MIN_SCORE;
+    return;
+  }
+
+  if (value > MAX_SCORE) {
+    form[key] = MAX_SCORE;
+    return;
   }
 };
 const toggleMatchDetails = async (match, event) => {
