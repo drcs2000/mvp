@@ -11,7 +11,6 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from 'vue';
 import { storeToRefs } from 'pinia';
 
 const { theme } = useTheme();
@@ -23,12 +22,4 @@ useHead({
 
 const stores = useStores();
 const { toastMessage, toastType } = storeToRefs(stores.ui);
-
-onMounted(() => {
-  document.body.classList.add('overflow-hidden');
-});
-
-onUnmounted(() => {
-  document.body.classList.remove('overflow-hidden');
-});
 </script>
