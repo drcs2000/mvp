@@ -14,6 +14,12 @@ interface ICreatePoolDTO {
   entryFee: number;
 }
 
+interface IUpdatePoolDTO {
+    private?: boolean;
+    entryFee?: number;
+    maxParticipants?: number;
+}
+
 class PoolService {
   private poolRepository = AppDataSource.getRepository(Pool);
   private participantRepository = AppDataSource.getRepository(PoolParticipant);
@@ -41,6 +47,35 @@ class PoolService {
         where: { id: newPool.id },
         relations: ['participants', 'participants.user', 'baseChampionship'],
       });
+    });
+  }
+  
+  public async update(poolId: number, updateData: IUpdatePoolDTO, requestingUserId: number): Promise<Pool> {
+    const pool = await this.poolRepository.findOne({
+      where: { id: poolId },
+      relations: ['participants'],
+    });
+
+    if (!pool) {
+      throw new Error('Bolão não encontrado.');
+    }
+
+    const admin = pool.participants.find(p => p.role === PoolRole.ADMIN);
+    if (!admin || admin.userId !== requestingUserId) {
+      throw new Error('Você não tem permissão para editar este bolão.');
+    }
+
+    if (updateData.maxParticipants !== undefined && updateData.maxParticipants < pool.participants.length) {
+        throw new Error(`O número máximo de participantes não pode ser menor que o número atual de participantes (${pool.participants.length}).`);
+    }
+
+    Object.assign(pool, updateData);
+
+    await this.poolRepository.save(pool);
+
+    return this.poolRepository.findOneOrFail({
+        where: { id: poolId },
+        relations: ['participants', 'participants.user', 'baseChampionship'],
     });
   }
 
@@ -201,3 +236,4 @@ class PoolService {
 }
 
 export default new PoolService();
+

@@ -58,6 +58,37 @@ class PoolController {
     }
   }
 
+  // MÉTODO ADICIONADO
+  public update = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { poolId } = req.params;
+      const userId = req.user.id;
+      const updateData = req.body;
+
+      const decodedPoolId = decodeId(poolId);
+      if (decodedPoolId === null) {
+        return res.status(400).json({ error: 'ID de bolão inválido.' });
+      }
+
+      const updatedPool = await PoolService.update(decodedPoolId, updateData, userId);
+      
+      const responsePool = this.transformPoolResponse(updatedPool);
+      return res.status(200).json(responsePool);
+    } catch (error: any) {
+      console.error(error);
+      if (error.message.includes('não encontrado')) {
+        return res.status(404).json({ error: error.message });
+      }
+      if (error.message.includes('permissão')) {
+        return res.status(403).json({ error: error.message });
+      }
+      if (error.message.includes('participantes')) {
+        return res.status(400).json({ error: error.message });
+      }
+      return res.status(500).json({ error: 'Falha ao atualizar o bolão.', details: error.message });
+    }
+  }
+
   public findAllPublic = async (req: Request, res: Response): Promise<Response> => {
     try {
       const pools = await PoolService.findAllPublic()

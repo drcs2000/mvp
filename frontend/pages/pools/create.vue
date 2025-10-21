@@ -49,9 +49,9 @@
                 :value="form.maxParticipants"
                 type="number"
                 required
-                min="1"
+                :min="MIN_PARTICIPANTS"
                 :max="MAX_PARTICIPANTS"
-                class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
+                class="hide-number-arrows block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
                 @input="handleMaxParticipantsInput"
               >
             </div>
@@ -283,7 +283,7 @@
                 min="0"
                 :max="POINT_MAXES.full"
                 required
-                class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
+                class="hide-number-arrows block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
                 @input="handlePointInput('full', $event)"
               >
             </div>
@@ -311,7 +311,7 @@
                 min="0"
                 :max="POINT_MAXES.partial"
                 required
-                class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
+                class="hide-number-arrows block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
                 @input="handlePointInput('partial', $event)"
               >
             </div>
@@ -339,7 +339,7 @@
                 min="0"
                 :max="POINT_MAXES.goal"
                 required
-                class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
+                class="hide-number-arrows block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
                 @input="handlePointInput('goal', $event)"
               >
             </div>
@@ -367,7 +367,7 @@
                 min="0"
                 :max="POINT_MAXES.result"
                 required
-                class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
+                class="hide-number-arrows block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
                 @input="handlePointInput('result', $event)"
               >
             </div>
@@ -426,8 +426,29 @@
             :disabled="loading || !isFormValid"
             class="w-full flex items-center justify-center px-6 py-3 text-base font-semibold text-white bg-gray-800 border border-transparent rounded-md shadow-lg hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto sm:py-2 sm:text-sm sm:shadow-sm dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300 dark:focus:ring-offset-gray-800 dark:focus:ring-gray-400 dark:disabled:bg-gray-500 dark:disabled:text-gray-400"
           >
-            <span v-if="!loading">Criar Torneio</span>
-            <span v-else>Criando...</span>
+            <svg
+              v-if="loading"
+              class="animate-spin -ml-1 mr-3 h-5 w-5 text-white dark:text-gray-800"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span v-if="loading">Criando...</span>
+            <span v-else>Criar Torneio</span>
           </button>
         </div>
       </form>
@@ -466,6 +487,7 @@ const championships = computed(() => stores.championships.allChampionships);
 const deadlineOptions = ref(Array.from({ length: 12 }, (_, i) => i + 1));
 const loading = ref(false);
 
+const MIN_PARTICIPANTS = 2;
 const MAX_PARTICIPANTS = 20;
 const MAX_ENTRY_FEE = 200;
 
@@ -492,56 +514,61 @@ const form = reactive({
 });
 
 const handlePointInput = (type, event) => {
-  let value = Number(event.target.value);
-  const maxValue = POINT_MAXES[type];
+  const rawValue = event.target.value;
+  const sanitizedValue = rawValue.replace(/\D/g, ''); 
   
-  if (isNaN(value) || event.target.value.trim() === '') {
-    value = 0;
+  if (sanitizedValue === '') {
+    form.points[type] = null;
+    event.target.value = '';
+    return;
   }
+
+  let value = parseInt(sanitizedValue, 10);
+  const maxValue = POINT_MAXES[type];
   
   if (value > maxValue) {
     value = maxValue;
-    let fieldName = '';
-    switch (type) {
-      case 'full': fieldName = 'Acerto completo'; break;
-      case 'partial': fieldName = 'Acerto parcial'; break;
-      case 'goal': fieldName = 'Acerto de gols'; break;
-      case 'result': fieldName = 'Acerto de resultado'; break;
-    }
-    stores.ui.showToast(`Pontuação máxima de ${maxValue} pontos para ${fieldName}.`, "info");
+    stores.ui.showToast(`Pontuação máxima de ${maxValue} para esta categoria.`, "info");
   } else if (value < 0) {
-      value = 0;
+    value = 0;
   }
   
   form.points[type] = value;
-  event.target.value = value;
+  if (event.target.value !== value.toString()) {
+      event.target.value = value;
+  }
 };
 
 const handleMaxParticipantsInput = (event) => {
-  let valueStr = event.target.value;
-  valueStr = valueStr.replace(/[^0-9]/g, ''); 
-  
-  let value = parseInt(valueStr) || 1; 
-  
-  const minValue = 1;
+  const rawValue = event.target.value;
+  const sanitizedValue = rawValue.replace(/\D/g, '');
+
+  if (sanitizedValue === '') {
+    form.maxParticipants = null;
+    event.target.value = '';
+    return;
+  }
+
+  let value = parseInt(sanitizedValue, 10);
 
   if (value > MAX_PARTICIPANTS) {
     value = MAX_PARTICIPANTS;
     stores.ui.showToast(`O número máximo de participantes é ${MAX_PARTICIPANTS}.`, "info");
-  } else if (value < minValue) {
-      value = minValue;
-      stores.ui.showToast(`O número mínimo de participantes é ${minValue}.`, "info");
+  } else if (value < MIN_PARTICIPANTS) {
+    stores.ui.showToast(`O número mínimo de participantes é ${MIN_PARTICIPANTS}.`, "info")
   }
   
   form.maxParticipants = value;
-  event.target.value = value; 
+  if (event.target.value !== value.toString()) {
+    event.target.value = value;
+  }
 };
 
 const handleEntryFeeInput = (event) => {
     let valueStr = event.target.value;
 
     valueStr = valueStr
-        .replace(/[^0-9.,]/g, '') 
+        .replace(/[^0-9,]/g, '') 
         .replace(',', '.');    
 
     const parts = valueStr.split('.');
@@ -578,7 +605,7 @@ const isFormValid = computed(() => {
   if (!form.baseChampionship) return false;
 
   const maxP = form.maxParticipants;
-  if (typeof maxP !== 'number' || maxP < 2 || maxP > MAX_PARTICIPANTS) return false;
+  if (typeof maxP !== 'number' || maxP < MIN_PARTICIPANTS || maxP > MAX_PARTICIPANTS) return false;
 
   const entryF = form.entryFee;
   if (typeof entryF !== 'number' || entryF < 0 || entryF > MAX_ENTRY_FEE) return false;
@@ -653,3 +680,16 @@ const handleSubmit = async () => {
   }
 };
 </script>
+
+<style>
+.hide-number-arrows::-webkit-outer-spin-button,
+.hide-number-arrows::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.hide-number-arrows {
+  -moz-appearance: textfield;
+}
+</style>
+

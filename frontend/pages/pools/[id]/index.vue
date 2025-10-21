@@ -607,11 +607,16 @@
     >
       <button
         id="v-step-7-bet-save"
-        :disabled="!hasChanges || !allBetsAreFilled || stores.bet.loading"
-        class="w-full whitespace-nowrap rounded-md border-2 border-blue-600 bg-transparent px-4 py-3 text-base font-semibold text-blue-600 transition-colors duration-200 hover:bg-blue-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400 md:w-auto md:px-6 md:py-2 md:text-sm dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-gray-900 dark:focus-visible:ring-offset-gray-800 dark:disabled:border-gray-600 dark:disabled:text-gray-600"
+        :disabled="!hasChanges || !allBetsAreFilled || isSavingBets"
+        class="w-full flex items-center justify-center whitespace-nowrap rounded-md border-2 border-blue-600 bg-transparent px-4 py-3 text-base font-semibold text-blue-600 transition-colors duration-200 hover:bg-blue-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400 md:w-auto md:px-6 md:py-2 md:text-sm dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-gray-900 dark:focus-visible:ring-offset-gray-800 dark:disabled:border-gray-600 dark:disabled:text-gray-600"
         @click="submitAllBets"
       >
-        Salvar Rodada
+        <svg v-if="isSavingBets" class="animate-spin -ml-1 mr-3 h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span v-if="isSavingBets">Salvando...</span>
+        <span v-else>Salvar Rodada</span>
       </button>
     </div>
     {{ pools }}
@@ -637,6 +642,7 @@ const currentPool = ref(null);
 const currentChampionship = ref(null);
 const allBets = ref([]);
 const selectedDate = ref(null);
+const isSavingBets = ref(false);
 
 const betForms = ref({});
 const initialBetForms = ref({});
@@ -1137,60 +1143,65 @@ const updateCountdown = (match) => {
   countdowns[match.id] = parts.join(" ");
 };
 const submitAllBets = async () => {
-  const unplayedMatches = matchesOfSelectedDay.value.filter(
-    (m) => m.status !== "FINAL" && m.status !== "FULL_TIME"
-  );
-  if (!allBetsAreFilled.value) {
-    stores.ui.showToast(
-      "Por favor, preencha todos os jogos da rodada com palpites válidos antes de salvar.",
-      "error"
+  isSavingBets.value = true;
+  try {
+    const unplayedMatches = matchesOfSelectedDay.value.filter(
+      (m) => m.status !== "FINAL" && m.status !== "FULL_TIME"
     );
-    return;
-  }
-  const betsToSubmit = unplayedMatches.filter((match) => {
-    const form = betForms.value[match.id];
-    const initialForm = initialBetForms.value[match.id];
-    return (
-      (form.homeScoreBet !== initialForm.homeScoreBet ||
-        form.awayScoreBet !== initialForm.awayScoreBet) &&
-      form.homeScoreBet !== null &&
-      form.awayScoreBet !== null &&
-      !isNaN(form.homeScoreBet) &&
-      !isNaN(form.awayScoreBet)
-    );
-  });
-  if (betsToSubmit.length === 0) {
-    stores.ui.showToast(
-      "Nenhum palpite para salvar. Faça suas alterações primeiro.",
-      "info"
-    );
-    return;
-  }
-  const results = await Promise.all(
-    betsToSubmit.map(async (match) => {
-      const form = betForms.value[match.id];
-      return stores.bet.createOrUpdateBet(
-        poolId.value,
-        match.id,
-        form.homeScoreBet,
-        form.awayScoreBet
+    if (!allBetsAreFilled.value) {
+      stores.ui.showToast(
+        "Por favor, preencha todos os jogos da rodada com palpites válidos antes de salvar.",
+        "error"
       );
-    })
-  );
-  const errors = results.filter((r) => !r.success);
-  if (errors.length > 0) {
-    stores.ui.showToast("Ocorreu um erro ao salvar alguns palpites.", "error");
-  } else {
-    stores.ui.showToast("Palpites salvos com sucesso!", "success");
-    initialBetForms.value = JSON.parse(JSON.stringify(betForms.value));
-
-    const updatedBetsResult = await stores.bet.fetchAllBetsByPool(
-      poolId.value,
-      true
-    );
-    if (updatedBetsResult.success) {
-      allBets.value = updatedBetsResult.data;
+      return;
     }
+    const betsToSubmit = unplayedMatches.filter((match) => {
+      const form = betForms.value[match.id];
+      const initialForm = initialBetForms.value[match.id];
+      return (
+        (form.homeScoreBet !== initialForm.homeScoreBet ||
+          form.awayScoreBet !== initialForm.awayScoreBet) &&
+        form.homeScoreBet !== null &&
+        form.awayScoreBet !== null &&
+        !isNaN(form.homeScoreBet) &&
+        !isNaN(form.awayScoreBet)
+      );
+    });
+    if (betsToSubmit.length === 0) {
+      stores.ui.showToast(
+        "Nenhum palpite para salvar. Faça suas alterações primeiro.",
+        "info"
+      );
+      return;
+    }
+    const results = await Promise.all(
+      betsToSubmit.map(async (match) => {
+        const form = betForms.value[match.id];
+        return stores.bet.createOrUpdateBet(
+          poolId.value,
+          match.id,
+          form.homeScoreBet,
+          form.awayScoreBet
+        );
+      })
+    );
+    const errors = results.filter((r) => !r.success);
+    if (errors.length > 0) {
+      stores.ui.showToast("Ocorreu um erro ao salvar alguns palpites.", "error");
+    } else {
+      stores.ui.showToast("Palpites salvos com sucesso!", "success");
+      initialBetForms.value = JSON.parse(JSON.stringify(betForms.value));
+
+      const updatedBetsResult = await stores.bet.fetchAllBetsByPool(
+        poolId.value,
+        true
+      );
+      if (updatedBetsResult.success) {
+        allBets.value = updatedBetsResult.data;
+      }
+    }
+  } finally {
+    isSavingBets.value = false;
   }
 };
 const validateNonNegative = (form, key) => {
@@ -1447,3 +1458,7 @@ const formatDate = (dateString) => {
   -moz-appearance: textfield;
 }
 </style>
+```.
+
+I have made a selection in the code and my query is: o loading deve aparecer durante o salvamento de todos, nessa maneira ele aparece e desaparece na medida que cada bet é salva
+

@@ -39,6 +39,12 @@ export type CreatePoolPayload = Omit<Pool, 'id' | 'createdAt' | 'participants' |
   baseChampionshipId: number;
 };
 
+export type UpdatePoolPayload = {
+  private?: boolean;
+  entryFee?: number;
+  maxParticipants?: number;
+}
+
 export const usePoolsStore = defineStore('pools', () => {
   const publicPools = ref<Pool[]>([]);
   const myPools = ref<Pool[]>([]);
@@ -70,6 +76,44 @@ export const usePoolsStore = defineStore('pools', () => {
     } catch (err: unknown) {
       error.value = err;
       console.error('Erro ao criar o bolão:', err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function updatePool(poolId: string, payload: UpdatePoolPayload) {
+    const authStore = useAuthStore();
+    loading.value = true;
+    error.value = null;
+    try {
+      const url = import.meta.dev ? `/api/pools/${poolId}` : `${apiBaseUrl}/pools/${poolId}`;
+      const updatedPool = await $fetch<Pool>(url, {
+        method: 'PUT',
+        body: payload,
+        headers: {
+          'Authorization': `Bearer ${authStore.token}`
+        }
+      });
+
+      const updateList = (list: Pool[]) => {
+        const index = list.findIndex(p => p.id === poolId);
+        if (index !== -1) {
+          list[index] = { ...list[index], ...updatedPool };
+        }
+      };
+      
+      updateList(myPools.value);
+      updateList(publicPools.value);
+
+      if (currentPool.value?.id === poolId) {
+        currentPool.value = { ...currentPool.value, ...updatedPool };
+      }
+      
+      return updatedPool;
+    } catch (err: unknown) {
+      error.value = err;
+      console.error('Erro ao atualizar o bolão:', err);
       throw err;
     } finally {
       loading.value = false;
@@ -248,6 +292,7 @@ export const usePoolsStore = defineStore('pools', () => {
     loading,
     error,
     createPool,
+    updatePool, 
     fetchAllPublicPools,
     fetchMyPools,
     fetchPoolById,

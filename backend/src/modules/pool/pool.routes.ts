@@ -8,6 +8,7 @@ poolsRouter.post('/', authMiddleware, PoolsController.create);
 poolsRouter.get('/', PoolsController.findAllPublic);
 poolsRouter.get('/my-pools', authMiddleware, PoolsController.findMyPools);
 poolsRouter.get('/:poolId', PoolsController.findOne);
+poolsRouter.put('/:poolId', authMiddleware, PoolsController.update); 
 poolsRouter.post('/:poolId/join', authMiddleware, PoolsController.joinPool);
 poolsRouter.post('/:poolId/:userId/payment', authMiddleware, PoolsController.confirmPayment)
 poolsRouter.delete('/:poolId', authMiddleware, PoolsController.delete);
