@@ -90,48 +90,83 @@
                     </p>
                   </div>
                   <div v-else>
-                     <SwitchGroup as="div" class="flex items-center mt-1">
-                        <Switch v-model="editForm.private" :class="editForm.private ? 'bg-blue-600' : 'bg-gray-200'" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 dark:bg-gray-600 dark:focus:ring-offset-gray-800">
-                          <span aria-hidden="true" :class="editForm.private ? 'translate-x-5' : 'translate-x-0'" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" />
-                        </Switch>
-                        <SwitchLabel as="span" class="ml-3 text-sm">
-                          <span class="font-medium text-gray-900 dark:text-gray-100">{{ editForm.private ? 'Privado' : 'Público' }}</span>
-                        </SwitchLabel>
-                      </SwitchGroup>
+                    <SwitchGroup as="div" class="flex items-center mt-1">
+                      <Switch
+                        v-model="editForm.private"
+                        :class="
+                          editForm.private ? 'bg-blue-600' : 'bg-gray-200'
+                        "
+                        class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 dark:bg-gray-600 dark:focus:ring-offset-gray-800"
+                      >
+                        <span
+                          aria-hidden="true"
+                          :class="
+                            editForm.private ? 'translate-x-5' : 'translate-x-0'
+                          "
+                          class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                        />
+                      </Switch>
+                      <SwitchLabel as="span" class="ml-3 text-sm">
+                        <span
+                          class="font-medium text-gray-900 dark:text-gray-100"
+                          >{{ editForm.private ? "Privado" : "Público" }}</span
+                        >
+                      </SwitchLabel>
+                    </SwitchGroup>
                   </div>
                 </div>
                 <div>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
                     Taxa de Entrada
                   </p>
-                  <p v-if="!isEditMode" class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  <p
+                    v-if="!isEditMode"
+                    class="text-sm font-semibold text-gray-900 dark:text-gray-100"
+                  >
                     {{ formatCurrency(pool.entryFee) }}
                   </p>
                   <div v-else class="relative mt-1">
-                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <span class="text-gray-500 sm:text-sm dark:text-gray-400">R$</span>
-                      </div>
-                    <input :value="editForm.entryFee.toString().replace('.', ',')" @input="handleEditEntryFeeInput" type="text" inputmode="decimal" class="block w-full pl-10 pr-3 py-1 text-sm placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400" />
+                    <div
+                      class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                    >
+                      <span class="text-gray-500 sm:text-sm dark:text-gray-400"
+                        >R$</span
+                      >
+                    </div>
+                    <input
+                      :value="editForm.entryFee.toString().replace('.', ',')"
+                      @input="handleEditEntryFeeInput"
+                      type="text"
+                      inputmode="decimal"
+                      class="block w-full pl-10 pr-3 py-1 text-sm placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
+                    />
                   </div>
                 </div>
                 <div>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
                     Participantes
                   </p>
-                  <p v-if="!isEditMode" class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  <p
+                    v-if="!isEditMode"
+                    class="text-sm font-semibold text-gray-900 dark:text-gray-100"
+                  >
                     {{ pool.participants.length }} / {{ pool.maxParticipants }}
                   </p>
                   <div v-else class="flex items-center gap-1.5 mt-1">
-                      <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ pool.participants.length }} /</span>
-                      <input 
-                        :value="editForm.maxParticipants"
-                        @input="handleEditMaxParticipantsInput"
-                        @blur="validateMinParticipantsOnBlur"
-                        type="number" 
-                        step="1" 
-                        :min="pool.participants.length" 
-                        :max="MAX_PARTICIPANTS"
-                        class="hide-number-arrows block w-16 px-2 py-1 text-sm placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400" />
+                    <span
+                      class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                      >{{ pool.participants.length }} /</span
+                    >
+                    <input
+                      :value="editForm.maxParticipants"
+                      @input="handleEditMaxParticipantsInput"
+                      @blur="validateMinParticipantsOnBlur"
+                      type="number"
+                      step="1"
+                      :min="pool.participants.length"
+                      :max="MAX_PARTICIPANTS"
+                      class="hide-number-arrows block w-16 px-2 py-1 text-sm placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-gray-800 focus:border-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-gray-400 dark:focus:border-gray-400"
+                    />
                   </div>
                 </div>
                 <div>
@@ -148,23 +183,36 @@
 
               <div v-if="isCurrentUserAdmin" class="mt-6">
                 <div v-if="!isEditMode" class="flex items-center gap-4">
-                    <button class="flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-800 transition-colors duration-200 dark:text-red-500 dark:hover:text-red-400" @click="handleDeletePool">
-                        <TrashIcon class="w-4 h-4" />
-                        <span>Excluir Bolão</span>
-                    </button>
-                    <button class="flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-200 dark:text-blue-500 dark:hover:text-blue-400" @click="startEditing">
-                        <PencilIcon class="w-4 h-4" />
-                        <span>Editar Bolão</span>
-                    </button>
+                  <button
+                    class="flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-800 transition-colors duration-200 dark:text-red-500 dark:hover:text-red-400"
+                    @click="handleDeletePool"
+                  >
+                    <TrashIcon class="w-4 h-4" />
+                    <span>Excluir Bolão</span>
+                  </button>
+                  <button
+                    class="flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-200 dark:text-blue-500 dark:hover:text-blue-400"
+                    @click="startEditing"
+                  >
+                    <PencilIcon class="w-4 h-4" />
+                    <span>Editar Bolão</span>
+                  </button>
                 </div>
-                 <div v-else class="flex items-center gap-4">
-                    <button class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-wait" @click="saveChanges" :disabled="isActionLoading">
-                        <span v-if="!isActionLoading">Salvar Alterações</span>
-                        <span v-else>Salvando...</span>
-                    </button>
-                    <button class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600" @click="cancelEditing">
-                        <span>Cancelar</span>
-                    </button>
+                <div v-else class="flex items-center gap-4">
+                  <button
+                    class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-wait"
+                    @click="saveChanges"
+                    :disabled="isActionLoading"
+                  >
+                    <span v-if="!isActionLoading">Salvar Alterações</span>
+                    <span v-else>Salvando...</span>
+                  </button>
+                  <button
+                    class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                    @click="cancelEditing"
+                  >
+                    <span>Cancelar</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -559,7 +607,7 @@
 import { ref, computed, onMounted, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useWindowSize } from "@vueuse/core";
-import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue'
+import { Switch, SwitchGroup, SwitchLabel } from "@headlessui/vue";
 import {
   TrashIcon,
   StarIcon,
@@ -679,11 +727,11 @@ function cancelEditing() {
 
 const handleEditMaxParticipantsInput = (event) => {
   const rawValue = event.target.value;
-  const sanitizedValue = rawValue.replace(/\D/g, '');
+  const sanitizedValue = rawValue.replace(/\D/g, "");
 
-  if (sanitizedValue === '') {
+  if (sanitizedValue === "") {
     editForm.maxParticipants = null;
-    event.target.value = '';
+    event.target.value = "";
     return;
   }
 
@@ -691,9 +739,12 @@ const handleEditMaxParticipantsInput = (event) => {
 
   if (value > MAX_PARTICIPANTS) {
     value = MAX_PARTICIPANTS;
-    stores.ui.showToast(`O número máximo de participantes é ${MAX_PARTICIPANTS}.`, "info");
+    stores.ui.showToast(
+      `O número máximo de participantes é ${MAX_PARTICIPANTS}.`,
+      "info"
+    );
   }
-  
+
   editForm.maxParticipants = value;
   if (event.target.value !== value.toString()) {
     event.target.value = value;
@@ -701,45 +752,53 @@ const handleEditMaxParticipantsInput = (event) => {
 };
 
 const validateMinParticipantsOnBlur = () => {
-    if (pool.value && editForm.maxParticipants !== null && editForm.maxParticipants < pool.value.participants.length) {
-        editForm.maxParticipants = pool.value.participants.length;
-        stores.ui.showToast(`O mínimo de participantes é ${pool.value.participants.length} (número atual).`, "info");
-    }
-}
+  if (
+    pool.value &&
+    editForm.maxParticipants !== null &&
+    editForm.maxParticipants < pool.value.participants.length
+  ) {
+    editForm.maxParticipants = pool.value.participants.length;
+    stores.ui.showToast(
+      `O mínimo de participantes é ${pool.value.participants.length} (número atual).`,
+      "info"
+    );
+  }
+};
 
 const handleEditEntryFeeInput = (event) => {
-    let valueStr = event.target.value;
+  let valueStr = event.target.value;
 
-    valueStr = valueStr
-        .replace(/[^0-9,]/g, '') 
-        .replace(',', '.');    
+  valueStr = valueStr.replace(/[^0-9,]/g, "").replace(",", ".");
 
-    const parts = valueStr.split('.');
-    if (parts.length > 2) {
-        valueStr = parts[0] + '.' + parts.slice(1).join('');
-    }
+  const parts = valueStr.split(".");
+  if (parts.length > 2) {
+    valueStr = parts[0] + "." + parts.slice(1).join("");
+  }
 
-    if (parts.length > 1 && parts[1].length > 2) {
-        valueStr = parts[0] + '.' + parts[1].substring(0, 2);
-    }
+  if (parts.length > 1 && parts[1].length > 2) {
+    valueStr = parts[0] + "." + parts[1].substring(0, 2);
+  }
 
-    event.target.value = valueStr.replace('.', ',');
-    
-    let value = parseFloat(valueStr) || 0;
-    
-    if (value > MAX_ENTRY_FEE) {
-        value = MAX_ENTRY_FEE;
-        
-        const fixedValueStr = value.toFixed(2);
-        event.target.value = fixedValueStr.replace('.', ',');
-        
-        stores.ui.showToast(`A taxa máxima de inscrição é de R$ ${fixedValueStr.replace('.', ',')}.`, "info");
-    } else if (value < 0) {
-        value = 0;
-        event.target.value = '0,00';
-    }
-    
-    editForm.entryFee = parseFloat(value.toFixed(2));
+  event.target.value = valueStr.replace(".", ",");
+
+  let value = parseFloat(valueStr) || 0;
+
+  if (value > MAX_ENTRY_FEE) {
+    value = MAX_ENTRY_FEE;
+
+    const fixedValueStr = value.toFixed(2);
+    event.target.value = fixedValueStr.replace(".", ",");
+
+    stores.ui.showToast(
+      `A taxa máxima de inscrição é de R$ ${fixedValueStr.replace(".", ",")}.`,
+      "info"
+    );
+  } else if (value < 0) {
+    value = 0;
+    event.target.value = "0,00";
+  }
+
+  editForm.entryFee = parseFloat(value.toFixed(2));
 };
 
 async function saveChanges() {
@@ -752,17 +811,23 @@ async function saveChanges() {
     };
 
     if (payload.maxParticipants < pool.value.participants.length) {
-      stores.ui.showToast(`O máximo de participantes não pode ser menor que o número atual (${pool.value.participants.length}).`, 'error');
+      stores.ui.showToast(
+        `O máximo de participantes não pode ser menor que o número atual (${pool.value.participants.length}).`,
+        "error"
+      );
       isActionLoading.value = false;
       return;
     }
 
     const updatedPool = await stores.pools.updatePool(poolId, payload);
     pool.value = { ...pool.value, ...updatedPool };
-    stores.ui.showToast('Bolão atualizado com sucesso!', 'success');
+    stores.ui.showToast("Bolão atualizado com sucesso!", "success");
     isEditMode.value = false;
   } catch (err) {
-    stores.ui.showToast(err.data?.error || 'Falha ao atualizar o bolão.', 'error');
+    stores.ui.showToast(
+      err.data?.error || "Falha ao atualizar o bolão.",
+      "error"
+    );
   } finally {
     isActionLoading.value = false;
   }
@@ -889,4 +954,3 @@ const formatCurrency = (value) => {
   -moz-appearance: textfield;
 }
 </style>
-

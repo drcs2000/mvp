@@ -15,47 +15,66 @@ import usersRouter from './modules/users/users.routes.js';
 import iaRouter from './modules/ia/ia.routes.js';
 import jobRouter from './modules/jobs/job.routes.js';
 
-AppDataSource.initialize()
-  .then(() => {
-    console.log("✅ Conexão com o banco de dados estabelecida com sucesso!");
+const app = express();
+const PORT = process.env.PORT || 3000;
+let dataSourcePromise: Promise<void> | null = null;
 
-    const app = express();
-    const PORT = process.env.PORT || 3000;
+const initializeDataSource = async () => {
+  if (AppDataSource.isInitialized) {
+    return;
+  }
 
-    const allowedOrigins = ['https://www.bethemvp.com.br'];
-
-    if (process.env.NODE_ENV !== 'production') {
-      allowedOrigins.push('http://localhost:3000');
-    }
-
-    const corsOptions = {
-      origin: allowedOrigins,
-    };
-
-    app.use(cors(corsOptions));
-
-    app.use(express.json({ limit: '10mb' }));
-
-    app.get('/', (req: Request, res: Response) => {
-      return res.json({ message: 'API do Bolão está no ar!' });
-    });
-
-    app.use('/auth', authRouter);
-    app.use('/pools', poolRouter);
-    app.use('/matches', matchesRouter);
-    app.use('/championships', championshipsRouter);
-    app.use('/standings', StandingsRouter);
-    app.use('/bets', BetsRouter);
-    app.use('/invitations', InvitationRouter);
-    app.use('/users', usersRouter);
-    app.use('/ia', iaRouter)
-    app.use('/job', jobRouter)
-
-    app.listen(PORT, () => {
-      console.log(`🚀 Servidor rodando na porta ${PORT}`);
-    });
-
-  })
-  .catch((error) => {
-    console.error("❌ Erro ao conectar com o banco de dados:", error);
+  dataSourcePromise ??= AppDataSource.initialize().then(() => {
+    console.log('✅ Conexão com o banco de dados estabelecida com sucesso!');
   });
+
+  await dataSourcePromise;
+};
+
+const allowedOrigins = ['https://www.bethemvp.com.br'];
+
+if (process.env.NODE_ENV !== 'production') {
+  allowedOrigins.push('http://localhost:3000');
+}
+
+app.use(cors({ origin: allowedOrigins }));
+app.use(express.json({ limit: '10mb' }));
+
+app.use(async (req, res, next) => {
+  try {
+    await initializeDataSource();
+    next();
+  } catch (error) {
+    console.error('❌ Erro ao conectar com o banco de dados:', error);
+    res.status(500).json({ message: 'Erro ao conectar com o banco de dados.' });
+  }
+});
+
+app.get('/', (req: Request, res: Response) => {
+  return res.json({ message: 'API do Bolão está no ar!' });
+});
+
+app.use('/auth', authRouter);
+app.use('/pools', poolRouter);
+app.use('/matches', matchesRouter);
+app.use('/championships', championshipsRouter);
+app.use('/standings', StandingsRouter);
+app.use('/bets', BetsRouter);
+app.use('/invitations', InvitationRouter);
+app.use('/users', usersRouter);
+app.use('/ia', iaRouter);
+app.use('/job', jobRouter);
+
+if (!process.env.VERCEL) {
+  initializeDataSource()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`🚀 Servidor rodando na porta ${PORT}`);
+      });
+    })
+    .catch((error) => {
+      console.error('❌ Erro ao conectar com o banco de dados:', error);
+    });
+}
+
+export default app;
