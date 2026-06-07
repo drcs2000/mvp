@@ -12,6 +12,7 @@
     "db:update": "node --loader ts-node/esm src/scripts/update-past-matches.ts",
     "db:seed-world-cup": "node --loader ts-node/esm src/scripts/seed-world-cup-and-update-past.ts",
     "db:refresh-current-seasons": "node --loader ts-node/esm src/scripts/refresh-current-seasons.ts",
+    "db:update-standings": "node --loader ts-node/esm src/scripts/update-all-standings.ts",
     "db:fix-timezones": "node --loader ts-node/esm src/scripts/fix-match-timezones.ts"
   },
   "keywords": [],

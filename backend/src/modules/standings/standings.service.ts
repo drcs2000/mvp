@@ -1,7 +1,7 @@
 import { AppDataSource } from '../../database/data-source.js';
 import { Standings } from '../../entities/standings.entity.js';
 import { Championship } from '../../entities/championship.entity.js';
-import { Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import ExternalApiService from '../../services/external-api.service.js';
 
 export interface IEspnStandingEntry {
@@ -104,6 +104,17 @@ class StandingsService {
     if (standingsToSave.length > 0) {
       const payload = standingsToSave.map(s => ({ ...s, championship }));
       await this.standingsRepository.upsert(payload, ['championship', 'teamEspnId']);
+
+      const currentTeamIds = standingsToSave
+        .map(standing => standing.teamEspnId)
+        .filter((teamId): teamId is number => typeof teamId === 'number');
+
+      if (currentTeamIds.length > 0) {
+        await this.standingsRepository.delete({
+          championship: { id: championship.id },
+          teamEspnId: Not(In(currentTeamIds)),
+        });
+      }
     }
   }
 }

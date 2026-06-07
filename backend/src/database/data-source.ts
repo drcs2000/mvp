@@ -14,6 +14,8 @@ import { ChampionshipStandingRule } from '../entities/championship-standing-rule
 import { HeadToHead } from '../entities/h2h.entity.js';
 import { Invitation } from '../entities/invitation.entity.js';
 
+const defaultPoolMax = process.env.VERCEL ? 1 : 3;
+
 export const AppDataSource = new DataSource({
   type: 'postgres',
 
@@ -22,6 +24,12 @@ export const AppDataSource = new DataSource({
   ssl: process.env.NODE_ENV === 'production'
     ? { rejectUnauthorized: false }
     : false,
+
+  extra: {
+    max: Number(process.env.DB_POOL_MAX || defaultPoolMax),
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 10000,
+  },
 
   synchronize: false,
   logging: process.env.TYPEORM_LOGGING === 'true',

@@ -26,6 +26,9 @@ const initializeDataSource = async () => {
 
   dataSourcePromise ??= AppDataSource.initialize().then(() => {
     console.log('✅ Conexão com o banco de dados estabelecida com sucesso!');
+  }).catch((error) => {
+    dataSourcePromise = null;
+    throw error;
   });
 
   await dataSourcePromise;
@@ -39,6 +42,14 @@ if (process.env.NODE_ENV !== 'production') {
 
 app.use(cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: '10mb' }));
+
+app.get('/favicon.ico', (_req: Request, res: Response) => {
+  return res.status(204).end();
+});
+
+app.get('/', (req: Request, res: Response) => {
+  return res.json({ message: 'API do Bolão está no ar!' });
+});
 
 app.use(async (req, res, next) => {
   try {
