@@ -5,11 +5,13 @@
   "scripts": {
     "build": "node ./node_modules/typescript/bin/tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node-dev src/index.ts",
+    "dev": "node --watch --loader ts-node/esm src/index.ts",
     "typeorm": "node --loader ts-node/esm ./node_modules/typeorm/cli.js -d ./src/database/data-source.ts",
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run",
     "db:update": "node --loader ts-node/esm src/scripts/update-past-matches.ts",
+    "db:seed-world-cup": "node --loader ts-node/esm src/scripts/seed-world-cup-and-update-past.ts",
+    "db:refresh-current-seasons": "node --loader ts-node/esm src/scripts/refresh-current-seasons.ts",
     "db:fix-timezones": "node --loader ts-node/esm src/scripts/fix-match-timezones.ts"
   },
   "keywords": [],

@@ -205,8 +205,6 @@ class MatchService {
 
       const newStatus = this.mapEspnStatus(competition.status.type);
 
-      console.log(newStatus)
-
       const homeScoreValue = homeTeam.score?.value ?? homeTeam.score;
       const awayScoreValue = awayTeam.score?.value ?? awayTeam.score;
       const newHomeScore = homeScoreValue != null ? parseInt(String(homeScoreValue), 10) : null;

@@ -33,6 +33,7 @@ export type Match = {
   status: MatchStatus;
   apiEspnStatusDetail: string | null;
   round: string | null;
+  localTime?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -55,10 +56,34 @@ export const useMatchesStore = defineStore('matches', () => {
   const apiBaseUrl = config.public.apiBaseUrl;
 
   function getHeadersWithTimezone() {
-    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const userTimezone = getUserTimezone();
     return {
       'x-user-timezone': userTimezone
     };
+  }
+
+  function getUserTimezone() {
+    if (!import.meta.client) {
+      return 'America/Sao_Paulo';
+    }
+
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo';
+  }
+
+  function formatLocalTime(dateString: string) {
+    return new Intl.DateTimeFormat('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: getUserTimezone(),
+    }).format(new Date(dateString));
+  }
+
+  function normalizeMatches(matchList: Match[]) {
+    return matchList.map(match => ({
+      ...match,
+      localTime: formatLocalTime(match.date),
+    }));
   }
 
   async function fetchByChampionship(championshipId: number) {
@@ -76,8 +101,9 @@ export const useMatchesStore = defineStore('matches', () => {
         headers: getHeadersWithTimezone()
       });
 
-      matches.value = championshipMatches;
-      matchesCache.value[championshipId] = championshipMatches;
+      const normalizedMatches = normalizeMatches(championshipMatches);
+      matches.value = normalizedMatches;
+      matchesCache.value[championshipId] = normalizedMatches;
     } catch (err: unknown) {
       console.error('Erro ao buscar jogos do campeonato:', err);
       matches.value = [];
@@ -97,7 +123,7 @@ export const useMatchesStore = defineStore('matches', () => {
         headers: getHeadersWithTimezone()
       });
 
-      matches.value = teamMatches;
+      matches.value = normalizeMatches(teamMatches);
     } catch (err: unknown) {
       console.error(`Erro ao buscar jogos do time ${teamId}:`, err);
       matches.value = [];
@@ -113,7 +139,12 @@ export const useMatchesStore = defineStore('matches', () => {
       const response = await $fetch<{ [key: number]: Match[] }>(url, {
         params: { teamIds: teamIds.join(',') }
       });
-      return response;
+      return Object.fromEntries(
+        Object.entries(response).map(([teamId, teamMatches]) => [
+          teamId,
+          normalizeMatches(teamMatches),
+        ])
+      );
     } catch (err: unknown) {
       console.error('Erro ao buscar os últimos jogos dos times:', err);
       error.value = err;

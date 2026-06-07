@@ -24,7 +24,7 @@ export const AppDataSource = new DataSource({
     : false,
 
   synchronize: false,
-  logging: true,
+  logging: process.env.TYPEORM_LOGGING === 'true',
 
   entities: [
     User,

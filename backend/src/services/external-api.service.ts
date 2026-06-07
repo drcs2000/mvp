@@ -87,6 +87,18 @@ class ExternalAPIService {
     }
   }
 
+  public async getMatchesByDateString(leagueSlug: string, dateString: string): Promise<IEspnEvent[]> {
+    const endpoint = `/${leagueSlug}/scoreboard?dates=${dateString}`;
+
+    try {
+      const response = await this.apiClient.get(endpoint);
+      return response.data?.events || [];
+    } catch (error) {
+      console.error(`Erro ao buscar jogos para a liga ${leagueSlug} na data ${dateString}:`, error);
+      return [];
+    }
+  }
+
   public async getScheduleForTeam(leagueSlug: string, teamId: string): Promise<IEspnEvent[]> {
     const pastGamesEndpoint = `/${leagueSlug}/teams/${teamId}/schedule`;
     const futureGamesEndpoint = `/${leagueSlug}/teams/${teamId}/schedule?fixture=true`;
