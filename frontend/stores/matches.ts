@@ -82,7 +82,7 @@ export const useMatchesStore = defineStore('matches', () => {
   function normalizeMatches(matchList: Match[]) {
     return matchList.map(match => ({
       ...match,
-      localTime: formatLocalTime(match.date),
+      localTime: match.localTime || formatLocalTime(match.date),
     }));
   }
 

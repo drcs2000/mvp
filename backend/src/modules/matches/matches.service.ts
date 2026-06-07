@@ -30,13 +30,24 @@ class MatchService {
     const timeZone = timezone || 'America/Sao_Paulo';
     return matches.map(match => ({
       ...match,
-      localTime: formatInTimeZone(new Date(match.date), timeZone, 'HH:mm'),
+      localTime: formatInTimeZone(
+        new Date(match.date),
+        this.shouldUseStoredBrazilTime(match.championship) ? 'UTC' : timeZone,
+        'HH:mm',
+      ),
     }));
+  }
+
+  private shouldUseStoredBrazilTime(championship?: Championship | null): boolean {
+    const slug = championship?.apiEspnSlug || '';
+
+    return slug.startsWith('bra.') || slug.startsWith('conmebol.');
   }
 
   public async getMatches(championshipId: number, userTimezone?: string): Promise<any[]> {
     const matches = await this.matchRepository.find({
       where: { championship: { id: championshipId } },
+      relations: ['championship'],
       order: { date: 'ASC' },
     });
 
@@ -55,6 +66,7 @@ class MatchService {
         { homeTeamEspnId: teamEspnId },
         { awayTeamEspnId: teamEspnId },
       ],
+      relations: ['championship'],
       order: { date: 'ASC' },
     });
     return this.addLocalTime(matches, userTimezone);
