@@ -277,7 +277,12 @@
                   <div v-else class="text-center">
                     <button
                       class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-500 disabled:text-gray-500 disabled:cursor-not-allowed dark:text-blue-400 dark:hover:text-blue-300 dark:disabled:text-gray-600 transition-colors"
-                      :disabled="isBettingTimeExpired(match)"
+                      :disabled="!isAiPredictionAvailable || isBettingTimeExpired(match)"
+                      :title="
+                        isAiPredictionAvailable
+                          ? 'Usar Palpite da IA'
+                          : 'Palpite da IA indisponível no momento'
+                      "
                       @click="handlePrediction(match)"
                     >
                       <span>Usar Palpite da IA</span>
@@ -659,8 +664,11 @@ const detailsLoading = ref(false);
 const isH2HLoading = reactive({});
 const predictingMatchId = ref(null);
 const predictions = reactive({});
+const isAiPredictionAvailable = false;
 
 async function handlePrediction(match) {
+  if (!isAiPredictionAvailable) return;
+
   if (predictions[match.id]) {
     const prediction = predictions[match.id];
     if (betForms.value[match.id]) {
