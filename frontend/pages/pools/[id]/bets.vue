@@ -210,7 +210,11 @@
               v-else
               class="text-xs text-gray-400 dark:text-gray-500 text-center mt-3 px-4"
             >
-              Nenhum palpite para este jogo.
+              {{
+                hasMatchStarted(match)
+                  ? "Nenhum palpite para este jogo."
+                  : "Os palpites dos outros integrantes serão liberados quando o jogo começar."
+              }}
             </div>
           </div>
         </template>
@@ -223,7 +227,7 @@
 import { computed, ref, onMounted } from "vue";
 import {
   ExclamationTriangleIcon,
-  ArrowPathIcon,
+  // ArrowPathIcon,
 } from "@heroicons/vue/20/solid";
 
 const stores = useStores();
@@ -280,19 +284,19 @@ onMounted(async () => {
   }
 });
 
-const handleSync = async () => {
-  try {
-    await stores.bet.syncPool(poolId.value);
-    stores.ui.showToast("Bolão sincronizado com sucesso!", "success");
-    const bets = await stores.bet.fetchAllBetsByPool(poolId.value, true);
-    allBets.value = bets;
-  } catch (e) {
-    stores.ui.showToast(
-      e.data?.message || e.message || "Ocorreu um erro ao sincronizar.",
-      "error"
-    );
-  }
-};
+// const handleSync = async () => {
+//  try {
+//    await stores.bet.syncPool(poolId.value);
+//    stores.ui.showToast("Bolão sincronizado com sucesso!", "success");
+//    const bets = await stores.bet.fetchAllBetsByPool(poolId.value, true);
+//    allBets.value = bets;
+//  } catch (e) {
+//    stores.ui.showToast(
+//      e.data?.message || e.message || "Ocorreu um erro ao sincronizar.",
+//      "error"
+//    );
+//  }
+//};
 
 const getHitType = (bet, match) => {
   if (
@@ -481,6 +485,9 @@ const getStatusText = (status) =>
     POSTPONED: "Adiado",
     CANCELED: "Cancelado",
   }[status] || status);
+
+const hasMatchStarted = (match) =>
+  ["IN_PROGRESS", "HALFTIME", "FULL_TIME", "FINAL"].includes(match.status);
 
 const isHomeWinner = (match) =>
   match &&

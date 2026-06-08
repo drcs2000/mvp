@@ -17,9 +17,19 @@ class BetsService {
 
     const match = await this.matchRepository.findOneBy({ id: matchId })
     const pool = await this.poolRepository.findOneBy({ id: poolId })
+    const isParticipant = await this.poolParticipantRepository.findOne({
+      where: {
+        pool: { id: poolId },
+        user: { id: userId },
+      }
+    })
 
     if (!match || !pool) {
       throw new Error("Partida ou bolão não encontrados.")
+    }
+
+    if (!isParticipant) {
+      throw new Error("Você não é participante deste bolão.")
     }
 
     const matchDate = new Date(match.date)
@@ -53,8 +63,21 @@ class BetsService {
     }
   }
 
-  public async findBets(filters: { userId?: number, poolId?: number }) {
+  public async findBets(filters: { userId: number, poolId?: number }) {
     const { userId, poolId } = filters
+
+    if (poolId) {
+      const isParticipant = await this.poolParticipantRepository.findOne({
+        where: {
+          pool: { id: poolId },
+          user: { id: userId },
+        }
+      })
+
+      if (!isParticipant) {
+        throw new Error("Você não é participante deste bolão.")
+      }
+    }
 
     const whereClause: any = {}
     if (userId) {
@@ -87,10 +110,26 @@ class BetsService {
       throw new Error("Você não é participante deste bolão.")
     }
 
+    const startedStatuses = [
+      MatchStatus.IN_PROGRESS,
+      MatchStatus.HALFTIME,
+      MatchStatus.FULL_TIME,
+      MatchStatus.FINAL,
+    ]
+
     return this.betRepository.createQueryBuilder('bet')
       .leftJoinAndSelect('bet.user', 'user')
       .leftJoinAndSelect('bet.match', 'match')
+      .innerJoin(
+        PoolParticipant,
+        'participant',
+        'participant.poolId = bet.poolId AND participant.userId = user.id'
+      )
       .where('bet.poolId = :poolId', { poolId })
+      .andWhere(
+        '(user.id = :userId OR match.status IN (:...startedStatuses))',
+        { userId, startedStatuses }
+      )
       .orderBy('match.date', 'ASC')
       .getMany();
   }
@@ -100,32 +139,32 @@ class BetsService {
     if (!pool) {
       throw new Error("Bolão não encontrado.");
     }
-  
+
     const betsToScore = await this.betRepository.find({
       where: {
         pool: { id: poolId },
         match: { status: MatchStatus.FINAL },
-        pointsEarned: IsNull() 
+        pointsEarned: IsNull()
       },
       relations: ['match', 'pool'],
     });
-  
+
     console.log(`Encontradas ${betsToScore.length} apostas para pontuar.`);
-  
+
     if (betsToScore.length === 0) {
       console.log(`Nenhuma aposta nova para pontuar no bolão ${poolId}.`);
       return;
     }
-  
+
     const betsToUpdate: Bet[] = [];
-  
+
     for (const bet of betsToScore) {
       const newPoints = MatchService.calculatePoints(bet, bet.match, bet.pool);
-  
+
       bet.pointsEarned = newPoints;
       betsToUpdate.push(bet);
     }
-  
+
     if (betsToUpdate.length > 0) {
       await this.betRepository.save(betsToUpdate);
       console.log(`${betsToUpdate.length} apostas foram pontuadas com sucesso no bolão ${poolId}.`);

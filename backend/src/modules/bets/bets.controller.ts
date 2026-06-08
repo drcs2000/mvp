@@ -38,14 +38,21 @@ class BetsController {
       if (error.message.includes("prazo")) {
         return res.status(403).json({ message: error.message })
       }
+      if (error.message.includes("não é participante")) {
+        return res.status(403).json({ message: error.message })
+      }
       return res.status(500).json({ message: "Falha ao salvar o palpite." })
     }
   }
 
   public getBets = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { userId, poolId } = req.query
+      const { poolId } = req.query
       const loggedInUserId = req.user?.id
+
+      if (!loggedInUserId) {
+        return res.status(401).json({ message: "Usuário não autenticado." })
+      }
 
       let decodedPoolId = undefined
       if (poolId) {
@@ -56,7 +63,7 @@ class BetsController {
       }
 
       const filters = {
-        userId: userId ? Number(userId) : loggedInUserId,
+        userId: loggedInUserId,
         poolId: decodedPoolId,
       }
 
@@ -64,6 +71,9 @@ class BetsController {
       return res.status(200).json(bets)
     } catch (error: any) {
       console.error(error)
+      if (error.message.includes("não é participante")) {
+        return res.status(403).json({ message: error.message })
+      }
       return res.status(500).json({ message: "Falha ao buscar os palpites." })
     }
   }
