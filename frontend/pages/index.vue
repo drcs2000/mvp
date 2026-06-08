@@ -285,8 +285,13 @@ watch(
 
 const leagueChampionships = computed(() => {
   return stores.championships.allChampionships.filter(
-    (c) => c.type === "League"
+    (c) => c.apiEspnSlug === "fifa.world"
   );
+
+  // Depois da Copa, volte para o filtro abaixo:
+  // return stores.championships.allChampionships.filter(
+  //   (c) => c.type === "League"
+  // );
 });
 
 const selectedDate = ref(null);
