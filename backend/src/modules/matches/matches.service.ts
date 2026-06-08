@@ -27,9 +27,11 @@ class MatchService {
   }
 
   private addLocalTime(matches: Match[], timezone: string | undefined): any[] {
+    const timeZone = timezone || 'America/Sao_Paulo';
+
     return matches.map(match => ({
       ...match,
-      localTime: formatInTimeZone(new Date(match.date), 'UTC', 'HH:mm'),
+      localTime: formatInTimeZone(new Date(match.date), timeZone, 'HH:mm'),
     }));
   }
 

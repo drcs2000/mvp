@@ -3,6 +3,7 @@
 import 'reflect-metadata';
 import 'dotenv/config';
 import { types } from 'pg';
+import { fromZonedTime } from 'date-fns-tz';
 import { DataSource } from 'typeorm';
 import { User } from '../entities/user.entity.js';
 import { Pool } from '../entities/pool.entity.js';
@@ -15,7 +16,9 @@ import { ChampionshipStandingRule } from '../entities/championship-standing-rule
 import { HeadToHead } from '../entities/h2h.entity.js';
 import { Invitation } from '../entities/invitation.entity.js';
 
-types.setTypeParser(1114, (value) => new Date(`${value}Z`));
+types.setTypeParser(1114, (value) =>
+  fromZonedTime(value.replace(' ', 'T'), 'America/Sao_Paulo')
+);
 
 const defaultPoolMax = process.env.VERCEL ? 1 : 3;
 
