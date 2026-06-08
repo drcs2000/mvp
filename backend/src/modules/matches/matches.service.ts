@@ -27,21 +27,10 @@ class MatchService {
   }
 
   private addLocalTime(matches: Match[], timezone: string | undefined): any[] {
-    const timeZone = timezone || 'America/Sao_Paulo';
     return matches.map(match => ({
       ...match,
-      localTime: formatInTimeZone(
-        new Date(match.date),
-        this.shouldUseStoredBrazilTime(match.championship) ? 'UTC' : timeZone,
-        'HH:mm',
-      ),
+      localTime: formatInTimeZone(new Date(match.date), 'UTC', 'HH:mm'),
     }));
-  }
-
-  private shouldUseStoredBrazilTime(championship?: Championship | null): boolean {
-    const slug = championship?.apiEspnSlug || '';
-
-    return slug.startsWith('bra.') || slug.startsWith('conmebol.');
   }
 
   public async getMatches(championshipId: number, userTimezone?: string): Promise<any[]> {

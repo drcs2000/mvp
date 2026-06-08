@@ -2,6 +2,7 @@
 
 import 'reflect-metadata';
 import 'dotenv/config';
+import { types } from 'pg';
 import { DataSource } from 'typeorm';
 import { User } from '../entities/user.entity.js';
 import { Pool } from '../entities/pool.entity.js';
@@ -13,6 +14,8 @@ import { Bet } from '../entities/bet.entity.js';
 import { ChampionshipStandingRule } from '../entities/championship-standing-rule.entity.js';
 import { HeadToHead } from '../entities/h2h.entity.js';
 import { Invitation } from '../entities/invitation.entity.js';
+
+types.setTypeParser(1114, (value) => new Date(`${value}Z`));
 
 const defaultPoolMax = process.env.VERCEL ? 1 : 3;
 
