@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { In, Not } from 'typeorm';
+import { In, LessThan, Not } from 'typeorm';
 import { AppDataSource } from '../database/data-source.js';
 import { CalendarType, Championship } from '../entities/championship.entity.js';
 import { Match } from '../entities/match.entity.js';
@@ -114,9 +114,10 @@ async function replaceWithCurrentCalendar(championship: Championship, events: IE
   const deleteResult = await matchRepository.delete({
     championship: { id: championship.id },
     apiEspnId: Not(In(eventIds)),
+    date: LessThan(new Date()),
   });
 
-  const { created, updated } = await MatchService.updateMatches(championship, events);
+  const { created, updated } = await MatchService.updateMatchesFromCron(events, championship);
   console.log(`  -> Removidas ${deleteResult.affected || 0} partidas antigas.`);
   console.log(`  -> ${created} partidas criadas e ${updated} atualizadas.`);
 }

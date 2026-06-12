@@ -1,4 +1,4 @@
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { AppDataSource } from '../../database/data-source.js';
 import { Bet } from '../../entities/bet.entity.js';
 import { Championship } from '../../entities/championship.entity.js';
@@ -163,7 +163,7 @@ class MatchService {
     return 0;
   }
 
-  public async updateMatchesFromCron(events: IEspnEvent[]): Promise<{ created: number; updated: number; finishedChampionships: Set<number> }> {
+  public async updateMatchesFromCron(events: IEspnEvent[], championship?: Championship): Promise<{ created: number; updated: number; finishedChampionships: Set<number> }> {
     let createdCount = 0;
     let updatedCount = 0;
     const finishedChampionships = new Set<number>();
@@ -179,9 +179,9 @@ class MatchService {
     });
 
     const matchesToSave: Match[] = [];
-    const matchesToUpdateBets: Match[] = [];
+    const matchesToUpdateBets: { match: Match; onlyUnscored: boolean }[] = [];
 
-    let inferredChampionship: Championship | null = existingMatches.length > 0 ? existingMatches[0].championship : null;
+    const inferredChampionship: Championship | null = championship || (existingMatches.length > 0 ? existingMatches[0].championship : null);
 
     for (const event of events) {
       const competition = event.competitions?.[0];
@@ -243,10 +243,11 @@ class MatchService {
 
         matchesToSave.push(match);
 
-        if (newStatus === MatchStatus.FINAL) {
-          finishedChampionships.add(match.championship.id);
-          matchesToUpdateBets.push(match);
-        }
+      }
+
+      if (newStatus === MatchStatus.FINAL) {
+        finishedChampionships.add(match.championship.id);
+        matchesToUpdateBets.push({ match, onlyUnscored: !hasChanged });
       }
     }
 
@@ -255,23 +256,28 @@ class MatchService {
       console.log(` -> ${createdCount} partidas criadas e ${updatedCount} atualizadas no banco de dados.`);
     }
 
-    for (const match of matchesToUpdateBets) {
+    for (const { match, onlyUnscored } of matchesToUpdateBets) {
       console.log(`  -> Jogo ${match.apiEspnId} [${match.championship.name}] finalizado. Acionando atualização de H2H e Apostas.`);
-      await this.updateH2HForMatch(match);
-      await this.updateBetsForFinishedMatch(match);
+      if (!onlyUnscored) {
+        await this.updateH2HForMatch(match);
+      }
+      await this.updateBetsForFinishedMatch(match, onlyUnscored);
     }
 
     return { created: createdCount, updated: updatedCount, finishedChampionships };
   }
 
-  public async updateBetsForFinishedMatch(match: Match): Promise<void> {
+  public async updateBetsForFinishedMatch(match: Match, onlyUnscored = false): Promise<void> {
     if (match.status !== MatchStatus.FINAL || typeof match.homeScore !== 'number' || typeof match.awayScore !== 'number') {
       console.warn(`  -> Cálculo de pontos para o jogo ${match.id} ignorado: partida não está finalizada.`);
       return;
     }
 
     const bets = await this.betRepository.find({
-      where: { match: { id: match.id } },
+      where: {
+        match: { id: match.id },
+        ...(onlyUnscored ? { pointsEarned: IsNull() } : {}),
+      },
       relations: ['pool'],
     });
 
@@ -287,6 +293,26 @@ class MatchService {
 
     await this.betRepository.save(bets);
     console.log(`  -> Pontos calculados para ${bets.length} aposta(s) do jogo ${match.id}.`);
+  }
+
+  public async syncUnscoredFinishedBets(): Promise<number> {
+    const bets = await this.betRepository.find({
+      where: {
+        match: { status: MatchStatus.FINAL },
+        pointsEarned: IsNull(),
+      },
+      relations: ['match', 'pool'],
+    });
+
+    for (const bet of bets) {
+      bet.pointsEarned = this.calculatePoints(bet, bet.match, bet.pool);
+    }
+
+    if (bets.length > 0) {
+      await this.betRepository.save(bets);
+    }
+
+    return bets.length;
   }
 
   public async updateH2HForMatch(match: Match): Promise<void> {
