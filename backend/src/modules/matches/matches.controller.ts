@@ -20,6 +20,25 @@ class MatchController {
     }
   }
 
+  public syncChampionship = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const championshipId = parseInt(req.params.championshipId, 10);
+
+      if (isNaN(championshipId)) {
+        return res.status(400).json({ message: "O ID do campeonato deve ser um número." });
+      }
+
+      const result = await MatchService.syncChampionship(championshipId);
+      return res.status(200).json({
+        message: "Jogos do campeonato sincronizados com sucesso.",
+        ...result,
+      });
+    } catch (error: any) {
+      console.error(error);
+      return res.status(500).json({ message: "Falha ao sincronizar jogos do campeonato.", details: error.message });
+    }
+  }
+
   public findByTeam = async (req: Request, res: Response): Promise<Response> => {
     try {
       const { teamId } = req.params;

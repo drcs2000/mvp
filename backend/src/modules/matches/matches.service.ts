@@ -5,7 +5,8 @@ import { Championship } from '../../entities/championship.entity.js';
 import { HeadToHead } from '../../entities/h2h.entity.js';
 import { Match, MatchStatus } from '../../entities/match.entity.js';
 import { Pool } from '../../entities/pool.entity.js';
-import { IEspnEvent } from '../../services/external-api.service.js';
+import { Standings } from '../../entities/standings.entity.js';
+import ExternalApiService, { IEspnEvent } from '../../services/external-api.service.js';
 import { formatInTimeZone } from 'date-fns-tz';
 
 export interface IPointsSystem {
@@ -19,11 +20,15 @@ class MatchService {
   private matchRepository: Repository<Match>;
   private h2hRepository: Repository<HeadToHead>;
   private betRepository: Repository<Bet>;
+  private championshipRepository: Repository<Championship>;
+  private standingsRepository: Repository<Standings>;
 
   constructor() {
     this.matchRepository = AppDataSource.getRepository(Match);
     this.h2hRepository = AppDataSource.getRepository(HeadToHead);
     this.betRepository = AppDataSource.getRepository(Bet);
+    this.championshipRepository = AppDataSource.getRepository(Championship);
+    this.standingsRepository = AppDataSource.getRepository(Standings);
   }
 
   private addLocalTime(matches: Match[], timezone: string | undefined): any[] {
@@ -132,6 +137,39 @@ class MatchService {
       }
     }
     return { created: createdCount, updated: updatedCount };
+  }
+
+  public async syncChampionship(championshipId: number): Promise<{ created: number; updated: number }> {
+    const championship = await this.championshipRepository.findOneBy({ id: championshipId });
+
+    if (!championship) {
+      throw new Error(`Campeonato com ID ${championshipId} não encontrado.`);
+    }
+
+    const teams = await this.standingsRepository.find({
+      where: { championship: { id: championshipId } },
+    });
+
+    if (teams.length === 0) {
+      throw new Error('Não há times na classificação deste campeonato para sincronizar.');
+    }
+
+    const eventsById = new Map<string, IEspnEvent>();
+    const schedules = await Promise.all(
+      teams.map(team => ExternalApiService.getScheduleForTeam(
+        championship.apiEspnSlug,
+        String(team.teamEspnId),
+      )),
+    );
+
+    for (const events of schedules) {
+      for (const event of events) {
+        eventsById.set(event.id, event);
+      }
+    }
+
+    const result = await this.updateMatchesFromCron(Array.from(eventsById.values()), championship);
+    return { created: result.created, updated: result.updated };
   }
 
   public calculatePoints(bet: Bet, match: Match, pool: Pool): number {

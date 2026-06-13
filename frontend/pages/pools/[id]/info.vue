@@ -36,7 +36,7 @@
               {{ championshipName }}
             </p>
           </div>
-          <div class="flex items-center gap-4 text-left sm:text-right">
+          <div class="flex items-center flex-wrap justify-end gap-x-4 gap-y-2 text-left sm:text-right">
             <NuxtLink
               :to="`/pools/${poolId}/bets`"
               class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap dark:text-gray-300 dark:hover:text-blue-400"
@@ -49,6 +49,10 @@
             >
               Palpitar
             </NuxtLink>
+            <PoolSyncButton
+              :championship-id="pool.baseChampionship.id"
+              @synced="handleChampionshipSynced"
+            />
           </div>
         </div>
       </header>
@@ -295,6 +299,11 @@
                 </div>
               </div>
               <div class="flex items-center">
+                <span
+                  class="mr-3 text-sm font-bold text-blue-600 md:hidden dark:text-blue-400"
+                >
+                  {{ participant.stats.totalPoints }} pts
+                </span>
                 <ChevronDownIcon
                   class="w-5 h-5 text-gray-400 transition-transform dark:text-gray-500"
                   :class="isExpanded(participant.userId) ? 'rotate-180' : ''"
@@ -698,6 +707,10 @@ const participantStats = computed(() => {
   });
   return statsList.sort((a, b) => b.stats.totalPoints - a.stats.totalPoints);
 });
+
+const handleChampionshipSynced = async () => {
+  await stores.bet.fetchAllBetsByPool(poolId, true);
+};
 
 onMounted(async () => {
   isInfoExpanded.value = !isMobile.value;

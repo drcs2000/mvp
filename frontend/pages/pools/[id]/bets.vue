@@ -23,18 +23,7 @@
       <div class="sticky top-0 z-20">
         <ChampionshipHeader :championship="currentChampionship">
           <template #right>
-            <!-- <button
-              type="button"
-              :disabled="stores.bet.loading"
-              class="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap disabled:opacity-50 disabled:cursor-wait dark:text-gray-300 dark:hover:text-blue-400"
-              @click="handleSync"
-            >
-              <ArrowPathIcon
-                class="w-4 h-4"
-                :class="{ 'animate-spin': stores.bet.loading }"
-              />
-              Sincronizar
-            </button> -->
+            <div class="flex items-center flex-wrap justify-end gap-x-4 gap-y-2">
             <NuxtLink
               :to="`/pools/${poolId}`"
               class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap dark:text-gray-300 dark:hover:text-blue-400"
@@ -47,6 +36,11 @@
             >
               Informações
             </NuxtLink>
+              <PoolSyncButton
+                :championship-id="currentChampionship.id"
+                @synced="handleChampionshipSynced"
+              />
+            </div>
           </template>
         </ChampionshipHeader>
 
@@ -225,10 +219,7 @@
 
 <script setup>
 import { computed, ref, onMounted } from "vue";
-import {
-  ExclamationTriangleIcon,
-  // ArrowPathIcon,
-} from "@heroicons/vue/20/solid";
+import { ExclamationTriangleIcon } from "@heroicons/vue/20/solid";
 
 const stores = useStores();
 const route = useRoute();
@@ -240,6 +231,14 @@ const currentChampionship = ref(null);
 const allBets = ref([]);
 
 const selectedDate = ref(null);
+
+const handleChampionshipSynced = async () => {
+  selectedDate.value = findInitialDate(stores.matches.matches);
+  const bets = await stores.bet.fetchAllBetsByPool(poolId.value, true);
+  if (bets.success) {
+    allBets.value = bets.data;
+  }
+};
 
 const getLocalDateString = (utcDateString) => {
   if (!utcDateString) return null;

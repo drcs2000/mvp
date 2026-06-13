@@ -34,6 +34,10 @@
             >
               Informações
             </NuxtLink>
+            <PoolSyncButton
+              :championship-id="currentChampionship.id"
+              @synced="handleChampionshipSynced"
+            />
           </div>
         </template>
       </ChampionshipHeader>
@@ -665,6 +669,15 @@ const isH2HLoading = reactive({});
 const predictingMatchId = ref(null);
 const predictions = reactive({});
 const isAiPredictionAvailable = false;
+
+const handleChampionshipSynced = async () => {
+  const betsResult = await stores.bet.fetchBets({ poolId: poolId.value });
+  if (betsResult.success) {
+    allBets.value = betsResult.data;
+  }
+  selectedDate.value = findInitialDate(stores.matches.matches);
+  populateBetForms();
+};
 
 async function handlePrediction(match) {
   if (!isAiPredictionAvailable) return;

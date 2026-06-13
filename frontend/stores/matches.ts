@@ -86,8 +86,8 @@ export const useMatchesStore = defineStore('matches', () => {
     }));
   }
 
-  async function fetchByChampionship(championshipId: number) {
-    if (matchesCache.value[championshipId]) {
+  async function fetchByChampionship(championshipId: number, force = false) {
+    if (matchesCache.value[championshipId] && !force) {
       matches.value = matchesCache.value[championshipId];
       return;
     }
@@ -108,6 +108,23 @@ export const useMatchesStore = defineStore('matches', () => {
       console.error('Erro ao buscar jogos do campeonato:', err);
       matches.value = [];
       error.value = err;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  async function syncChampionship(championshipId: number) {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      const url = import.meta.dev ? `/api/matches/update/${championshipId}` : `${apiBaseUrl}/matches/update/${championshipId}`;
+      await $fetch(url, { method: 'POST' });
+      delete matchesCache.value[championshipId];
+    } catch (err: unknown) {
+      error.value = err;
+      console.error('Erro ao sincronizar jogos do campeonato:', err);
+      throw err;
     } finally {
       isLoading.value = false;
     }
@@ -169,6 +186,7 @@ export const useMatchesStore = defineStore('matches', () => {
     isLoading,
     error,
     fetchByChampionship,
+    syncChampionship,
     fetchByTeam,
     fetchLastGames,
     fetchH2H,

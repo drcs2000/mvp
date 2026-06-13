@@ -34,8 +34,8 @@ export const useStandingsStore = defineStore('standings', () => {
   const config = useRuntimeConfig();
   const apiBaseUrl = config.public.apiBaseUrl;
 
-  async function fetchStandingsByChampionshipId(championshipId: number) {
-    if (standingsCache.value[championshipId]) {
+  async function fetchStandingsByChampionshipId(championshipId: number, force = false) {
+    if (standingsCache.value[championshipId] && !force) {
       standings.value = standingsCache.value[championshipId];
       return;
     }
@@ -57,10 +57,28 @@ export const useStandingsStore = defineStore('standings', () => {
     }
   }
 
+  async function syncChampionship(championshipId: number) {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      const url = import.meta.dev ? `/api/standings/update/${championshipId}` : `${apiBaseUrl}/standings/update/${championshipId}`;
+      await $fetch(url, { method: 'POST' });
+      delete standingsCache.value[championshipId];
+    } catch (err: unknown) {
+      error.value = err;
+      console.error('Falha ao sincronizar a classificação:', err);
+      throw err;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   return {
     standings,
     isLoading,
     error,
     fetchStandingsByChampionshipId,
+    syncChampionship,
   };
 });
