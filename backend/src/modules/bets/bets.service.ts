@@ -12,6 +12,10 @@ class BetsService {
   private poolRepository = AppDataSource.getRepository(Pool)
   private poolParticipantRepository = AppDataSource.getRepository(PoolParticipant)
 
+  private getBetDeadline(matchDate: Date, betDeadlineHours: number) {
+    return new Date(matchDate.getTime() - betDeadlineHours * 60 * 60 * 1000)
+  }
+
   public async createOrUpdateBet(data: { userId: number, poolId: number, matchId: number, homeScoreBet: number, awayScoreBet: number }) {
     const { userId, poolId, matchId, homeScoreBet, awayScoreBet } = data
 
@@ -33,7 +37,7 @@ class BetsService {
     }
 
     const matchDate = new Date(match.date)
-    const deadline = new Date(matchDate.getTime() - (pool.betDeadlineHours * 60 * 60 * 1000))
+    const deadline = this.getBetDeadline(matchDate, pool.betDeadlineHours)
 
     if (new Date() > deadline) {
       throw new Error("O prazo para palpitar neste jogo já encerrou.")
@@ -115,7 +119,7 @@ class BetsService {
       throw new Error("Bolão não encontrado.")
     }
 
-    const visibleUntil = new Date(Date.now() + pool.betDeadlineHours * 60 * 60 * 1000)
+    const visibleMatchDate = new Date(Date.now() + pool.betDeadlineHours * 60 * 60 * 1000)
 
     return this.betRepository.createQueryBuilder('bet')
       .leftJoinAndSelect('bet.user', 'user')
@@ -127,8 +131,8 @@ class BetsService {
       )
       .where('bet.poolId = :poolId', { poolId })
       .andWhere(
-        '(user.id = :userId OR match.date <= :visibleUntil)',
-        { userId, visibleUntil }
+        '(user.id = :userId OR match.date <= :visibleMatchDate)',
+        { userId, visibleMatchDate }
       )
       .orderBy('match.date', 'ASC')
       .getMany();

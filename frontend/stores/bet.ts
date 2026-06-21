@@ -133,11 +133,7 @@ export const useBetsStore = defineStore('bets', () => {
    * @param poolId O ID do bolão.
    * @returns Um objeto indicando sucesso ou falha, com os dados dos palpites ou uma mensagem de erro.
    */
-  async function fetchAllBetsByPool(poolId: string, forceRefresh: boolean = false) {
-    if (allPoolBets.value[poolId] && !forceRefresh) {
-      return { success: true, data: allPoolBets.value[poolId] };
-    }
-
+  async function fetchAllBetsByPool(poolId: string, _forceRefresh: boolean = false) {
     const authStore = useAuthStore();
     if (!authStore.isAuthenticated) {
       return { success: false, error: 'Você precisa estar logado para ver os palpites.' };
