@@ -299,6 +299,11 @@
                 </div>
               </div>
               <div class="flex items-center">
+                <span
+                  class="mr-3 whitespace-nowrap text-sm font-bold text-blue-600 dark:text-blue-400"
+                >
+                  {{ participant.stats.totalPoints }} pts
+                </span>
                 <ChevronDownIcon
                   class="w-5 h-5 text-gray-400 transition-transform dark:text-gray-500"
                   :class="isExpanded(participant.userId) ? 'rotate-180' : ''"
