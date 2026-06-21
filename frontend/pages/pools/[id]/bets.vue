@@ -38,7 +38,7 @@
             </NuxtLink>
               <PoolSyncButton
                 :championship-id="currentChampionship.id"
-                @synced="handleChampionshipSynced"
+                :after-sync="handleChampionshipSynced"
               />
             </div>
           </template>
@@ -234,10 +234,20 @@ const allBets = ref([]);
 const selectedDate = ref(null);
 
 const handleChampionshipSynced = async () => {
-  selectedDate.value = findInitialDate(stores.matches.matches);
-  const bets = await stores.bet.fetchAllBetsByPool(poolId.value, true);
-  if (bets.success) {
-    allBets.value = bets.data;
+  loading.value = true;
+  try {
+    const syncResult = await stores.bet.syncPool(poolId.value);
+    if (!syncResult.success) {
+      throw new Error(syncResult.error);
+    }
+
+    selectedDate.value = findInitialDate(stores.matches.matches);
+    const bets = await stores.bet.fetchAllBetsByPool(poolId.value, true);
+    if (bets.success) {
+      allBets.value = bets.data;
+    }
+  } finally {
+    loading.value = false;
   }
 };
 

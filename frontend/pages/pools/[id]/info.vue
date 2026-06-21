@@ -51,7 +51,7 @@
             </NuxtLink>
             <PoolSyncButton
               :championship-id="pool.baseChampionship.id"
-              @synced="handleChampionshipSynced"
+              :after-sync="handleChampionshipSynced"
             />
           </div>
         </div>
@@ -752,7 +752,17 @@ const participantStats = computed(() => {
 });
 
 const handleChampionshipSynced = async () => {
-  await stores.bet.fetchAllBetsByPool(poolId, true);
+  loading.value = true;
+  try {
+    const syncResult = await stores.bet.syncPool(poolId);
+    if (!syncResult.success) {
+      throw new Error(syncResult.error);
+    }
+
+    await stores.bet.fetchAllBetsByPool(poolId, true);
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(async () => {

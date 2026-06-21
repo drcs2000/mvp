@@ -36,14 +36,14 @@
             </NuxtLink>
             <PoolSyncButton
               :championship-id="currentChampionship.id"
-              @synced="handleChampionshipSynced"
+              :after-sync="handleChampionshipSynced"
             />
           </div>
         </template>
       </ChampionshipHeader>
 
       <DateSelector
-        v-if="!stores.matches.loading && allGameDays.length > 0"
+        v-if="!loading && !stores.matches.isLoading && allGameDays.length > 0"
         :is-first="isFirstDay"
         :is-last="isLastDay"
         :label="formatDate(selectedDate)"
@@ -52,7 +52,7 @@
       />
     </div>
 
-    <MatchList :matches-by-day="matchesByDay" :loading="stores.matches.loading">
+    <MatchList :matches-by-day="matchesByDay" :loading="loading || stores.matches.isLoading">
       <template #match="{ matches }">
         <template v-for="match in matches" :key="match.id">
           <div
@@ -671,12 +671,22 @@ const predictions = reactive({});
 const isAiPredictionAvailable = false;
 
 const handleChampionshipSynced = async () => {
-  const betsResult = await stores.bet.fetchBets({ poolId: poolId.value });
-  if (betsResult.success) {
-    allBets.value = betsResult.data;
+  loading.value = true;
+  try {
+    const syncResult = await stores.bet.syncPool(poolId.value);
+    if (!syncResult.success) {
+      throw new Error(syncResult.error);
+    }
+
+    const betsResult = await stores.bet.fetchBets({ poolId: poolId.value });
+    if (betsResult.success) {
+      allBets.value = betsResult.data;
+    }
+    selectedDate.value = findInitialDate(stores.matches.matches);
+    populateBetForms();
+  } finally {
+    loading.value = false;
   }
-  selectedDate.value = findInitialDate(stores.matches.matches);
-  populateBetForms();
 };
 
 async function handlePrediction(match) {

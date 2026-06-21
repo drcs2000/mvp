@@ -20,6 +20,10 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  afterSync: {
+    type: Function,
+    default: null,
+  },
 });
 
 const emit = defineEmits(["synced"]);
@@ -37,6 +41,10 @@ const handleSync = async () => {
       stores.standings.fetchStandingsByChampionshipId(props.championshipId, true),
       stores.matches.fetchByChampionship(props.championshipId, true),
     ]);
+    if (props.afterSync) {
+      await props.afterSync();
+    }
+
     emit("synced");
     stores.ui.showToast("Campeonato e classificação sincronizados!", "success");
   } catch (error) {
