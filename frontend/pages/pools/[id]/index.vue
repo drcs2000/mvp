@@ -1133,13 +1133,10 @@ const joinPool = async () => {
   }
 };
 const updateCountdown = (match) => {
-  if (!currentPool.value || !match.localTime) return;
-
-  const localDateStr = getLocalDateString(match.date);
-  const matchDate = new Date(`${localDateStr}T${match.localTime}`);
+  if (!currentPool.value || !match.date) return;
 
   const deadlineDate = new Date(
-    matchDate.getTime() - currentPool.value.betDeadlineHours * 60 * 60 * 1000
+    new Date(match.date).getTime() - currentPool.value.betDeadlineHours * 60 * 60 * 1000
   );
   const now = new Date();
   const diff = deadlineDate.getTime() - now.getTime();

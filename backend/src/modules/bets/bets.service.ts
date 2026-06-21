@@ -39,7 +39,7 @@ class BetsService {
     const matchDate = new Date(match.date)
     const deadline = this.getBetDeadline(matchDate, pool.betDeadlineHours)
 
-    if (new Date() > deadline) {
+    if (new Date() >= deadline) {
       throw new Error("O prazo para palpitar neste jogo já encerrou.")
     }
 

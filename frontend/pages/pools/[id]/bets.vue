@@ -228,6 +228,7 @@ const poolId = computed(() => route.params.id);
 const error = ref(null);
 const loading = ref(true);
 const currentChampionship = ref(null);
+const currentPool = ref(null);
 const allBets = ref([]);
 
 const selectedDate = ref(null);
@@ -252,6 +253,7 @@ const getLocalDateString = (utcDateString) => {
 onMounted(async () => {
   try {
     const pool = await stores.pools.fetchPoolById(poolId.value);
+    currentPool.value = pool;
     const championshipId = pool.baseChampionship.id;
 
     if (stores.championships.allChampionships.length === 0) {
@@ -448,12 +450,30 @@ const matchesByDay = computed(() => {
 
 const groupedBetsByMatch = computed(() => {
   return allBets.value.reduce((acc, bet) => {
+    if (!canShowBet(bet)) return acc;
+
     const matchId = bet.match.id;
     if (!acc[matchId]) acc[matchId] = [];
     acc[matchId].push(bet);
     return acc;
   }, {});
 });
+
+const isBetRevealTimeReached = (match) => {
+  if (!currentPool.value || !match?.date) return false;
+
+  const matchDate = new Date(match.date);
+  const deadlineDate = new Date(
+    matchDate.getTime() - currentPool.value.betDeadlineHours * 60 * 60 * 1000
+  );
+
+  return new Date() >= deadlineDate;
+};
+
+const canShowBet = (bet) => {
+  const loggedUserId = stores.auth.user?.id;
+  return bet.user?.id === loggedUserId || isBetRevealTimeReached(bet.match);
+};
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
