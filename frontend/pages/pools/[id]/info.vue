@@ -357,7 +357,7 @@
                       <div
                         class="flex items-center gap-1.5 text-gray-600 dark:text-gray-300"
                       >
-                        <ScaleIcon class="w-4 h-4 text-blue-500" />
+                        <CheckBadgeIcon class="w-4 h-4 text-blue-500" />
                         <span>Vencedor + Gols</span>
                       </div>
                       <span
@@ -622,6 +622,7 @@ import {
   StarIcon,
   ChevronDownIcon,
   CheckCircleIcon,
+  CheckBadgeIcon,
   AdjustmentsHorizontalIcon,
   UserMinusIcon,
   ClipboardDocumentListIcon,
