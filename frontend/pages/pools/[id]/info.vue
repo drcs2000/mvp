@@ -299,11 +299,6 @@
                 </div>
               </div>
               <div class="flex items-center">
-                <span
-                  class="mr-3 text-sm font-bold text-blue-600 md:hidden dark:text-blue-400"
-                >
-                  {{ participant.stats.totalPoints }} pts
-                </span>
                 <ChevronDownIcon
                   class="w-5 h-5 text-gray-400 transition-transform dark:text-gray-500"
                   :class="isExpanded(participant.userId) ? 'rotate-180' : ''"
@@ -358,7 +353,7 @@
                         class="flex items-center gap-1.5 text-gray-600 dark:text-gray-300"
                       >
                         <ScaleIcon class="w-4 h-4 text-blue-500" />
-                        <span>Empate</span>
+                        <span>Vencedor + Gols</span>
                       </div>
                       <span
                         class="font-bold text-gray-900 dark:text-gray-100"
@@ -664,6 +659,39 @@ const isInfoExpanded = ref(false);
 
 const allBets = computed(() => stores.bet.allPoolBets[poolId] || []);
 
+const getHitType = (bet) => {
+  const match = bet.match;
+  if (
+    !match ||
+    typeof match.homeScore !== "number" ||
+    typeof match.awayScore !== "number"
+  ) {
+    return "none";
+  }
+
+  const { homeScore, awayScore } = match;
+  const { homeScoreBet, awayScoreBet } = bet;
+  const matchWinner =
+    homeScore > awayScore ? "home" : awayScore > homeScore ? "away" : "draw";
+  const betWinner =
+    homeScoreBet > awayScoreBet
+      ? "home"
+      : awayScoreBet > homeScoreBet
+      ? "away"
+      : "draw";
+
+  if (homeScoreBet === homeScore && awayScoreBet === awayScore) return "full";
+  if (
+    betWinner === matchWinner &&
+    (homeScoreBet === homeScore || awayScoreBet === awayScore)
+  ) {
+    return "partial";
+  }
+  if (betWinner === matchWinner) return "result";
+  if (homeScoreBet === homeScore || awayScoreBet === awayScore) return "goal";
+  return "none";
+};
+
 const isCurrentUserAdmin = computed(() => {
   if (!pool.value || !authStore.user) return false;
   const admin = pool.value.participants.find((p) => p.role === "admin");
@@ -692,12 +720,12 @@ const participantStats = computed(() => {
     participantBets.forEach((bet) => {
       const pointsEarned = bet.pointsEarned || 0;
       stats.totalPoints += pointsEarned;
-      const pointsConfig = pool.value.points;
-      if (pointsConfig && pointsEarned > 0) {
-        if (pointsEarned === pointsConfig.full) stats.fullHits++;
-        else if (pointsEarned === pointsConfig.partial) stats.partialHits++;
-        else if (pointsEarned === pointsConfig.result) stats.resultHits++;
-        else if (pointsEarned === pointsConfig.goal) stats.goalHits++;
+      if (pointsEarned > 0) {
+        const hitType = getHitType(bet);
+        if (hitType === "full") stats.fullHits++;
+        else if (hitType === "partial") stats.partialHits++;
+        else if (hitType === "result") stats.resultHits++;
+        else if (hitType === "goal") stats.goalHits++;
       }
     });
     if (stats.totalBets > 0) {
@@ -705,7 +733,16 @@ const participantStats = computed(() => {
     }
     return { ...participant, stats };
   });
-  return statsList.sort((a, b) => b.stats.totalPoints - a.stats.totalPoints);
+  return statsList.sort((a, b) => {
+    return (
+      b.stats.totalPoints - a.stats.totalPoints ||
+      b.stats.fullHits - a.stats.fullHits ||
+      b.stats.partialHits - a.stats.partialHits ||
+      b.stats.resultHits - a.stats.resultHits ||
+      b.stats.goalHits - a.stats.goalHits ||
+      a.userName.localeCompare(b.userName)
+    );
+  });
 });
 
 const handleChampionshipSynced = async () => {
@@ -713,7 +750,7 @@ const handleChampionshipSynced = async () => {
 };
 
 onMounted(async () => {
-  isInfoExpanded.value = !isMobile.value;
+  isInfoExpanded.value = false;
   loading.value = true;
   try {
     const poolData = await stores.pools.fetchPoolById(poolId);
