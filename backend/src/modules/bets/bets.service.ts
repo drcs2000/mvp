@@ -110,12 +110,12 @@ class BetsService {
       throw new Error("Você não é participante deste bolão.")
     }
 
-    const startedStatuses = [
-      MatchStatus.IN_PROGRESS,
-      MatchStatus.HALFTIME,
-      MatchStatus.FULL_TIME,
-      MatchStatus.FINAL,
-    ]
+    const pool = await this.poolRepository.findOneBy({ id: poolId })
+    if (!pool) {
+      throw new Error("Bolão não encontrado.")
+    }
+
+    const visibleUntil = new Date(Date.now() + pool.betDeadlineHours * 60 * 60 * 1000)
 
     return this.betRepository.createQueryBuilder('bet')
       .leftJoinAndSelect('bet.user', 'user')
@@ -127,8 +127,8 @@ class BetsService {
       )
       .where('bet.poolId = :poolId', { poolId })
       .andWhere(
-        '(user.id = :userId OR match.status IN (:...startedStatuses))',
-        { userId, startedStatuses }
+        '(user.id = :userId OR match.date <= :visibleUntil)',
+        { userId, visibleUntil }
       )
       .orderBy('match.date', 'ASC')
       .getMany();
