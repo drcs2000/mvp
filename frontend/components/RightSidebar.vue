@@ -19,9 +19,9 @@
               </span>
             </div>
 
-            <span class="ml-2 text-[13px] font-medium text-gray-800 dark:text-gray-200"
-              >Olá, {{ firstName }}</span
-            >
+            <span class="ml-2 text-[13px] font-medium text-gray-800 dark:text-gray-200">
+              {{ $t('account.hello', { name: firstName }) }}
+            </span>
             <div class="flex-grow" />
             <ChevronDownIcon
               class="w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform duration-300"
@@ -49,7 +49,7 @@
                     ]"
                   >
                     <UserCircleIcon class="w-5 h-5 mr-2 text-gray-400 dark:text-gray-500" />
-                    Meu Perfil
+                    {{ $t('account.profile') }}
                   </NuxtLink>
                 </MenuItem>
                 <MenuItem v-slot="{ active }">
@@ -61,7 +61,7 @@
                     @click="openInvitationsModal"
                   >
                     <EnvelopeIcon class="w-5 h-5 mr-2 text-gray-400 dark:text-gray-500" />
-                    Convites
+                    {{ $t('account.invitations') }}
                     <span
                       v-if="invitationCount > 0"
                       class="absolute right-2 flex items-center justify-center w-4 h-4 text-xs text-white bg-red-500 rounded-full"
@@ -83,7 +83,7 @@
                     <ArrowRightOnRectangleIcon
                       class="w-5 h-5 mr-2 text-gray-400 dark:text-gray-500"
                     />
-                    Logout
+                    {{ $t('account.logout') }}
                   </button>
                 </MenuItem>
               </div>
@@ -96,7 +96,7 @@
           to="/login"
           class="flex items-center justify-center w-full px-2 py-1 font-semibold text-white transition-colors duration-200 bg-gray-800 border border-transparent rounded-md text-[13px] hover:bg-gray-900 dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300"
         >
-          Entrar
+          {{ $t('account.login') }}
         </NuxtLink>
       </div>
       <hr class="mt-4 border-t border-gray-200 dark:border-gray-700" >
@@ -111,7 +111,7 @@
             v-if="stores.standings.isLoading"
             class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 text-[10px]"
           >
-            Carregando...
+            {{ $t('common.loading') }}
           </div>
           <div v-else-if="stores.standings.standings.length > 0">
             <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-200">
@@ -121,12 +121,12 @@
               <thead class="text-[9px] uppercase text-gray-500 dark:text-gray-400">
                 <tr class="border-b border-gray-200 dark:border-gray-600">
                   <th class="w-[8%] py-1 font-normal text-left pl-1">#</th>
-                  <th class="w-[42%] py-1 font-normal text-left">Time</th>
-                  <th class="w-[10%] py-1 font-normal">P</th>
-                  <th class="w-[10%] py-1 font-normal">J</th>
-                  <th class="w-[10%] py-1 font-normal">V</th>
-                  <th class="w-[10%] py-1 font-normal">E</th>
-                  <th class="w-[10%] py-1 font-normal">D</th>
+                  <th class="w-[42%] py-1 font-normal text-left">{{ $t('standings.team') }}</th>
+                  <th class="w-[10%] py-1 font-normal">{{ $t('standings.points') }}</th>
+                  <th class="w-[10%] py-1 font-normal">{{ $t('standings.played') }}</th>
+                  <th class="w-[10%] py-1 font-normal">{{ $t('standings.wins') }}</th>
+                  <th class="w-[10%] py-1 font-normal">{{ $t('standings.draws') }}</th>
+                  <th class="w-[10%] py-1 font-normal">{{ $t('standings.losses') }}</th>
                 </tr>
               </thead>
               <tbody class="text-gray-800 dark:text-gray-200 text-[9px]">
@@ -163,7 +163,7 @@
             v-else
             class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 text-[10px]"
           >
-            Classificação não disponível.
+            {{ $t('standings.unavailable') }}
           </div>
         </div>
 
@@ -187,9 +187,9 @@
         </div>
       </div>
       <div v-else>
-        <h3 class="text-base font-semibold text-gray-800 dark:text-gray-200">Classificação</h3>
+        <h3 class="text-base font-semibold text-gray-800 dark:text-gray-200">{{ $t('standings.title') }}</h3>
         <p class="mt-2 text-gray-500 dark:text-gray-400 text-[10px]">
-          Selecione um campeonato para ver a tabela.
+          {{ $t('standings.selectChampionship') }}
         </p>
       </div>
     </div>

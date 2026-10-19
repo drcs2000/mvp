@@ -10,7 +10,7 @@
               class="flex items-center gap-1.5 whitespace-nowrap rounded-md px-4 py-2 text-sm font-semibold transition-colors duration-200 disabled:cursor-wait disabled:opacity-50 bg-gray-800 text-white hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-800 dark:hover:bg-gray-300"
               @click="joinPool"
             >
-              Entrar no Bolão
+              {{ $t('pool.join') }}
             </button>
             <NuxtLink
               :to="isParticipant ? `/pools/${poolId}/bets` : ''"
@@ -32,7 +32,7 @@
                   : 'text-gray-400 cursor-not-allowed dark:text-gray-500',
               ]"
             >
-              Informações
+              {{ $t('pool.information') }}
             </NuxtLink>
             <PoolSyncButton
               :championship-id="currentChampionship.id"
@@ -224,7 +224,7 @@
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    <span>Analisando...</span>
+                    <span>{{ $t('pool.analyzing') }}</span>
                   </div>
                   <div
                     v-else-if="predictions[match.id]"
@@ -285,11 +285,11 @@
                       :title="
                         isAiPredictionAvailable
                           ? 'Usar Palpite da IA'
-                          : 'Palpite da IA indisponível no momento'
+                          : $t('pool.aiUnavailable')
                       "
                       @click="handlePrediction(match)"
                     >
-                      <span>Usar Palpite da IA</span>
+                      <span>{{ $t('pool.useAiPrediction') }}</span>
                     </button>
                   </div>
                   <hr class="mt-6 border-gray-200 dark:border-gray-700" >
@@ -318,7 +318,7 @@
                           <h4
                             class="font-semibold text-gray-700 dark:text-gray-300"
                           >
-                            Últimos 5 de {{ match.homeTeamName }}
+                            {{ $t('pool.lastFive', { team: match.homeTeamName }) }}
                           </h4>
                         </div>
                         <div
@@ -357,7 +357,7 @@
                           <h4
                             class="font-semibold text-gray-700 dark:text-gray-300"
                           >
-                            Últimos 5 de {{ match.awayTeamName }}
+                            {{ $t('pool.lastFive', { team: match.awayTeamName }) }}
                           </h4>
                         </div>
                         <div
@@ -395,7 +395,7 @@
                       v-if="isH2HLoading[match.id]"
                       class="text-center text-sm text-gray-500 dark:text-gray-400 py-4"
                     >
-                      Buscando histórico de confrontos...
+                      {{ $t('pool.loadingHistory') }}
                     </div>
                     <div v-else-if="h2hData[match.id]" id="v-step-3-bet-h2h">
                       <h3
@@ -415,7 +415,7 @@
                             {{ h2hStats[match.id].homeWins || 0 }}
                           </div>
                           <div class="text-gray-600 dark:text-gray-400">
-                            Vitórias {{ match.homeTeamName }}
+                            {{ $t('pool.teamWins', { team: match.homeTeamName }) }}
                           </div>
                         </div>
                         <div
@@ -439,7 +439,7 @@
                             {{ h2hStats[match.id].awayWins || 0 }}
                           </div>
                           <div class="text-gray-600 dark:text-gray-400">
-                            Vitórias {{ match.awayTeamName }}
+                            {{ $t('pool.teamWins', { team: match.awayTeamName }) }}
                           </div>
                         </div>
                       </div>
@@ -496,7 +496,7 @@
                             <h4
                               class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 text-center"
                             >
-                              Últimos 5 (Geral)
+                              {{ $t('pool.lastFiveOverall') }}
                             </h4>
                             <div
                               class="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-2"
@@ -624,8 +624,8 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span v-if="isSavingBets">Salvando...</span>
-        <span v-else>Salvar Rodada</span>
+        <span v-if="isSavingBets">{{ $t('common.saving') }}</span>
+        <span v-else>{{ $t('pool.saveRound') }}</span>
       </button>
     </div>
     {{ pools }}

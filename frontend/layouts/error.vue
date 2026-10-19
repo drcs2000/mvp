@@ -6,22 +6,22 @@
           404
         </p>
         <h1 class="mt-4 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-          Página não encontrada
+          {{ $t('errors.notFound') }}
         </h1>
         <p class="mt-6 text-base leading-7 text-gray-600 dark:text-gray-400">
-          Desculpe, não conseguimos encontrar a página que você está procurando.
+          {{ $t('errors.notFoundDescription') }}
         </p>
       </div>
 
       <div v-else>
         <p class="text-base font-semibold text-red-600 dark:text-red-400">
-          Erro {{ error.statusCode }}
+          {{ $t('errors.error', { code: error.statusCode }) }}
         </p>
         <h1 class="mt-4 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-          Ocorreu um erro
+          {{ $t('errors.genericTitle') }}
         </h1>
         <p class="mt-6 text-base leading-7 text-gray-600 dark:text-gray-400">
-          {{ otherError }}
+          {{ $t('errors.genericDescription') }}
         </p>
       </div>
 
@@ -30,7 +30,7 @@
           to="/"
           class="rounded-md bg-gray-900 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-white"
         >
-          Voltar para a página inicial
+          {{ $t('errors.backHome') }}
         </NuxtLink>
       </div>
     </main>

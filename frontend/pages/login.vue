@@ -14,13 +14,13 @@
         </NuxtLink>
         <div class="mt-4">
           <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
-            {{ tab === "login" ? "Bem-vindo de volta" : "Crie sua conta" }}
+            {{ tab === "login" ? $t('login.welcomeBack') : $t('login.createAccount') }}
           </h2>
           <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {{
               tab === "login"
-                ? "Insira seus dados para continuar."
-                : "Preencha os campos para começar."
+                ? $t('login.loginSubtitle')
+                : $t('login.registerSubtitle')
             }}
           </p>
         </div>
@@ -36,7 +36,7 @@
           ]"
           @click="tab = 'login'"
         >
-          Entrar
+          {{ $t('login.loginTab') }}
         </button>
         <button
           :class="[
@@ -47,7 +47,7 @@
           ]"
           @click="tab = 'register'"
         >
-          Criar Conta
+          {{ $t('login.registerTab') }}
         </button>
       </div>
 
@@ -74,7 +74,7 @@
                 v-model="loginForm.email"
                 type="email"
                 required
-                placeholder="seu@email.com"
+                :placeholder="$t('login.emailPlaceholder')"
                 class="w-full appearance-none bg-transparent p-3 text-sm placeholder-gray-400 focus:outline-none dark:text-gray-200 dark:placeholder-gray-400"
               />
             </div>
@@ -94,7 +94,7 @@
                 v-model="loginForm.password"
                 type="password"
                 required
-                placeholder="Sua senha"
+                :placeholder="$t('login.passwordPlaceholder')"
                 class="w-full appearance-none bg-transparent p-3 text-sm placeholder-gray-400 focus:outline-none dark:text-gray-200 dark:placeholder-gray-400"
               />
             </div>
@@ -125,7 +125,7 @@
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              <span>{{ loading ? "Entrando..." : "Entrar" }}</span>
+              <span>{{ loading ? $t('login.loggingIn') : $t('login.loginTab') }}</span>
             </button>
           </form>
 
@@ -150,7 +150,7 @@
                 v-model="registerForm.name"
                 type="text"
                 required
-                placeholder="Nome completo"
+                :placeholder="$t('login.namePlaceholder')"
                 class="w-full appearance-none bg-transparent p-3 text-sm placeholder-gray-400 focus:outline-none dark:text-gray-200 dark:placeholder-gray-400"
               />
             </div>
@@ -171,12 +171,12 @@
                   v-model="registerForm.email"
                   type="email"
                   required
-                  placeholder="seu@email.com"
+                  :placeholder="$t('login.emailPlaceholder')"
                   class="w-full appearance-none bg-transparent p-3 text-sm placeholder-gray-400 focus:outline-none dark:text-gray-200 dark:placeholder-gray-400"
                 />
               </div>
               <p v-if="isRegisterEmailInvalid" class="mt-1 text-xs text-red-500">
-                Por favor, insira um e-mail válido.
+                {{ $t('login.invalidEmail') }}
               </p>
             </div>
             
@@ -195,7 +195,7 @@
                 v-model="registerForm.password"
                 type="password"
                 required
-                placeholder="Crie uma senha"
+                :placeholder="$t('login.newPasswordPlaceholder')"
                 class="w-full appearance-none bg-transparent p-3 text-sm placeholder-gray-400 focus:outline-none dark:text-gray-200 dark:placeholder-gray-400"
               />
             </div>
@@ -208,7 +208,7 @@
                   ]"
                 >
                   <CheckCircleIcon class="w-4 h-4 mr-1.5"/>
-                  Pelo menos 8 caracteres
+                  {{ $t('login.passwordRules.minLength') }}
                 </span>
                 <span
                   :class="[
@@ -217,7 +217,7 @@
                   ]"
                 >
                   <CheckCircleIcon class="w-4 h-4 mr-1.5"/>
-                  Uma letra maiúscula
+                  {{ $t('login.passwordRules.uppercase') }}
                 </span>
                 <span
                   :class="[
@@ -226,7 +226,7 @@
                   ]"
                 >
                   <CheckCircleIcon class="w-4 h-4 mr-1.5"/>
-                  Uma letra minúscula
+                  {{ $t('login.passwordRules.lowercase') }}
                 </span>
                 <span
                   :class="[
@@ -235,7 +235,7 @@
                   ]"
                 >
                   <CheckCircleIcon class="w-4 h-4 mr-1.5"/>
-                  Pelo menos um número
+                  {{ $t('login.passwordRules.number') }}
                 </span>
                  <span
                   :class="[
@@ -244,7 +244,7 @@
                   ]"
                 >
                   <CheckCircleIcon class="w-4 h-4 mr-1.5"/>
-                  Um caractere especial (@$!%*?&)
+                  {{ $t('login.passwordRules.special') }}
                 </span>
             </div>
 
@@ -275,7 +275,7 @@
                 />
               </svg>
               <span>{{
-                loading ? "Registrando..." : "Finalizar Cadastro"
+                loading ? $t('login.registering') : $t('login.finishRegistration')
               }}</span>
             </button>
           </form>

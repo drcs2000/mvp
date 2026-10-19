@@ -4,9 +4,9 @@
       class="sticky top-0 z-10 p-4 bg-white/80 sm:p-6 backdrop-blur-sm border-b border-gray-200 dark:bg-gray-800/80 dark:border-gray-700"
     >
       <div class="max-w-3xl">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Criar Novo Bolão</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $t('createPool.title') }}</h1>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Preencha os detalhes abaixo para configurar seu novo bolão.
+          {{ $t('createPool.subtitle') }}
         </p>
       </div>
     </header>
@@ -19,7 +19,7 @@
       >
         <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700">
           <h2 class="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">
-            Informações Gerais
+            {{ $t('createPool.general') }}
           </h2>
           <div class="grid grid-cols-1 mt-6 gap-y-6 sm:grid-cols-2 sm:gap-x-6">
             <div class="sm:col-span-2">
@@ -27,7 +27,7 @@
                 for="tournament-name"
                 class="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                Nome do torneio
+                {{ $t('createPool.name') }}
               </label>
               <input
                 id="tournament-name"
@@ -42,7 +42,7 @@
               <label
                 for="max-participants"
                 class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Máx. de participantes</label
+                >{{ $t('createPool.maxParticipants') }}</label
               >
               <input
                 id="max-participants"
@@ -59,14 +59,14 @@
             <div>
               <Listbox v-model="form.betDeadlineHours" as="div">
                 <ListboxLabel class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >Prazo para palpites</ListboxLabel
+                  >{{ $t('createPool.deadline') }}</ListboxLabel
                 >
                 <div class="relative mt-1">
                   <ListboxButton
                     class="relative w-full py-2 pl-3 pr-10 text-left bg-white border border-gray-300 rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:focus:ring-gray-400 dark:focus:border-gray-400"
                   >
                     <span class="block truncate"
-                      >Até {{ form.betDeadlineHours }} hora(s) antes</span
+                      >{{ $t('createPool.hoursBefore', { hours: form.betDeadlineHours }) }}</span
                     >
                     <span
                       class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
@@ -102,7 +102,7 @@
                               selected ? 'font-semibold' : 'font-normal',
                               'block truncate',
                             ]"
-                            >Até {{ hour }} hora(s) antes</span
+                            >{{ $t('createPool.hoursBefore', { hours: hour }) }}</span
                           >
                           <span
                             v-if="selected"
@@ -121,14 +121,14 @@
             <div class="sm:col-span-2">
               <Listbox v-model="form.baseChampionship" as="div">
                 <ListboxLabel class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >Campeonato base</ListboxLabel
+                  >{{ $t('createPool.baseChampionship') }}</ListboxLabel
                 >
                 <div class="relative mt-1">
                   <ListboxButton
                     class="relative w-full py-2 pl-3 pr-10 text-left bg-white border border-gray-300 rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-gray-800 focus:border-gray-800 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:focus:ring-gray-400 dark:focus:border-gray-400"
                   >
                     <span class="block truncate">{{
-                      form.baseChampionship?.name ?? "Carregando campeonatos..."
+                      form.baseChampionship?.name ?? $t('createPool.loadingChampionships')
                     }}</span>
                     <span
                       class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
@@ -183,7 +183,7 @@
             <div class="sm:col-span-2">
               <RadioGroup v-model="form.isPrivate">
                 <RadioGroupLabel class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >Visibilidade do torneio</RadioGroupLabel
+                  >{{ $t('createPool.visibility') }}</RadioGroupLabel
                 >
                 <div class="grid grid-cols-2 gap-4 mt-2">
                   <RadioGroupOption
@@ -202,7 +202,7 @@
                       <div class="flex items-center justify-center w-full">
                         <div class="text-center">
                           <RadioGroupLabel as="p" class="font-medium"
-                            >Público</RadioGroupLabel
+                            >{{ $t('createPool.public') }}</RadioGroupLabel
                           >
                           <RadioGroupDescription
                             as="span"
@@ -210,7 +210,7 @@
                               checked ? 'text-gray-300 dark:text-gray-600' : 'text-gray-500 dark:text-gray-400',
                               'text-xs',
                             ]"
-                            >Qualquer um pode entrar</RadioGroupDescription
+                            >{{ $t('createPool.publicDescription') }}</RadioGroupDescription
                           >
                         </div>
                       </div>
@@ -232,7 +232,7 @@
                       <div class="flex items-center justify-center w-full">
                         <div class="text-center">
                           <RadioGroupLabel as="p" class="font-medium"
-                            >Privado</RadioGroupLabel
+                            >{{ $t('createPool.private') }}</RadioGroupLabel
                           >
                           <RadioGroupDescription
                             as="span"
@@ -240,7 +240,7 @@
                               checked ? 'text-gray-300 dark:text-gray-600' : 'text-gray-500 dark:text-gray-400',
                               'text-xs',
                             ]"
-                            >Apenas por convite</RadioGroupDescription
+                            >{{ $t('createPool.privateDescription') }}</RadioGroupDescription
                           >
                         </div>
                       </div>
@@ -254,7 +254,7 @@
 
         <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700">
           <h2 class="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">
-            Sistema de Pontuação
+            {{ $t('createPool.scoring') }}
           </h2>
           <div
             class="grid grid-cols-1 mt-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-2 sm:gap-x-6"
@@ -264,15 +264,14 @@
                 <label
                   for="points-full"
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >Acerto completo</label
+                  >{{ $t('createPool.fullScore') }}</label
                 >
                 <div class="relative group">
                   <InformationCircleIcon class="w-4 h-4 text-gray-400 dark:text-gray-500" />
                   <span
                     class="absolute bottom-full left-1/2 -translate-x-1/2 w-48 p-2 mb-2 text-xs text-center text-white bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none dark:bg-gray-200 dark:text-gray-800"
                   >
-                    O usuário acerta o placar exato do jogo. Ex: Palpite 2x1,
-                    Resultado 2x1.
+                    {{ $t('createPool.fullHelp') }}
                   </span>
                 </div>
               </div>
@@ -292,15 +291,14 @@
                 <label
                   for="points-partial"
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >Acerto parcial</label
+                  >{{ $t('createPool.partialScore') }}</label
                 >
                 <div class="relative group">
                   <InformationCircleIcon class="w-4 h-4 text-gray-400 dark:text-gray-500" />
                   <span
                     class="absolute bottom-full left-1/2 -translate-x-1/2 w-48 p-2 mb-2 text-xs text-center text-white bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none dark:bg-gray-200 dark:text-gray-800"
                   >
-                    O usuário acerta quem venceu e o número de gols de um dos
-                    times. Ex: Palpite 2x1, Resultado 3x1 ou 2x0.
+                    {{ $t('createPool.partialHelp') }}
                   </span>
                 </div>
               </div>
@@ -320,15 +318,14 @@
                 <label
                   for="points-goal"
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >Acerto de gols</label
+                  >{{ $t('createPool.goalScore') }}</label
                 >
                 <div class="relative group">
                   <InformationCircleIcon class="w-4 h-4 text-gray-400 dark:text-gray-500" />
                   <span
                     class="absolute bottom-full left-1/2 -translate-x-1/2 w-48 p-2 mb-2 text-xs text-center text-white bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none dark:bg-gray-200 dark:text-gray-800"
                   >
-                    O usuário acerta a quantidade de gols de um dos times, mas
-                    erra o resultado. Ex: Palpite 2x1, Resultado 0x1.
+                    {{ $t('createPool.goalHelp') }}
                   </span>
                 </div>
               </div>
@@ -348,15 +345,14 @@
                 <label
                   for="points-result"
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >Acerto de resultado</label
+                  >{{ $t('createPool.resultScore') }}</label
                 >
                 <div class="relative group">
                   <InformationCircleIcon class="w-4 h-4 text-gray-400 dark:text-gray-500" />
                   <span
                     class="absolute bottom-full left-1/2 -translate-x-1/2 w-48 p-2 mb-2 text-xs text-center text-white bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none dark:bg-gray-200 dark:text-gray-800"
                   >
-                    O usuário acerta apenas o resultado final (quem venceu ou se
-                    houve empate), sem acertar o placar.
+                    {{ $t('createPool.resultHelp') }}
                   </span>
                 </div>
               </div>
@@ -376,23 +372,21 @@
 
         <div class="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700">
           <h2 class="text-base font-semibold leading-7 text-gray-900 dark:text-gray-100">
-            Detalhes Financeiros
+            {{ $t('createPool.financial') }}
           </h2>
           <div class="mt-6">
             <div class="flex items-center gap-1.5">
               <label
                 for="entry-fee"
                 class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Taxa de inscrição (R$)</label
+                >{{ $t('createPool.entryFee') }}</label
               >
               <div class="relative group">
                 <InformationCircleIcon class="w-4 h-4 text-gray-400 dark:text-gray-500" />
                 <span
                   class="absolute bottom-full left-1/2 -translate-x-1/2 w-56 p-2 mb-2 text-xs text-center text-white bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none dark:bg-gray-200 dark:text-gray-800"
                 >
-                  O site não faz a intermediação financeira. O pagamento da taxa
-                  e a distribuição dos prêmios são de responsabilidade do
-                  administrador do bolão.
+                  {{ $t('createPool.financialHelp') }}
                 </span>
               </div>
             </div>
@@ -447,8 +441,8 @@
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               ></path>
             </svg>
-            <span v-if="loading">Criando...</span>
-            <span v-else>Criar Torneio</span>
+            <span v-if="loading">{{ $t('createPool.creating') }}</span>
+            <span v-else>{{ $t('createPool.submit') }}</span>
           </button>
         </div>
       </form>

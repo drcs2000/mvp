@@ -14,7 +14,7 @@
       <h3
         class="px-3 mb-2 text-xs font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
       >
-        Gerenciar
+        {{ $t('navigation.manage') }}
       </h3>
       <NuxtLink
         id="create-pool"
@@ -23,7 +23,7 @@
         active-class="bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
       >
         <PlusCircleIcon class="w-4 h-4 mr-2 shrink-0" />
-        <span class="text-[13px] font-medium truncate">Criar Bolão</span>
+        <span class="text-[13px] font-medium truncate">{{ $t('navigation.createPool') }}</span>
       </NuxtLink>
       <NuxtLink
         id="list-pools"
@@ -32,7 +32,7 @@
         active-class="bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
       >
         <QueueListIcon class="w-4 h-4 mr-2 shrink-0" />
-        <span class="text-[13px] font-medium truncate">Bolões Públicos</span>
+        <span class="text-[13px] font-medium truncate">{{ $t('navigation.publicPools') }}</span>
       </NuxtLink>
 
       <NuxtLink
@@ -42,7 +42,7 @@
         active-class="bg-green-50 text-green-600 font-semibold dark:!bg-green-900/50 dark:!text-green-400"
       >
         <TrophyIcon class="w-4 h-4 mr-2 shrink-0" />
-        <span class="text-[13px] font-medium truncate">Meus Bolões</span>
+        <span class="text-[13px] font-medium truncate">{{ $t('navigation.myPools') }}</span>
       </NuxtLink>
     </div>
 
@@ -52,7 +52,7 @@
       <h3
         class="px-3 mb-2 text-xs font-semibold tracking-wider text-gray-400 uppercase shrink-0 dark:text-gray-500"
       >
-        Navegar
+        {{ $t('navigation.browse') }}
       </h3>
 
       <nav class="flex-1 overflow-y-auto no-scrollbar">
@@ -72,7 +72,7 @@
               :path="mdiSoccer"
               class="w-4 h-4 mr-2 shrink-0"
             />
-            <span class="text-[13px] font-medium truncate">Futebol</span>
+            <span class="text-[13px] font-medium truncate">{{ $t('navigation.football') }}</span>
             <div class="flex-grow" />
             <ChevronRightIcon
               class="w-4 h-4 ml-auto transition-transform duration-300 flex-shrink-0"
@@ -133,6 +133,7 @@
 
     <div class="shrink-0 pt-4 mt-auto">
       <hr class="my-6 border-t border-gray-200 dark:border-gray-700" >
+      <LanguageSwitcher class="mb-1.5 w-full" />
       <button
         class="flex items-center w-full px-2 py-1 mb-1.5 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
         @click="toggleTheme"
@@ -162,6 +163,7 @@ import SvgIcon from "@jamescoyle/vue-icon";
 import { mdiSoccer } from "@mdi/js";
 
 const { theme, setTheme } = useTheme();
+const { t, locale } = useI18n();
 const route = useRoute();
 const stores = useStores();
 
@@ -228,15 +230,15 @@ const handleNavigation = (event) => {
 const buildMenuData = () => {
   const data = {};
   const getContinent = (slug) => {
-    if (slug.startsWith("conmebol.")) return "América do Sul";
-    if (slug.startsWith("uefa.")) return "Internacional";
-    if (slug.startsWith("bra.")) return "Brasil";
-    if (slug.startsWith("eng.")) return "Inglaterra";
-    if (slug.startsWith("esp.")) return "Espanha";
-    if (slug.startsWith("ita.")) return "Itália";
-    if (slug.startsWith("ger.")) return "Alemanha";
-    if (slug.startsWith("fra.")) return "França";
-    return "Outros";
+    if (slug.startsWith("conmebol.")) return locale.value === 'en' ? "South America" : "América do Sul";
+    if (slug.startsWith("uefa.")) return locale.value === 'en' ? "International" : "Internacional";
+    if (slug.startsWith("bra.")) return locale.value === 'en' ? "Brazil" : "Brasil";
+    if (slug.startsWith("eng.")) return locale.value === 'en' ? "England" : "Inglaterra";
+    if (slug.startsWith("esp.")) return locale.value === 'en' ? "Spain" : "Espanha";
+    if (slug.startsWith("ita.")) return locale.value === 'en' ? "Italy" : "Itália";
+    if (slug.startsWith("ger.")) return locale.value === 'en' ? "Germany" : "Alemanha";
+    if (slug.startsWith("fra.")) return locale.value === 'en' ? "France" : "França";
+    return locale.value === 'en' ? "Other" : "Outros";
   };
 
   const sortedChampionships = [...stores.championships.allChampionships].sort(
@@ -265,12 +267,14 @@ const buildMenuData = () => {
   );
 };
 
+watch(locale, buildMenuData);
+
 const toggleTheme = () => {
   setTheme(theme.value === "dark" ? "light" : "dark");
 };
 
 const themeButtonText = computed(() => {
-  return theme.value === "dark" ? "Tema Claro" : "Tema Escuro";
+  return theme.value === "dark" ? t('navigation.lightTheme') : t('navigation.darkTheme');
 });
 </script>
 

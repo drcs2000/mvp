@@ -3,11 +3,11 @@
     type="button"
     :disabled="isSyncing"
     class="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 whitespace-nowrap disabled:opacity-50 disabled:cursor-wait dark:text-gray-300 dark:hover:text-blue-400"
-    title="Sincronizar jogos e classificação deste campeonato"
+    :title="$t('pools.syncTitle')"
     @click="handleSync"
   >
     <ArrowPathIcon class="w-4 h-4" :class="{ 'animate-spin': isSyncing }" />
-    <span class="hidden sm:inline">Sincronizar</span>
+    <span class="hidden sm:inline">{{ $t('pools.sync') }}</span>
   </button>
 </template>
 
@@ -28,6 +28,7 @@ const props = defineProps({
 
 const emit = defineEmits(["synced"]);
 const stores = useStores();
+const { t } = useI18n();
 const isSyncing = ref(false);
 
 const handleSync = async () => {
@@ -46,12 +47,12 @@ const handleSync = async () => {
     }
 
     emit("synced");
-    stores.ui.showToast("Campeonato e classificação sincronizados!", "success");
+    stores.ui.showToast(t('pools.syncSuccess'), "success");
   } catch (error) {
     stores.ui.showToast(
       error?.data?.message ||
         error?.message ||
-        "Ocorreu um erro ao sincronizar o campeonato.",
+        t('pools.syncError'),
       "error"
     );
   } finally {

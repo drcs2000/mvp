@@ -5,10 +5,10 @@
     >
       <div class="max-w-4xl mx-auto">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-          Meus Bolões
+          {{ $t('pools.myTitle') }}
         </h1>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Acompanhe os bolões que você está participando.
+          {{ $t('pools.mySubtitle') }}
         </p>
       </div>
     </header>
@@ -19,7 +19,7 @@
           v-if="loading"
           class="text-center text-gray-500 dark:text-gray-400 py-10"
         >
-          Carregando seus torneios...
+          {{ $t('pools.loadingMine') }}
         </div>
 
         <div
@@ -30,7 +30,7 @@
             class="w-10 h-10 text-red-400 dark:text-red-300"
           />
           <h3 class="mt-2 text-lg font-semibold text-red-800 dark:text-red-200">
-            Ocorreu um erro
+            {{ $t('errors.genericTitle') }}
           </h3>
           <p class="mt-1 text-sm text-red-600 dark:text-red-300">{{ error }}</p>
         </div>
@@ -118,7 +118,7 @@
                 class="w-6 h-6 mr-3 text-blue-600 dark:text-blue-300"
               />
               <span class="text-lg font-bold text-blue-700 dark:text-blue-200">
-                Criar novo Bolão
+                {{ $t('pools.createNew') }}
               </span>
             </div>
           </NuxtLink>
@@ -128,15 +128,15 @@
           v-else
           class="p-10 text-center text-gray-500 border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600 dark:text-gray-400"
         >
-          <p class="font-medium">Você ainda não participa de nenhum bolão.</p>
+          <p class="font-medium">{{ $t('pools.noneMine') }}</p>
           <p class="mt-2 text-sm">
-            Explore os
+            {{ $t('pools.exploreBefore') }}
             <NuxtLink
               to="/pools"
               class="font-semibold text-gray-800 underline hover:text-black dark:text-gray-200 dark:hover:text-white"
-              >bolões públicos</NuxtLink
+              >{{ $t('pools.exploreLink') }}</NuxtLink
             >
-            ou crie o seu!
+            {{ $t('pools.exploreAfter') }}
           </p>
         </div>
       </div>
@@ -155,17 +155,15 @@ import {
   PlusCircleIcon,
 } from "@heroicons/vue/24/outline";
 
-useHead({
-  title: "Meus Bolões",
-});
-
 const stores = useStores();
+const { t, locale } = useI18n();
+useHead({ title: () => t('pools.myTitle') });
 const loading = ref(true);
 const error = ref(null);
 
 const formatCurrency = (value) => {
-  if (value == null || value === 0) return "Grátis";
-  return new Intl.NumberFormat("pt-BR", {
+  if (value == null || value === 0) return t('common.free');
+  return new Intl.NumberFormat(locale.value === 'en' ? 'en-US' : 'pt-BR', {
     style: "currency",
     currency: "BRL",
   }).format(value);
@@ -177,7 +175,7 @@ onMounted(async () => {
   try {
     await stores.pools.fetchMyPools();
   } catch (err) {
-    error.value = err.data?.error || "Falha ao carregar seus bolões.";
+    error.value = err.data?.error || t('pools.loadMineError');
   } finally {
     loading.value = false;
   }

@@ -66,7 +66,7 @@
             @click="isMobile ? (isInfoExpanded = !isInfoExpanded) : null"
           >
             <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100">
-              Informações Gerais
+              {{ $t('pool.generalInformation') }}
             </h2>
             <ChevronDownIcon
               class="w-5 h-5 text-gray-400 transition-transform md:hidden dark:text-gray-500"
@@ -90,7 +90,7 @@
                           : 'text-green-600 dark:text-green-400'
                       "
                     >
-                      {{ pool.private ? "Privado" : "Público" }}
+                      {{ pool.private ? $t('pool.private') : $t('pool.public') }}
                     </p>
                   </div>
                   <div v-else>
@@ -113,7 +113,7 @@
                       <SwitchLabel as="span" class="ml-3 text-sm">
                         <span
                           class="font-medium text-gray-900 dark:text-gray-100"
-                          >{{ editForm.private ? "Privado" : "Público" }}</span
+                          >{{ editForm.private ? $t('pool.private') : $t('pool.public') }}</span
                         >
                       </SwitchLabel>
                     </SwitchGroup>
@@ -192,14 +192,14 @@
                     @click="handleDeletePool"
                   >
                     <TrashIcon class="w-4 h-4" />
-                    <span>Excluir Bolão</span>
+                    <span>{{ $t('pool.delete') }}</span>
                   </button>
                   <button
                     class="flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-200 dark:text-blue-500 dark:hover:text-blue-400"
                     @click="startEditing"
                   >
                     <PencilIcon class="w-4 h-4" />
-                    <span>Editar Bolão</span>
+                    <span>{{ $t('pool.edit') }}</span>
                   </button>
                 </div>
                 <div v-else class="flex items-center gap-4">
@@ -208,14 +208,14 @@
                     @click="saveChanges"
                     :disabled="isActionLoading"
                   >
-                    <span v-if="!isActionLoading">Salvar Alterações</span>
-                    <span v-else>Salvando...</span>
+                    <span v-if="!isActionLoading">{{ $t('pool.saveChanges') }}</span>
+                    <span v-else>{{ $t('common.saving') }}</span>
                   </button>
                   <button
                     class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                     @click="cancelEditing"
                   >
-                    <span>Cancelar</span>
+                    <span>{{ $t('common.cancel') }}</span>
                   </button>
                 </div>
               </div>
@@ -226,7 +226,7 @@
 
       <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <h2 class="text-lg font-bold text-gray-800 mb-6 dark:text-gray-100">
-          Classificação e Estatísticas
+          {{ $t('pool.standingsStats') }}
         </h2>
         <div class="space-y-2">
           <div
@@ -286,7 +286,7 @@
                     @click.stop="promptConfirmPayment(participant)"
                   >
                     <CreditCardIcon class="w-4 h-4" />
-                    <span class="hidden sm:inline">Não Pago</span>
+                    <span class="hidden sm:inline">{{ $t('pool.unpaid') }}</span>
                   </button>
                   <span
                     v-else
@@ -294,7 +294,7 @@
                     title="Pagamento pendente"
                   >
                     <CreditCardIcon class="w-4 h-4" />
-                    <span class="hidden sm:inline">Não Pago</span>
+                    <span class="hidden sm:inline">{{ $t('pool.unpaid') }}</span>
                   </span>
                 </div>
               </div>
@@ -321,7 +321,7 @@
                   >
                     <span
                       class="text-sm text-gray-500 font-medium dark:text-gray-400"
-                      >Pontuação Total</span
+                      >{{ $t('pool.totalPoints') }}</span
                     >
                     <span
                       class="font-bold text-lg text-blue-600 dark:text-blue-400"
@@ -334,7 +334,7 @@
                         class="flex items-center gap-1.5 text-gray-600 dark:text-gray-300"
                       >
                         <StarIcon class="w-4 h-4 text-yellow-400" />
-                        <span>Placar Cheio</span>
+                        <span>{{ $t('pool.exactScore') }}</span>
                       </div>
                       <span
                         class="font-bold text-gray-900 dark:text-gray-100"
@@ -346,7 +346,7 @@
                         class="flex items-center gap-1.5 text-gray-600 dark:text-gray-300"
                       >
                         <CheckCircleIcon class="w-4 h-4 text-green-500" />
-                        <span>Vencedor</span>
+                        <span>{{ $t('pool.winner') }}</span>
                       </div>
                       <span
                         class="font-bold text-gray-900 dark:text-gray-100"
@@ -358,7 +358,7 @@
                         class="flex items-center gap-1.5 text-gray-600 dark:text-gray-300"
                       >
                         <CheckBadgeIcon class="w-4 h-4 text-blue-500" />
-                        <span>Vencedor + Gols</span>
+                        <span>{{ $t('pool.winnerGoals') }}</span>
                       </div>
                       <span
                         class="font-bold text-gray-900 dark:text-gray-100"
@@ -372,7 +372,7 @@
                         <AdjustmentsHorizontalIcon
                           class="w-4 h-4 text-gray-500"
                         />
-                        <span>Gols de um Time</span>
+                        <span>{{ $t('pool.oneTeamGoals') }}</span>
                       </div>
                       <span
                         class="font-bold text-gray-900 dark:text-gray-100"
@@ -389,7 +389,7 @@
                         <ClipboardDocumentListIcon
                           class="w-4 h-4 text-purple-500"
                         />
-                        <span>Palpites Feitos</span>
+                        <span>{{ $t('pool.predictionsMade') }}</span>
                       </div>
                       <span
                         class="font-bold text-gray-900 dark:text-gray-100"
@@ -401,7 +401,7 @@
                         class="flex items-center gap-1.5 text-gray-600 dark:text-gray-300"
                       >
                         <TrophyIcon class="w-4 h-4 text-orange-500" />
-                        <span>Precisão (Placar Cheio)</span>
+                        <span>{{ $t('pool.accuracy') }}</span>
                       </div>
                       <span class="font-bold text-gray-900 dark:text-gray-100"
                         >{{
@@ -424,7 +424,7 @@
                       @click.stop="promptConfirmPayment(participant)"
                     >
                       <CurrencyDollarIcon class="w-4 h-4" />
-                      <span>Confirmar Pagamento</span>
+                      <span>{{ $t('pool.confirmPayment') }}</span>
                     </button>
                     <button
                       v-if="shouldShowRemoveButton(participant)"
@@ -533,8 +533,8 @@
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              <span v-if="isActionLoading">Processando...</span>
-              <span v-else>Confirmar</span>
+              <span v-if="isActionLoading">{{ $t('pool.processing') }}</span>
+              <span v-else>{{ $t('common.confirm') }}</span>
             </button>
           </div>
         </div>
@@ -602,8 +602,8 @@
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              <span v-if="isActionLoading">Removendo...</span>
-              <span v-else>Remover</span>
+              <span v-if="isActionLoading">{{ $t('pool.removing') }}</span>
+              <span v-else>{{ $t('common.remove') }}</span>
             </button>
           </div>
         </div>

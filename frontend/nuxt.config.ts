@@ -15,7 +15,23 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
     'nuxt-icon',
+    '@nuxtjs/i18n',
   ],
+
+  i18n: {
+    locales: [
+      { code: 'pt-BR', language: 'pt-BR', name: 'Português', file: 'pt-BR.json' },
+      { code: 'en', language: 'en-US', name: 'English', file: 'en.json' },
+    ],
+    defaultLocale: 'pt-BR',
+    strategy: 'no_prefix',
+    langDir: 'locales',
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'mvp_locale',
+      redirectOn: 'root',
+    },
+  },
 
   app: {
     head: {

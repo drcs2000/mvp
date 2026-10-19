@@ -12,19 +12,22 @@
 
     <NuxtLink to="/" class="text-xl font-bold dark:text-white"> MVP </NuxtLink>
 
-    <button
-      id="mobile-app-bar-right-button"
-      class="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-      @click="$emit('toggleRight')"
-    >
-      <TableCellsIcon class="w-6 h-6 text-gray-700 dark:text-gray-300" />
+    <div class="flex items-center gap-1">
+      <LanguageSwitcher />
+      <button
+        id="mobile-app-bar-right-button"
+        class="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+        @click="$emit('toggleRight')"
+      >
+        <TableCellsIcon class="w-6 h-6 text-gray-700 dark:text-gray-300" />
 
-      <span
-        v-if="invitationCount > 0"
-        class="absolute top-1.5 right-1.5 block w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-800"
-        aria-label="Novos convites"
-      />
-    </button>
+        <span
+          v-if="invitationCount > 0"
+          class="absolute top-1.5 right-1.5 block w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-800"
+          :aria-label="$t('navigation.newInvitations')"
+        />
+      </button>
+    </div>
   </header>
 </template>
 

@@ -4,7 +4,7 @@
       v-if="loading"
       class="pt-8 text-center text-gray-500 dark:text-gray-400"
     >
-      A carregar jogos...
+      {{ $t('home.loadingMatches') }}
     </div>
     <div v-else-if="Object.keys(matchesByDay).length > 0" class="mt-2">
       <div v-for="(matches, day) in matchesByDay" :key="day" class="mb-6">
@@ -85,7 +85,7 @@
       </div>
     </div>
     <div v-else class="pt-8 text-center text-gray-500 dark:text-gray-400">
-      <p>Nenhum jogo encontrado para esta rodada.</p>
+      <p>{{ $t('home.noMatches') }}</p>
     </div>
   </div>
 </template>
@@ -108,11 +108,13 @@ defineProps({
 
 const getStatusText = (status) =>
   ({
-    NS: "Agendado",
-    PST: "Adiado",
-    FT: "Encerrado",
-    HT: "Intervalo",
-    "1H": "1º Tempo",
-    "2H": "2º Tempo",
+    NS: t('matchStatus.SCHEDULED'),
+    PST: t('matchStatus.POSTPONED'),
+    FT: t('matchStatus.FINAL'),
+    HT: t('matchStatus.HALFTIME'),
+    "1H": locale.value === 'en' ? 'First half' : '1º Tempo',
+    "2H": locale.value === 'en' ? 'Second half' : '2º Tempo',
   }[status] || status);
+
+const { t, locale } = useI18n();
 </script>

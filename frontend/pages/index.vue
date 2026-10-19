@@ -113,7 +113,7 @@
           v-if="stores.matches.isLoading"
           class="pt-8 text-center text-gray-500 dark:text-gray-400"
         >
-          A carregar jogos...
+          {{ $t('home.loadingMatches') }}
         </div>
         <div v-else-if="matchesOfSelectedDay.length > 0" class="mt-2">
           <div :key="selectedDate" class="mb-6">
@@ -209,7 +209,7 @@
           </div>
         </div>
         <div v-else class="pt-8 text-center text-gray-500 dark:text-gray-400">
-          <p>Nenhum jogo encontrado para este dia.</p>
+          <p>{{ $t('home.noMatches') }}</p>
         </div>
       </div>
     </Transition>
@@ -220,6 +220,7 @@
 import { computed, onMounted, watch, ref, nextTick } from "vue";
 
 const stores = useStores();
+const { t, locale } = useI18n();
 
 const selectedChampionship = computed({
   get: () => stores.championships.selectedChampionship,
@@ -367,25 +368,19 @@ const formatDate = (dateString) => {
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  if (date.getTime() === today.getTime()) return "Hoje";
-  if (date.getTime() === tomorrow.getTime()) return "Amanhã";
-  return new Intl.DateTimeFormat("pt-BR", {
+  if (date.getTime() === today.getTime()) return t('common.today');
+  if (date.getTime() === tomorrow.getTime()) return t('common.tomorrow');
+  return new Intl.DateTimeFormat(locale.value === 'en' ? 'en-US' : 'pt-BR', {
     weekday: "short",
     day: "2-digit",
     month: "long",
   }).format(date);
 };
 
-const getStatusText = (status) =>
-  ({
-    SCHEDULED: "Agendado",
-    IN_PROGRESS: "Em Andamento",
-    HALFTIME: "Intervalo",
-    FULL_TIME: "Tempo Regulamentar",
-    FINAL: "Encerrado",
-    POSTPONED: "Adiado",
-    CANCELED: "Cancelado",
-  }[status] || status);
+const getStatusText = (status) => {
+  const key = `matchStatus.${status}`;
+  return t(key) === key ? status : t(key);
+};
 
 const isHomeWinner = (match) =>
   match.status === "FT" && match.homeScore > match.awayScore;
