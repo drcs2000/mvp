@@ -34,7 +34,10 @@ const initializeDataSource = async () => {
   await dataSourcePromise;
 };
 
-const allowedOrigins = ['https://www.bethemvp.com.br'];
+const allowedOrigins = [
+  'https://www.bethemvp.com.br',
+  'https://mvp-kappa-two.vercel.app',
+];
 
 if (process.env.NODE_ENV !== 'production') {
   allowedOrigins.push('http://localhost:3000');
